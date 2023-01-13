@@ -5,22 +5,25 @@ import os
 import numpy as np
 import math
 import random as rnd
+import time
 
 from Draw_Window import draw_window
-from Misc import ShipExplosion, GlobalState, MoveScreen
+from Misc import GlobalState, MoveScreen
 from Weapon_Class import Bullet
-from Ship_Class import Ship
-from Control_Functions import NPControl, PlayerControl1
+from Ship_Class import Ship, Station, Asteroid
+from Control_Functions import NPControl, NPControl2, TurretControl, PlayerControl1
+from Explosions import ShipExplosion
 
 PCS = 'y'
-nA = 2  # number of allied ships
-nE = 2  # number of enemy ships
+nA = 1  # number of allied ships
+nE = 1  # number of enemy ships
+nR = 500  # number of asteroids
 
 # """ASK USER WHETHER TO SPAWN PLAYER CONTROLLED SHIP"""
 # while PCS != 'y' and PCS != 'n':
 #     PCS = input('Spawn Player Controlled Ship? (y/n)')
 #
-# """NUMBER OF ALLIES"""e
+# """NUMBER OF ALLIES"""
 # while nA is not int and (nA < 0 or nA > 5):
 #     nA = int(input('Number of Allies:'))
 #
@@ -37,53 +40,35 @@ HUD = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)  # create HUD surface
 
 pygame.display.set_caption("The Expanse")  # set window title
 
-FONT = pygame.font.SysFont('Agency FB', 25)  # font type: not currently used
+FONT1 = pygame.font.SysFont('Agency FB', 25)  # font type
+FONT2 = pygame.font.SysFont('Agency FB', 20)  # font type
+FONT3 = pygame.font.SysFont('Agency FB', 15)  # font type
 
 COLOR = (40, 10, 35)  # define window color
 BLACK = (0, 50, 0)  # BLACK
 RED = (255, 0, 0)  # RED
 YELLOW = (255, 255, 0)  # YELLOW
 
-SPACE = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space2.png')), (WIDTH, HEIGHT))  # background image
-DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')), (6000, 6000))  # foreground image
-# Y_SHIP_IMAGE = pygame.image.load(os.path.join('Assets', 'yellow_ship.png'))  # yellow spaceship
-# R_SHIP_IMAGE = pygame.image.load(os.path.join('Assets', 'red_ship.png'))  # red spaceship
+SPACE = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space2.png')), (WIDTH, HEIGHT)).convert(HUD)  # background image
+DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')), (6000, 6000)).convert(HUD)  # foreground image
+FIELD = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'middle_ground.png')), (6000, 6000)).convert(HUD)  # middle ground image
 
-
-FPS = 30  # define frame rate
-# VEL = 8  # ship velocity
-# ACC = .2  # ship acceleration
+FPS = 60  # define frame rate
 
 # YELLOW_HIT = pygame.USEREVENT + 1
 # RED_HIT = pygame.USEREVENT + 2
-
-# AV = 2  # angular velocity
-
-spaceship_height, spaceship_width = 50, 50
-# Y_SHIP_IMAGE = pygame.image.load(os.path.join('Assets', 'yellow_ship.png'))  # yellow spaceship
-# R_SHIP_IMAGE = pygame.image.load(os.path.join('Assets', 'red_ship.png'))  # red spaceship
-# MISSILE_IMAGE = pygame.image.load(os.path.join('Assets', 'smallmissile1.png'))  # red spaceship
 
 # music_file = os.path.join('Assets', 'music.mp3')  # path to music file
 pygame.init()
 pygame.mixer.init()
 
-explosion_group = pygame.sprite.Group()  # initialize explosion group
+# explosion_group = pygame.sprite.Group()  # initialize explosion group
 
-MyGS = GlobalState(0, 0, HEIGHT, WIDTH)  # global state object: used to keep track of global variables
+MyGS = GlobalState(100000, 0, 0, HEIGHT, WIDTH, [FONT1, FONT2, FONT3], [[], []], [[], []], [[], []], [[], []], [], [NPControl, NPControl2])  # global state object: used to keep track of global variables
 
 
 def main():
 
-    """INITIALIZE LISTS"""
-    yellow_ships = []
-    red_ships = []
-
-    red_bullets = []
-    yellow_bullets = []
-
-    yellow_missiles = []
-    red_missiles = []
 
     """ASSIGN PLAYER CONTROL AND NPC CONTROL FUNCTIONS"""
     player_control = PlayerControl1
@@ -91,28 +76,61 @@ def main():
 
     """SPAWN IN SPECIFIED SHIPS"""
     if PCS == 'y':
-        yellow = Ship(player_control, rnd.randint(0, 200), rnd.randint(0, 1000), 0, 'yellow', 'Frigate', 'railgun', 'torpedo', True)
-        yellow_ships.append(yellow)
+
+        yellow = Ship(player_control, TurretControl, rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Destroyer', MyGS, is_player=True)
+
+        yellow.add_bullet(MyGS, 'Railgun')
+        yellow.add_bullet(MyGS, 'Plasma')
+        yellow.add_missile(MyGS, 'Smart Missile')
+        yellow.add_missile(MyGS, 'Swarm Missile')
+        MyGS.ships[0].append(yellow)
+
+
         pygame.init()
         pygame.mixer.init()
 
     for i in range(nA):
-        yellow = Ship(npc_control, rnd.randint(0, 200), rnd.randint(0, 1000), rnd.randint(0, 359), 'yellow', 'Fighter', 'HV', 'HE')
-        yellow_ships.append(yellow)
-        yellow = Ship(npc_control, rnd.randint(-1000, -500), rnd.randint(0, 1000), rnd.randint(0, 359), 'yellow', 'Sprinter',
-                      'PA', 'torpedo')
-        yellow_ships.append(yellow)
+        # yellow = Ship(NPControl2, TurretControl, rnd.randint(0, 200), rnd.randint(0, 1000), rnd.randint(0, 359), 'yellow', 'Frigate', 'HV', 'HE')
+        # MyGS.ships[0].append(yellow)
+        yellow = Ship(NPControl2, TurretControl, rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Frigate', MyGS)
+        yellow.add_bullet(MyGS, 'Plasma')
+        yellow.add_missile(MyGS, 'EMP Missile')
+        MyGS.ships[0].append(yellow)
+
+        yellow = Station(rnd.randint(2000, 5000), rnd.randint(2000, 5000), 'Partrid', TurretControl, 'yellow', MyGS)
+        # yellow.docked_ships.append(Ship(NPControl2, TurretControl, rnd.randint(0, 1000), rnd.randint(0, 1000), rnd.randint(0, 359), 'yellow', 'Frigate', MyGS).add_bullet(MyGS, 'Plasma'))
+        yellow.image.convert(HUD)
+        MyGS.stations[0].append(yellow)
 
     for i in range(nE):
-        red = Ship(npc_control, rnd.randint(10000, 10200), rnd.randint(0, 1000), rnd.randint(0, 359), 'red', 'Frigate', 'railgun', 'HE')
-        red_ships.append(red)
-        red = Ship(npc_control, rnd.randint(10000, 10200), rnd.randint(0, 1000), rnd.randint(0, 359), 'red', 'Fighter',
-                   'HV', 'HE')
-        red_ships.append(red)
+        # red = Ship(NPControl2, TurretControl, rnd.randint(10000, 11000), rnd.randint(10000, 11000), rnd.randint(0, 359), 'red', 'Frigate', 'HV', 'HE')
+        # MyGS.ships[1].append(red)
+        # red = Ship(npc_control, rnd.randint(10000, 10200), rnd.randint(0, 1000), rnd.randint(0, 359), 'red', 'Sprinter',
+        #            'PA', 'HE')
+        # red_ships.append(red)
+
+        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(MyGS.size-2000, MyGS.size-1000), 0, 'red', 'Destroyer', MyGS)
+        red.add_bullet(MyGS, 'Plasma')
+        red.add_missile(MyGS, 'Smart Missile')
+        MyGS.ships[1].append(red)
+
+        red = Ship(NPControl2, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(MyGS.size-2000, MyGS.size-1000), 0, 'red', 'Frigate', MyGS)
+        red.add_bullet(MyGS, 'Plasma')
+        red.add_missile(MyGS, 'EMP Missile')
+        MyGS.ships[1].append(red)
+
+        red = Station(rnd.randint(MyGS.size-5000, MyGS.size-2000), rnd.randint(MyGS.size-5000, MyGS.size-2000), 'Partrid', TurretControl, 'red', MyGS)
+        red.image.convert(HUD)
+        MyGS.stations[1].append(red)
+
+    for i in range(nR):
+        roid = Asteroid(rnd.randint(1000, MyGS.size-1000), rnd.randint(1000, MyGS.size-1000), rnd.randint(0, 359), rnd.randint(0, 100), HUD)
+        MyGS.asteroids.append(roid)
 
     """Play Music"""
     pygame.init()
     pygame.mixer.init()
+    pygame.mixer.set_num_channels(3)
     # pygame.mixer.music.load(music_file)
     # pygame.mixer.music.play()
     # pygame.event.wait()
@@ -120,11 +138,14 @@ def main():
     run = True
     clock = pygame.time.Clock()  # game clock
     winner_text = ""
+    MyGS.update()
 
     while run:  # main loop
         clock.tick(FPS)
-
-        explosion_group.update()  # update all explosions
+        fps = round(clock.get_fps())
+        if fps < 50:
+            print(fps)
+        MyGS.explosion_group.update()  # update all explosions
         if PCS == 'n':
             MoveScreen(MyGS)
 
@@ -133,37 +154,47 @@ def main():
                 run = False
                 print('game over!')
 
-        """Ship Movement"""
-        for yellow in yellow_ships:
-            if yellow.health > 0:
-                yellow.scoot(yellow_bullets, yellow_missiles, red_ships, MyGS)  # move ships
-            else:
-                yellow_ships.remove(yellow)  # remove dead ships
+        # """Station Function"""
+        # for faction in range(len(MyGS.stations)):
+        #     for station in MyGS.stations[faction]:
+        #         station.scoot(MyGS, faction)  # update stations
 
-        for red in red_ships:
-            if red.health > 0:
-                red.scoot(red_bullets, red_missiles, yellow_ships, MyGS)  # move ships
-            else:
-                red_ships.remove(red)  # remove dead ships
+        """Ship Movement"""
+        for faction in range(len(MyGS.ships)):
+            for ship in MyGS.ships[faction]:
+                if ship.health > 0:
+                    ship.scoot(MyGS, faction)  # move ships
+                    if MyGS.ships[faction].count(ship) > 1:
+                        print('mobile ship error')
+                        print(MyGS.ships[faction].count(ship))
+                else:
+                    ShipExplosion(ship, MyGS)
+                    MyGS.ships[faction].remove(ship)  # remove dead ships
+                    MyGS.update()
+
+        """Station Function"""
+        for faction in range(len(MyGS.stations)):
+            for station in MyGS.stations[faction]:
+                station.scoot(MyGS, faction)  # update stations
 
         """Bullet Movement"""
-        for bullet in yellow_bullets:
-            bullet.scoot(yellow_bullets, red_ships, explosion_group, MyGS)
+        for faction in range(len(MyGS.bullets)):
+            for bullet in MyGS.bullets[faction]:
+                bullet.scoot(MyGS)  # move bullets
 
-        for bullet in red_bullets:
-            bullet.scoot(red_bullets, yellow_ships, explosion_group, MyGS)
-
-        for missile in yellow_missiles:
-            missile.scoot(yellow_missiles, red_ships, explosion_group, MyGS)
-
-        for missile in red_missiles:
-            missile.scoot(red_missiles, yellow_ships, explosion_group, MyGS)
+        for faction in range(len(MyGS.missiles)):
+            for missile in MyGS.missiles[faction]:
+                missile.scoot(MyGS)  # move missiles
 
         """Render Window"""
-        draw_window(red_ships, yellow_ships, red_bullets, yellow_bullets, red_missiles, yellow_missiles, WIN, HUD, SPACE, DUST, FONT, spaceship_height, spaceship_width, explosion_group, MyGS)
+        # t1 = time.time()
+        draw_window(WIN, HUD, SPACE, DUST, FIELD, MyGS, fps, HEIGHT, WIDTH)
+        # t2 = time.time()
+        # print(t2 - t1)
 
     pygame.quit()  # quit game
+    return MyGS
 
 
 if __name__ == "__main__":
-    main()
+    MyGS = main()

@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-image_path = r"C:\Users\logan\PycharmProjects\Space_Arcade\Assets\space_dust2.png"
-Image_Path = r"C:\Users\logan\PycharmProjects\Space_Arcade\Assets\space_dust_new2.png"
+image_path = r"C:\Users\logan\PycharmProjects\Space_Arcade\Assets\asteroid_belt.png"
+Image_Path = r"C:\Users\logan\PycharmProjects\Space_Arcade\Assets\middle_ground.png"
 img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
 # img = np.array([[1,2,3],[4,5,6]])
 
