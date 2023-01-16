@@ -2,6 +2,7 @@ import pygame
 import math
 import numpy as np
 import random as rnd
+import time
 
 from Misc import FindNearest, FindMineable
 from Ship_Class import Ship, Station, Asteroid
@@ -51,8 +52,7 @@ def NPControl(ship, global_state, faction):
         commands[1] = 1
 
         """NO LATERAL ACCELERATION"""
-        # commands.append(0)
-
+        commands[2] = round(math.sin(ship.counter))
         """SHOOT"""
         # commands.append(0)
         # commands.append(0)
@@ -109,7 +109,7 @@ def NPControl(ship, global_state, faction):
         commands[1] = 1
 
         """NO LATERAL ACCELERATION"""
-        # commands.append(0)
+        commands[2] = round(math.sin(time.time()))
 
         """SHOOT"""
         if abs(angle2 * 180 / math.pi) < ship.av and ship.energy >= 30 and ship.bullet_types[ship.bullet_sel].range * ship.bullet_types[ship.bullet_sel].range > dx * dx + dy * dy:  # SHOOT BULLET
@@ -337,7 +337,7 @@ def PlayerControl1(ship, global_state, faction):
             if i <= len(ship.bullet_types):
                 commands[9] = i
             elif i <= len(ship.bullet_types) + len(ship.missile_types):
-                commands[10] = i - len(ship.missile_types)
+                commands[10] = i - len(ship.bullet_types)
 
     return commands
 

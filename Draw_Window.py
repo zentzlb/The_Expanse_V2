@@ -191,7 +191,7 @@ def draw_window(WIN, HUD, SPACE, DUST, FIELD, global_state, fps, HEIGHT, WIDTH):
                         """DRAW TARGET"""
 
                         # target_rect = pygame.Rect(box_tl[0] + 2, box_tl[1] + 2, box_tr[0] - box_tl[0] - 3, box_bl[1] - box_tl[1] - 3)
-                        pygame.draw.rect(HUD, (255, 0, 0, 15), rect1)
+                        pygame.draw.rect(HUD, (255, 255, 255, 15), rect1)
 
                         # ROID = pygame.transform.scale(ship.target.image, (1000, 1000))
                         adjust_x = (ship.target.width - ship.target.height * abs(
@@ -258,7 +258,6 @@ def draw_window(WIN, HUD, SPACE, DUST, FIELD, global_state, fps, HEIGHT, WIDTH):
                             text = global_state.fonts[2].render(f"{c+1}. {ship.missile_types[i].name}", True, COLOR)
                             HUD.blit(text, (7, rect2.y + 4 + c * th))
                             c += 1
-
 
                         # for i in range(len(global_state.stations[0][0].docked_ships)):
                         #     text = global_state.fonts[2].render(f"{global_state.stations[0][0].docked_ships[i].ship_type.name}", True, SILVER)

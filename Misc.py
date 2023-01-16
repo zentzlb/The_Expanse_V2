@@ -221,12 +221,12 @@ class GlobalState:
             self.mining.play(self.mining_sound)
 
 
-
 def make_dict(List):
     Dict = {}
     for D in List:
         Dict[D['name']] = Dict2Object(D)
     return Dict
+
 
 class Dict2Object:
     def __init__(self, dic):
@@ -501,11 +501,15 @@ def FindNearest(xo, yo, target_list):
     if len(target_list) > 0:
         d = []
         for target in target_list:
-            r = math.sqrt((target.centerx - xo) ** 2 + (target.centery - yo) ** 2)  # distance to target
+            dx = target.centerx - xo
+            dy = target.centery - yo
+            # r = math.sqrt((target.centerx - xo) ** 2 + (target.centery - yo) ** 2)  # distance to target
+            r2 = dx * dx + dy * dy
             a = target.is_visible  # is uncloaked
-            b = r < 1500  # is within visual range
+            # b = r < 1500  # is within visual range
+            b = r2 < 2250000
             if a or b:  # and target.health > 0:  # only add ships to the target list if they're visible
-                d.append(r)
+                d.append(r2)
             else:
                 d.append(math.inf)
         if len(d) > 0:

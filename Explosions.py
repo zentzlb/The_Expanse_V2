@@ -156,13 +156,13 @@ class PAExplosion(pygame.sprite.Sprite):
 
 
 class Particle:
-    def __init__(self, x, y, v, angle, radius, color, shrink=0):
+    def __init__(self, x, y, v, angle, radius, color, shrink=0, vx=0, vy=0):
         self.x = x
         self.y = y
         self.fx = x
         self.fy = y
-        self.vx = v * math.sin(angle * math.pi / 180)
-        self.vy = v * math.cos(angle * math.pi / 180)
+        self.vx = v * math.sin(angle * math.pi / 180) + vx
+        self.vy = v * math.cos(angle * math.pi / 180) + vy
         self.color = color
         self.radius = radius
         self.shrink = shrink

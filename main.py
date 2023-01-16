@@ -77,12 +77,14 @@ def main():
     """SPAWN IN SPECIFIED SHIPS"""
     if PCS == 'y':
 
-        yellow = Ship(player_control, TurretControl, rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Destroyer', MyGS, is_player=True)
+        yellow = Ship(player_control, TurretControl, rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Ghost', MyGS, is_player=True)
 
-        yellow.add_bullet(MyGS, 'Railgun')
+        # yellow.add_bullet(MyGS, 'AP AutoCannon')
         yellow.add_bullet(MyGS, 'Plasma')
-        yellow.add_missile(MyGS, 'Smart Missile')
         yellow.add_missile(MyGS, 'Swarm Missile')
+        yellow.add_missile(MyGS, 'EMP Missile')
+        yellow.add_missile(MyGS, 'Smart Missile')
+        # yellow.refresh(MyGS)
         MyGS.ships[0].append(yellow)
 
 
@@ -140,11 +142,27 @@ def main():
     winner_text = ""
     MyGS.update()
 
+    t1 = 0
+    t2 = 0
+    t3 = 0
+    t4 = 0
+
+    for faction in range(len(MyGS.ships)):
+        for ship in MyGS.ships[faction]:
+            ship.refresh(MyGS)
+
     while run:  # main loop
         clock.tick(FPS)
         fps = round(clock.get_fps())
-        if fps < 50:
-            print(fps)
+
+        if 0 < fps < 50:
+            print(f'fps: {fps}')
+            print(f'logic: {t3-t2}')  # 0.001
+            print(f'display: {t4-t3}')  # 0.007
+            print(f'other: {t2 - t1}')  # 0.000
+            print()
+
+        t1 = time.time()
         MyGS.explosion_group.update()  # update all explosions
         if PCS == 'n':
             MoveScreen(MyGS)
@@ -159,9 +177,14 @@ def main():
         #     for station in MyGS.stations[faction]:
         #         station.scoot(MyGS, faction)  # update stations
 
+        t2 = time.time()
+
         """Ship Movement"""
         for faction in range(len(MyGS.ships)):
-            for ship in MyGS.ships[faction]:
+
+            # for ship in MyGS.ships[faction]:
+            for i in range(len(MyGS.ships[faction]) - 1, -1, -1):
+                ship = MyGS.ships[faction][i]
                 if ship.health > 0:
                     ship.scoot(MyGS, faction)  # move ships
                     if MyGS.ships[faction].count(ship) > 1:
@@ -169,28 +192,34 @@ def main():
                         print(MyGS.ships[faction].count(ship))
                 else:
                     ShipExplosion(ship, MyGS)
-                    MyGS.ships[faction].remove(ship)  # remove dead ships
+                    MyGS.ships[faction].pop(i)  # remove dead ships
                     MyGS.update()
 
         """Station Function"""
         for faction in range(len(MyGS.stations)):
-            for station in MyGS.stations[faction]:
+            # for station in MyGS.stations[faction]:
+            for i in range(len(MyGS.stations[faction]) - 1, -1, -1):
+                station = MyGS.stations[faction][i]
                 station.scoot(MyGS, faction)  # update stations
 
         """Bullet Movement"""
         for faction in range(len(MyGS.bullets)):
-            for bullet in MyGS.bullets[faction]:
+            # for bullet in MyGS.bullets[faction]:
+            for i in range(len(MyGS.bullets[faction]) - 1, -1, -1):
+                bullet = MyGS.bullets[faction][i]
                 bullet.scoot(MyGS)  # move bullets
 
         for faction in range(len(MyGS.missiles)):
-            for missile in MyGS.missiles[faction]:
+            # for missile in MyGS.missiles[faction]:
+            for i in range(len(MyGS.missiles[faction]) - 1, -1, -1):
+                missile = MyGS.missiles[faction][i]
                 missile.scoot(MyGS)  # move missiles
 
         """Render Window"""
-        # t1 = time.time()
+        t3 = time.time()
         draw_window(WIN, HUD, SPACE, DUST, FIELD, MyGS, fps, HEIGHT, WIDTH)
-        # t2 = time.time()
-        # print(t2 - t1)
+        t4 = time.time()
+
 
     pygame.quit()  # quit game
     return MyGS
