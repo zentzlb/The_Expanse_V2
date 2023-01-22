@@ -11,19 +11,20 @@ from Ship_Class import Ship, Station, Asteroid
 """NPC LOGIC"""
 
 
-def NPControl(ship, global_state, faction):
+def Null(ship, global_state, faction):
+    commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    return commands
 
-    commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    if ship.health < ship.ship_type.health // 2:
-        ship.target = FindNearest(ship.centerx, ship.centery, global_state.stations[faction])
+def NPControl(ship, gs, faction):
+
+    commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+    if ship.health < ship.ship_type.health // 10:
+        ship.target = FindNearest(ship, gs.stations[faction])
 
     elif ship.target is None or ship.target.health >= 0 or ship.counter == 60:
-        target_list = []
-        for i in range(len(global_state.ships)):
-            if i != faction:
-                target_list.extend(global_state.ships[i])
-        ship.target = FindNearest(ship.centerx, ship.centery, target_list)
+        ship.target = FindNearest(ship, gs.targets[faction])
         ship.counter = 0
     else:
         ship.counter += 1
@@ -35,12 +36,8 @@ def NPControl(ship, global_state, faction):
         dx = x - ship.centerx
         dy = y - ship.centery
 
-        cos = math.cos(ship.angle * math.pi / 180)
-        sin = math.sin(ship.angle * math.pi / 180)
-
-        Q = np.array([[cos, -sin], [sin, cos]])
         V = np.array([[dx], [dy]])
-        V_prime = Q.dot(V)
+        V_prime = ship.Q.dot(V)
         angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
 
         if angle2 > ship.av * math.pi / 360:  # LEFT
@@ -71,16 +68,18 @@ def NPControl(ship, global_state, faction):
             commands[8] = 1
 
     elif ship.target is not None:
+
+        pos = ship.Q.transpose().dot(ship.ship_type.bullet_pos[ship.bullet_sel]) - np.array([ship.bullet_types[ship.bullet_sel].width // 2, ship.bullet_types[ship.bullet_sel].height // 2])
+
         vx = ship.target.vx
         vy = ship.target.vy
-        xo = ship.target.centerx
-        yo = ship.target.centery
+        xo = ship.target.centerx - pos[0]
+        yo = ship.target.centery - pos[1]
         bullet_velocity = ship.bullet_types[ship.bullet_sel].velocity
 
         a = vx ** 2 + vy ** 2 - bullet_velocity ** 2
         b = 2 * (vx * (xo - ship.centerx) + vy * (yo - ship.centery))
         c = (xo - ship.centerx) ** 2 + (yo - ship.centery) ** 2
-
 
         t = (-b - math.sqrt(b ** 2 - 4 * a * c)) / (2 * a)
 
@@ -106,7 +105,10 @@ def NPControl(ship, global_state, faction):
             commands[0] = -1
 
         """GO FORWARD"""
-        commands[1] = 1
+        if angle2 < math.pi / 180:
+            commands[1] = 1
+        else:
+            commands[1] = -1
 
         """NO LATERAL ACCELERATION"""
         commands[2] = round(math.sin(time.time()))
@@ -123,10 +125,10 @@ def NPControl(ship, global_state, faction):
 
         """BOOST"""
         if ship.health < 20 and ((ship.energy > ship.bullet_types[ship.bullet_sel].energy and ship.boost) or ship.energy > ship.bullet_types[ship.bullet_sel].energy + 30):
-            commands[6] = 1
+            commands[7] = 1
 
-    else:
-        commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    # else:
+    #     commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     return commands
 
@@ -135,16 +137,18 @@ def NPControl(ship, global_state, faction):
 
 def NPControl2(ship, global_state, faction):
 
-    commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     if (ship.cargo_total >= ship.ship_type.cargo_cap or ship.health < 0.8 * ship.ship_type.health):  # type(ship.target) is not Station and
-        ship.target = FindNearest(ship.centerx, ship.centery, global_state.stations[faction])
+        ship.target = FindNearest(ship, global_state.stations[faction])
     elif type(ship.target) is not Asteroid and ship.cargo_total < ship.ship_type.cargo_cap:
-        ship.target = FindMineable(ship.centerx, ship.centery, global_state.asteroids)
+        ship.target = FindMineable(ship, global_state.asteroids)
     elif type(ship.target) is Asteroid and sum(ship.target.ore.values()) == 0:
-        ship.target = FindMineable(ship.centerx, ship.centery, global_state.asteroids)
+        ship.target = FindMineable(ship, global_state.asteroids)
 
     if ship.target is not None:
+
+        # rewrite
 
         x = ship.target.centerx
         y = ship.target.centery
@@ -152,12 +156,12 @@ def NPControl2(ship, global_state, faction):
         dx = x - ship.centerx
         dy = y - ship.centery
 
-        cos = math.cos(ship.angle * math.pi / 180)
-        sin = math.sin(ship.angle * math.pi / 180)
-
-        Q = np.array([[cos, -sin], [sin, cos]])
+        # cos = math.cos(ship.angle * math.pi / 180)
+        # sin = math.sin(ship.angle * math.pi / 180)
+        #
+        # Q = np.array([[cos, -sin], [sin, cos]])
         V = np.array([[dx], [dy]])
-        V_prime = Q.dot(V)
+        V_prime = ship.Q.dot(V)
         angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
 
 
@@ -172,7 +176,7 @@ def NPControl2(ship, global_state, faction):
         """"""
         if dx * dx + dy * dy < ship.target.width * ship.target.width // 4:
             # print('close')
-            v_prime = Q.dot(np.array([[ship.vx], [ship.vy]]))
+            v_prime = ship.Q.dot(np.array([[ship.vx], [ship.vy]]))
             if v_prime[0] > 0:
                 commands[1] = -1
             else:
@@ -197,32 +201,28 @@ def NPControl2(ship, global_state, faction):
 
         """BOOST"""
         if ship.health < ship.ship_type.health * 0.8 and ship.energy > 10:
-            commands[6] = 1
-
-        if type(ship.target) is Station:
             commands[7] = 1
 
-        if type(ship.target) is Asteroid:
+        if type(ship.target) is Station:
             commands[8] = 1
 
-    else:
-        commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        if type(ship.target) is Asteroid:
+            commands[9] = 1
+
+    # else:
+    #     commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     return commands
 
 
 """TURRET CONTROLS"""
 
-def TurretControl(ship, global_state, faction):
+def TurretControl(ship, gs, faction):
 
     commands = []
 
     if ship.target is None or ship.target.health >= 0 or ship.counter == 60:
-        target_list = []
-        for i in range(len(global_state.ships)):
-            if i != faction:
-                target_list.extend(global_state.ships[i])
-        ship.target = FindNearest(ship.centerx, ship.centery, target_list)
+        ship.target = FindNearest(ship, gs.targets[faction])
         ship.counter = 0
     else:
         ship.counter += 1
@@ -284,16 +284,16 @@ def TurretControl(ship, global_state, faction):
 def PlayerControl1(ship, global_state, faction):
 
     keys_pressed = pygame.key.get_pressed()
-    commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     if keys_pressed[pygame.K_l]:  # LOCK ONTO THE NEAREST TARGET
         target_list = []
         for i in range(len(global_state.ships)):
             if i != faction:
                 target_list.extend(global_state.ships[i])
-        ship.target = FindNearest(ship.centerx, ship.centery, target_list)
-    elif keys_pressed[pygame.K_k]:
-        ship.target = FindNearest(ship.centerx, ship.centery, global_state.asteroids)
+        ship.target = FindNearest(ship, target_list)
+    # elif keys_pressed[pygame.K_k]:
+    #     ship.target = FindNearest(ship.centerx, ship.centery, global_state.asteroids)
     elif keys_pressed[pygame.K_SEMICOLON]:  # REMOVE TARGET LOCK
         ship.target = None
 
@@ -320,24 +320,35 @@ def PlayerControl1(ship, global_state, faction):
     if keys_pressed[pygame.K_m]:  # fire missile
         commands[4] = 1
 
-    if keys_pressed[pygame.K_i]:  # fire mine
+    if keys_pressed[pygame.K_n]:  # fire mine
         commands[5] = 1
 
-    if keys_pressed[pygame.K_LSHIFT]:  # boost
+    if keys_pressed[pygame.K_k]:  # utility
         commands[6] = 1
 
-    if keys_pressed[pygame.K_u]:  # dock
+    if keys_pressed[pygame.K_LSHIFT]:  # boost
         commands[7] = 1
 
-    if keys_pressed[pygame.K_h]:  # mine
+    if keys_pressed[pygame.K_u]:  # dock
         commands[8] = 1
+
+    if keys_pressed[pygame.K_h]:  # mine
+        commands[9] = 1
 
     for i in range(1, 10):
         if eval(f'keys_pressed[pygame.K_{i}]'):
             if i <= len(ship.bullet_types):
-                commands[9] = i
+                commands[10] = i
+                # print(f"command 10: {commands[10]}")
             elif i <= len(ship.bullet_types) + len(ship.missile_types):
-                commands[10] = i - len(ship.bullet_types)
+                commands[11] = i - len(ship.bullet_types)
+                # print(f"command 11: {commands[11]}")
+            elif i <= len(ship.bullet_types) + len(ship.missile_types) + len(ship.mine_types):
+                commands[12] = i - len(ship.bullet_types) - len(ship.missile_types)
+                # print(f"command 12: {commands[12]}")
+            elif i <= len(ship.bullet_types) + len(ship.missile_types) + len(ship.mine_types) + len(ship.util_types):
+                commands[13] = i - len(ship.bullet_types) - len(ship.missile_types) - len(ship.mine_types)
+                # print(f"command 13: {commands[13]}")
 
     return commands
 

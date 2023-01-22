@@ -2,8 +2,8 @@ import os
 import pygame
 
 PDC = {'velocity': 5,
-       'av': 1.5,
-       'energy': 200,
+       'av': 1,
+       'energy': 500,
        'health': 125,
        'height': 20,
        'width': 20,
@@ -16,7 +16,7 @@ PDC = {'velocity': 5,
 
 RailTurret = {'velocity': 5,
               'av': 0.5,
-              'energy': 1000,
+              'energy': 1200,
               'health': 200,
               'height': 29,
               'width': 29,

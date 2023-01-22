@@ -11,7 +11,7 @@ from Draw_Window import draw_window
 from Misc import GlobalState, MoveScreen
 from Weapon_Class import Bullet
 from Ship_Class import Ship, Station, Asteroid
-from Control_Functions import NPControl, NPControl2, TurretControl, PlayerControl1
+from Control_Functions import NPControl, NPControl2, TurretControl, PlayerControl1, Null
 from Explosions import ShipExplosion
 
 PCS = 'y'
@@ -35,8 +35,8 @@ pygame.font.init()
 
 WIDTH, HEIGHT = 1500, 800  # width and height of window
 
-WIN = pygame.display.set_mode((WIDTH, HEIGHT))  # create window
-HUD = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)  # create HUD surface
+# WIN = pygame.display.set_mode((WIDTH, HEIGHT))  # create window
+# HUD = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)  # create HUD surface
 
 pygame.display.set_caption("The Expanse")  # set window title
 
@@ -49,11 +49,11 @@ BLACK = (0, 50, 0)  # BLACK
 RED = (255, 0, 0)  # RED
 YELLOW = (255, 255, 0)  # YELLOW
 
-SPACE = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space2.png')), (WIDTH, HEIGHT)).convert(HUD)  # background image
-DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')), (6000, 6000)).convert(HUD)  # foreground image
-FIELD = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'middle_ground.png')), (6000, 6000)).convert(HUD)  # middle ground image
+# SPACE = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space2.png')), (WIDTH, HEIGHT)).convert(HUD)  # background image
+# DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')), (6000, 6000)).convert(HUD)  # foreground image
+# FIELD = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'middle_ground.png')), (6000, 6000)).convert(HUD)  # middle ground image
 
-FPS = 60  # define frame rate
+FPS = 80  # define frame rate
 
 # YELLOW_HIT = pygame.USEREVENT + 1
 # RED_HIT = pygame.USEREVENT + 2
@@ -63,6 +63,9 @@ pygame.init()
 pygame.mixer.init()
 
 # explosion_group = pygame.sprite.Group()  # initialize explosion group
+
+pygame.init()
+pygame.mixer.init()
 
 MyGS = GlobalState(100000, 0, 0, HEIGHT, WIDTH, [FONT1, FONT2, FONT3], [[], []], [[], []], [[], []], [[], []], [], [NPControl, NPControl2])  # global state object: used to keep track of global variables
 
@@ -77,19 +80,22 @@ def main():
     """SPAWN IN SPECIFIED SHIPS"""
     if PCS == 'y':
 
-        yellow = Ship(player_control, TurretControl, rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Ghost', MyGS, is_player=True)
+        yellow = Ship(player_control, TurretControl, 90000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Ghost', MyGS, is_player=True)
 
-        # yellow.add_bullet(MyGS, 'AP AutoCannon')
-        yellow.add_bullet(MyGS, 'Plasma')
-        yellow.add_missile(MyGS, 'Swarm Missile')
+        yellow.add_bullet(MyGS, 'AP AutoCannon')
+        yellow.add_bullet(MyGS, 'Railgun')
+        yellow.add_missile(MyGS, 'Seeker')
         yellow.add_missile(MyGS, 'EMP Missile')
         yellow.add_missile(MyGS, 'Smart Missile')
-        # yellow.refresh(MyGS)
+        yellow.add_util(MyGS, 'Jump Drive')
+        yellow.add_util(MyGS, 'Auto Loader')
+        # yellow.add_mine(MyGS, 'Black Hole')
+        yellow.add_mine(MyGS, 'Proximity Mine')
         MyGS.ships[0].append(yellow)
 
 
-        pygame.init()
-        pygame.mixer.init()
+    yellow = Station(rnd.randint(2000, 5000), rnd.randint(2000, 5000), 'Partrid', TurretControl, 'yellow', MyGS)
+    MyGS.stations[0].append(yellow)
 
     for i in range(nA):
         # yellow = Ship(NPControl2, TurretControl, rnd.randint(0, 200), rnd.randint(0, 1000), rnd.randint(0, 359), 'yellow', 'Frigate', 'HV', 'HE')
@@ -99,21 +105,11 @@ def main():
         yellow.add_missile(MyGS, 'EMP Missile')
         MyGS.ships[0].append(yellow)
 
-        yellow = Station(rnd.randint(2000, 5000), rnd.randint(2000, 5000), 'Partrid', TurretControl, 'yellow', MyGS)
-        # yellow.docked_ships.append(Ship(NPControl2, TurretControl, rnd.randint(0, 1000), rnd.randint(0, 1000), rnd.randint(0, 359), 'yellow', 'Frigate', MyGS).add_bullet(MyGS, 'Plasma'))
-        yellow.image.convert(HUD)
-        MyGS.stations[0].append(yellow)
-
     for i in range(nE):
-        # red = Ship(NPControl2, TurretControl, rnd.randint(10000, 11000), rnd.randint(10000, 11000), rnd.randint(0, 359), 'red', 'Frigate', 'HV', 'HE')
-        # MyGS.ships[1].append(red)
-        # red = Ship(npc_control, rnd.randint(10000, 10200), rnd.randint(0, 1000), rnd.randint(0, 359), 'red', 'Sprinter',
-        #            'PA', 'HE')
-        # red_ships.append(red)
 
-        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(MyGS.size-2000, MyGS.size-1000), 0, 'red', 'Destroyer', MyGS)
+        red = Ship(Null, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Sprinter', MyGS)
         red.add_bullet(MyGS, 'Plasma')
-        red.add_missile(MyGS, 'Smart Missile')
+        # red.add_missile(MyGS, 'Swarm Missile')
         MyGS.ships[1].append(red)
 
         red = Ship(NPControl2, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(MyGS.size-2000, MyGS.size-1000), 0, 'red', 'Frigate', MyGS)
@@ -122,11 +118,11 @@ def main():
         MyGS.ships[1].append(red)
 
         red = Station(rnd.randint(MyGS.size-5000, MyGS.size-2000), rnd.randint(MyGS.size-5000, MyGS.size-2000), 'Partrid', TurretControl, 'red', MyGS)
-        red.image.convert(HUD)
+        # red.image.convert(HUD)
         MyGS.stations[1].append(red)
 
     for i in range(nR):
-        roid = Asteroid(rnd.randint(1000, MyGS.size-1000), rnd.randint(1000, MyGS.size-1000), rnd.randint(0, 359), rnd.randint(0, 100), HUD)
+        roid = Asteroid(rnd.randint(1000, MyGS.size-1000), rnd.randint(1000, MyGS.size-1000), rnd.randint(0, 359), rnd.randint(0, 100))
         MyGS.asteroids.append(roid)
 
     """Play Music"""
@@ -217,7 +213,7 @@ def main():
 
         """Render Window"""
         t3 = time.time()
-        draw_window(WIN, HUD, SPACE, DUST, FIELD, MyGS, fps, HEIGHT, WIDTH)
+        draw_window(MyGS, fps, HEIGHT, WIDTH)
         t4 = time.time()
 
 
