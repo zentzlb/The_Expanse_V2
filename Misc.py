@@ -89,7 +89,7 @@ class Dict2Object:
         for key in dic.keys():
             exec(f"self.{key} = dic['{key}']")
         if hasattr(self, 'image'):
-            print(self.name)
+            # print(self.name)
             self.image.convert_alpha()
 
 class CargoClass(dict):
