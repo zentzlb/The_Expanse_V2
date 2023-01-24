@@ -26,12 +26,12 @@ class StationMenu:
             if self.selected < 0:
                 self.selected = len(self.option_list) - 1
         if keys_pressed[pygame.K_RETURN] and not self.keys_pressed[pygame.K_RETURN]:
-            if self.selected == 0:
-                gs.docked.docked_ships[0].refresh(gs)
-                gs.ships[0].append(gs.docked.docked_ships[0])
-                gs.docked.docked_ships.remove(gs.docked.docked_ships[0])
-                gs.docked = None
-                gs.menu = None
+            # if self.selected == 0:
+            #     gs.docked.docked_ships[0].refresh(gs)
+            #     gs.ships[0].append(gs.docked.docked_ships[0])
+            #     gs.docked.docked_ships.remove(gs.docked.docked_ships[0])
+            #     gs.docked = None
+            #     gs.menu = None
             if self.selected == 1:
                 gs.menu = MapMenu()
             elif self.selected == 2:
