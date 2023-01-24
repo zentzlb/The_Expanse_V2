@@ -102,7 +102,6 @@ class Ship(pygame.Rect):
 
         if commands[13] != 0:
             self.util_sel = commands[13] - 1
-            print(commands[13])
 
         """MOVEMENT- THRUSTER ACCELERATION"""
 
@@ -337,11 +336,9 @@ class Ship(pygame.Rect):
 
     def Hide(self):  # method to turn ship invisible
         self.is_visible = False
-        # print('hidden')
 
     def Unhide(self):  # method to turn ship visible
         self.is_visible = True
-        # print('visible')
 
 """TURRET CLASS"""
 

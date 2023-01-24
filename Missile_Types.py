@@ -12,7 +12,7 @@ def explosion(self, gs, dmgList):
         gs.targets[self.faction][i].health -= self.damage
         gs.targets[self.faction][i].sop += 2 * self.damage
 
-    for i in range(50):
+    for i in range(100):
         c = rnd.randint(100, 200)
         gs.particle_list2.append(Particle(self.centerx, self.centery, -rnd.randint(1, self.er // 20),
                                           rnd.randint(0, 360), 10,
@@ -33,7 +33,7 @@ def emp_explosion(self, gs, dmgList):
             turret.angle += 120 * rnd.uniform(-1, 1) / math.pi
             # turret.bulletC += 180
             # turret.missileC += 180
-    for i in range(50):
+    for i in range(150):
         c = rnd.randint(100, 200)
         gs.particle_list2.append(Particle(self.centerx, self.centery, -rnd.randint(1, self.er // 20),
                                           rnd.randint(0, 360), 10,

@@ -53,7 +53,7 @@ YELLOW = (255, 255, 0)  # YELLOW
 # DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')), (6000, 6000)).convert(HUD)  # foreground image
 # FIELD = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'middle_ground.png')), (6000, 6000)).convert(HUD)  # middle ground image
 
-FPS = 80  # define frame rate
+FPS = 120  # define frame rate
 
 # YELLOW_HIT = pygame.USEREVENT + 1
 # RED_HIT = pygame.USEREVENT + 2
@@ -80,17 +80,17 @@ def main():
     """SPAWN IN SPECIFIED SHIPS"""
     if PCS == 'y':
 
-        yellow = Ship(player_control, TurretControl, 90000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Ghost', MyGS, is_player=True)
+        yellow = Ship(player_control, TurretControl, 90000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Sprinter', MyGS, is_player=True)
 
-        yellow.add_bullet(MyGS, 'AP AutoCannon')
+        yellow.add_bullet(MyGS, 'Plasma')
         yellow.add_bullet(MyGS, 'Railgun')
         yellow.add_missile(MyGS, 'Seeker')
         yellow.add_missile(MyGS, 'EMP Missile')
         yellow.add_missile(MyGS, 'Smart Missile')
         yellow.add_util(MyGS, 'Jump Drive')
         yellow.add_util(MyGS, 'Auto Loader')
-        # yellow.add_mine(MyGS, 'Black Hole')
-        yellow.add_mine(MyGS, 'Proximity Mine')
+        yellow.add_mine(MyGS, 'Black Hole')
+        # yellow.add_mine(MyGS, 'Proximity Mine')
         MyGS.ships[0].append(yellow)
 
 
@@ -107,9 +107,9 @@ def main():
 
     for i in range(nE):
 
-        red = Ship(Null, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Sprinter', MyGS)
+        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Ghost', MyGS)
         red.add_bullet(MyGS, 'Plasma')
-        # red.add_missile(MyGS, 'Swarm Missile')
+        red.add_missile(MyGS, 'Swarm Missile')
         MyGS.ships[1].append(red)
 
         red = Ship(NPControl2, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(MyGS.size-2000, MyGS.size-1000), 0, 'red', 'Frigate', MyGS)
@@ -151,7 +151,7 @@ def main():
         clock.tick(FPS)
         fps = round(clock.get_fps())
 
-        if 0 < fps < 50:
+        if 0 < fps < 110:
             print(f'fps: {fps}')
             print(f'logic: {t3-t2}')  # 0.001
             print(f'display: {t4-t3}')  # 0.007
