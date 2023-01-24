@@ -1,4 +1,5 @@
 import pygame
+import os
 from Misc import check_purchase, purchase
 
 
@@ -26,7 +27,7 @@ class StationMenu:
                 self.selected = len(self.option_list) - 1
         if keys_pressed[pygame.K_RETURN] and not self.keys_pressed[pygame.K_RETURN]:
             # if self.selected == 0:
-            #     gs.docked.docked_ships[0].refresh()
+            #     gs.docked.docked_ships[0].refresh(gs)
             #     gs.ships[0].append(gs.docked.docked_ships[0])
             #     gs.docked.docked_ships.remove(gs.docked.docked_ships[0])
             #     gs.docked = None
@@ -163,12 +164,12 @@ class WepMenu:
 
     def __init__(self):
         self.keys_pressed = pygame.key.get_pressed()
-        self.option_list = ['HV', 'PA', 'railgun']
-        self.desc_list = ['rapid fire bullet projectile', 'high damage plasma rounds', 'high velocity tungsten projectile']
+        self.option_list = []
         self.selected = 0
         # self.launch_button = self.draw_button('Launch Ship', font, (255, 255, 0), hud, 100, 100)
 
     def draw_menu(self, hud,  gs):
+        self.option_list = list(gs.BulletTypes)
         keys_pressed = pygame.key.get_pressed()
         edge = 50
         top_left = (300, 200)
@@ -189,14 +190,18 @@ class WepMenu:
             if self.selected < 0:
                 self.selected = len(self.option_list) - 1
         if keys_pressed[pygame.K_RETURN] and not self.keys_pressed[pygame.K_RETURN]:
-            bullet = BulletTypes(self.option_list[self.selected])
-            if gs.docked.docked_ships[0].bullet_type.name == bullet.name:
-                gs.menu = PopupMenu(self, "You already have that type of bullet equipped.")
-            elif check_purchase(gs.docked, bullet):
-                purchase(gs.docked, bullet)
-                gs.docked.docked_ships[0].bullet_type = bullet
-            else:
-                gs.menu = PopupMenu(self, "You don't have enough ore to purchase this item.")
+            bullet = gs.BulletTypes[self.option_list[self.selected]]
+            has_bullet = False  # this boolean will only be true if the ship already has that bullet type
+            for i in range(len(gs.docked.docked_ships[0].bullet_types)):
+                if bullet.name == gs.docked.docked_ships[0].bullet_types[i].name:
+                    gs.menu = PopupMenu(self, "You already have that type of bullet equipped.")
+                    has_bullet = True
+            if has_bullet is False:
+                if check_purchase(gs.docked, bullet):
+                    purchase(gs.docked, bullet)
+                    gs.docked.docked_ships[0].bullet_type = bullet
+                else:
+                    gs.menu = PopupMenu(self, "You don't have enough ore to purchase this item.")
         if keys_pressed[pygame.K_ESCAPE] and not self.keys_pressed[pygame.K_ESCAPE]:
             gs.menu = StationMenu()
             gs.menu.selected = gs.menu.option_list.index('Primary Weapon')
@@ -223,22 +228,22 @@ class WepMenu:
                 color = (255, 255, 255)
             self.draw_button(self.option_list[i], gs.fonts[0], color, hud, 100, 100 * (i + 1))
         # pygame.draw.circle(hud, (255, 0, 0), (500, 500), 4)
-        type = BulletTypes(self.option_list[self.selected])
-        image = type.image  # pygame.transform.scale(type.image, (length - 20, length - 20))
+        bullet_type = gs.BulletTypes[self.option_list[self.selected]]
+        image = bullet_type.image  # pygame.transform.scale(type.image, (length - 20, length - 20))
         # imagex = top_left[0] + 10
         # imagey = top_left[1] + 10
-        imagex = round(top_left[0] + length / 2 - type.width / 2)
-        imagey = round(top_left[1] + length / 2 - type.height / 2)
+        imagex = round(top_left[0] + length / 2 - bullet_type.width / 2)
+        imagey = round(top_left[1] + length / 2 - bullet_type.height / 2)
         hud.blit(image, (imagex, imagey))
 
         self.draw_button("Cost:", gs.fonts[0], (255, 255, 255), hud, top_left[0], top_left[1] + 150)
-        ore_names = list(type.cost)
-        for i in range(len(type.cost)):
+        ore_names = list(bullet_type.cost)
+        for i in range(len(bullet_type.cost)):
             color = (255, 255, 255)
             self.draw_button(ore_names[i], gs.fonts[0], color, hud, top_left[0],
-                             top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(type.cost) + 1)))))
-            self.draw_button(str(type.cost[station_cargo[i]]), gs.fonts[0], color, hud, top_left[0] + 100,
-                             top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(type.cost) + 1)))))
+                             top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(bullet_type.cost) + 1)))))
+            self.draw_button(str(bullet_type.cost[station_cargo[i]]), gs.fonts[0], color, hud, top_left[0] + 100,
+                             top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(bullet_type.cost) + 1)))))
 
         bar_width = 20
         tranx = 75
@@ -250,11 +255,11 @@ class WepMenu:
         pygame.draw.line(hud, (30, 30, 30), (top_left[0] + length + 5 + tranx, top_left[1] + 20 + 2 * bar_width),
                          (top_left[0] + length + 205 + tranx, top_left[1] + 20 + 2 * bar_width), bar_width+4)
 
-        pygame.draw.line(hud, (100, 0, 0), (top_left[0] + length + 5 + tranx, top_left[1] + 10), (top_left[0] + length + 5 + 4 * type.damage + tranx, top_left[1] + 10), bar_width)
+        pygame.draw.line(hud, (100, 0, 0), (top_left[0] + length + 5 + tranx, top_left[1] + 10), (top_left[0] + length + 5 + 4 * bullet_type.damage + tranx, top_left[1] + 10), bar_width)
         pygame.draw.line(hud, (0, 100, 0), (top_left[0] + length + 5 + tranx, top_left[1] + 15 + bar_width),
-                         (top_left[0] + length + 5 + type.range // 50 + tranx, top_left[1] + 15 + bar_width), bar_width)
+                         (top_left[0] + length + 5 + bullet_type.range // 50 + tranx, top_left[1] + 15 + bar_width), bar_width)
         pygame.draw.line(hud, (0, 0, 100), (top_left[0] + length + 5 + tranx, top_left[1] + 20 + 2 * bar_width),
-                         (top_left[0] + length + 5 + 5000 // type.delay + tranx, top_left[1] + 20 + 2 * bar_width), bar_width)
+                         (top_left[0] + length + 5 + 5000 // bullet_type.delay + tranx, top_left[1] + 20 + 2 * bar_width), bar_width)
         if True:  # keys_pressed[pygame.K_i]:
             damage_text = gs.fonts[1].render(f"DAMAGE", 1, (255, 255, 0))
             range_text = gs.fonts[1].render(f"RANGE", 1, (255, 255, 0))
@@ -276,12 +281,12 @@ class WepMenu2:
 
     def __init__(self):
         self.keys_pressed = pygame.key.get_pressed()
-        self.option_list = ['HE', 'torpedo', 'swarm missile']
-        self.desc_list = ['fast seeker missile', 'high damage EMP torpedo']
+        self.option_list = []
         self.selected = 0
         # self.launch_button = self.draw_button('Launch Ship', font, (255, 255, 0), hud, 100, 100)
 
     def draw_menu(self, hud, gs):
+        self.option_list = list(gs.MissileTypes)
         keys_pressed = pygame.key.get_pressed()
         edge = 50
         top_left = (300, 200)
@@ -302,14 +307,18 @@ class WepMenu2:
             if self.selected < 0:
                 self.selected = len(self.option_list) - 1
         if keys_pressed[pygame.K_RETURN] and not self.keys_pressed[pygame.K_RETURN]:
-            missile = MissileTypes(self.option_list[self.selected])
-            if gs.docked.docked_ships[0].missile_type.name == missile.name:
-                gs.menu = PopupMenu(self, "You already have that type of missile equipped.")
-            elif check_purchase(gs.docked, missile):
-                purchase(gs.docked, missile)
-                gs.docked.docked_ships[0].missile_type = missile
-            else:
-                gs.menu = PopupMenu(self, "You don't have enough ore to purchase this item.")
+            missile = gs.MissileTypes[self.option_list[self.selected]]
+            has_missile = False  # this boolean will only be true if the ship already has that missile type
+            for i in range(len(gs.docked.docked_ships[0].missile_types)):
+                if missile.name == gs.docked.docked_ships[0].missile_types[i].name:
+                    gs.menu = PopupMenu(self, "You already have that type of missile equipped.")
+                    has_missile = True
+            if has_missile is False:
+                if check_purchase(gs.docked, missile):
+                    purchase(gs.docked, missile)
+                    gs.docked.docked_ships[0].missile_type = missile
+                else:
+                    gs.menu = PopupMenu(self, "You don't have enough ore to purchase this item.")
         if keys_pressed[pygame.K_ESCAPE] and not self.keys_pressed[pygame.K_ESCAPE]:
             gs.menu = StationMenu()
             gs.menu.selected = gs.menu.option_list.index('Secondary Weapon')
@@ -336,22 +345,22 @@ class WepMenu2:
                 color = (255, 255, 255)
             self.draw_button(self.option_list[i], gs.fonts[0], color, hud, 100, 100 * (i + 1))
         # pygame.draw.circle(hud, (255, 0, 0), (500, 500), 4)
-        type = MissileTypes(self.option_list[self.selected])
-        image = type.image  # pygame.transform.scale(type.image, (length - 20, length - 20))
+        missile_type = gs.MissileTypes[self.option_list[self.selected]]
+        image = missile_type.image  # pygame.transform.scale(type.image, (length - 20, length - 20))
         # imagex = top_left[0] + 10
         # imagey = top_left[1] + 10
-        imagex = round(top_left[0] + length / 2 - type.width / 2)
-        imagey = round(top_left[1] + length / 2 - type.height / 2)
+        imagex = round(top_left[0] + length / 2 - missile_type.width / 2)
+        imagey = round(top_left[1] + length / 2 - missile_type.height / 2)
         hud.blit(image, (imagex, imagey))
 
         self.draw_button("Cost:", gs.fonts[0], (255, 255, 255), hud, top_left[0], top_left[1] + 150)
-        ore_names = list(type.cost)
-        for i in range(len(type.cost)):
+        ore_names = list(missile_type.cost)
+        for i in range(len(missile_type.cost)):
             color = (255, 255, 255)
             self.draw_button(ore_names[i], gs.fonts[0], color, hud, top_left[0],
-                             top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(type.cost) + 1)))))
-            self.draw_button(str(type.cost[station_cargo[i]]), gs.fonts[0], color, hud, top_left[0] + 100,
-                             top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(type.cost) + 1)))))
+                             top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(missile_type.cost) + 1)))))
+            self.draw_button(str(missile_type.cost[station_cargo[i]]), gs.fonts[0], color, hud, top_left[0] + 100,
+                             top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(missile_type.cost) + 1)))))
 
         bar_width = 20
         tranx = 75
@@ -363,12 +372,12 @@ class WepMenu2:
         pygame.draw.line(hud, (30, 30, 30), (top_left[0] + length + 5 + tranx, top_left[1] + 20 + 2 * bar_width),
                          (top_left[0] + length + 205 + tranx, top_left[1] + 20 + 2 * bar_width), bar_width+4)
 
-        pygame.draw.line(hud, (100, 50, 0), (top_left[0] + length + 5 + tranx, top_left[1] + 10), (top_left[0] + length + 5 + 4 * (type.damage + type.explosion_damage) + tranx, top_left[1] + 10), bar_width)
-        pygame.draw.line(hud, (100, 0, 0), (top_left[0] + length + 5 + tranx, top_left[1] + 10), (top_left[0] + length + 5 + 4 * type.damage + tranx, top_left[1] + 10), bar_width)
+        pygame.draw.line(hud, (100, 50, 0), (top_left[0] + length + 5 + tranx, top_left[1] + 10), (top_left[0] + length + 5 + 4 * (missile_type.damage + missile_type.exp_damage) + tranx, top_left[1] + 10), bar_width)
+        pygame.draw.line(hud, (100, 0, 0), (top_left[0] + length + 5 + tranx, top_left[1] + 10), (top_left[0] + length + 5 + 4 * missile_type.damage + tranx, top_left[1] + 10), bar_width)
         pygame.draw.line(hud, (0, 100, 0), (top_left[0] + length + 5 + tranx, top_left[1] + 15 + bar_width),
-                         (top_left[0] + length + 5 + type.range // 50 + tranx, top_left[1] + 15 + bar_width), bar_width)
+                         (top_left[0] + length + 5 + missile_type.range // 50 + tranx, top_left[1] + 15 + bar_width), bar_width)
         pygame.draw.line(hud, (0, 0, 100), (top_left[0] + length + 5 + tranx, top_left[1] + 20 + 2 * bar_width),
-                         (top_left[0] + length + 5 + 5000 // type.delay + tranx, top_left[1] + 20 + 2 * bar_width), bar_width)
+                         (top_left[0] + length + 5 + 5000 // missile_type.delay + tranx, top_left[1] + 20 + 2 * bar_width), bar_width)
         if True:  # keys_pressed[pygame.K_i]:
             damage_text = gs.fonts[1].render(f"DAMAGE", 1, (255, 255, 0))
             range_text = gs.fonts[1].render(f"RANGE", 1, (255, 255, 0))
@@ -391,12 +400,12 @@ class ShipMenu:
 
     def __init__(self):
         self.keys_pressed = pygame.key.get_pressed()
-        self.option_list = ['Sprinter', 'Fighter', 'Frigate']
-        self.desc_list = ['fast', 'turn', 'big']
+        self.option_list = []
         self.selected = 0
         # self.launch_button = self.draw_button('Launch Ship', font, (255, 255, 0), hud, 100, 100)
 
     def draw_menu(self, hud, gs):
+        self.option_list = list(gs.ShipTypes)
         keys_pressed = pygame.key.get_pressed()
         edge = 50
         top_left = (300, 200)
@@ -417,13 +426,13 @@ class ShipMenu:
             if self.selected < 0:
                 self.selected = len(self.option_list) - 1
         if keys_pressed[pygame.K_RETURN] and not self.keys_pressed[pygame.K_RETURN]:
-            ship = ShipTypes(self.option_list[self.selected], 'yellow')
-            # if gs.docked.docked_ships[0].ship_type.name == ship.name:
-            #     gs.menu = PopupMenu(self, "You already have that type of ship equipped.")
-            if check_purchase(gs.docked, ship):
+            ship = gs.ShipTypes[self.option_list[self.selected]]
+            if gs.docked.docked_ships[0].ship_type.name == ship.name:
+                gs.menu = PopupMenu(self, "You already have that type of ship equipped.")
+            elif check_purchase(gs.docked, ship):
                 purchase(gs.docked, ship)
                 gs.docked.docked_ships[0].ship_type = ship
-                gs.docked.docked_ships[0].refresh()
+                gs.docked.docked_ships[0].refresh(gs)
             else:
                 gs.menu = PopupMenu(self, "You don't have enough ore to purchase this item.")
         if keys_pressed[pygame.K_ESCAPE] and not self.keys_pressed[pygame.K_ESCAPE]:
@@ -452,22 +461,23 @@ class ShipMenu:
                 color = (255, 255, 255)
             self.draw_button(self.option_list[i], gs.fonts[0], color, hud, 100, 100 * (i + 1))
         # pygame.draw.circle(hud, (255, 0, 0), (500, 500), 4)
-        Type = ShipTypes(self.option_list[self.selected], 'yellow')
-        image = Type.image  # pygame.transform.scale(Type.image, (length - 20, length - 20))
+        ship_type = gs.ShipTypes[self.option_list[self.selected]]
+        ship_color = "yellow"  # leaves flexibility in case player color can be changed later
+        image = pygame.image.load(os.path.join('Assets', f'{ship_type.name}_{ship_color}.png'))  # pygame.transform.scale(Type.image, (length - 20, length - 20))
         # imagex = top_left[0] + 10
         # imagey = top_left[1] + 10
-        imagex = round(top_left[0] + length / 2 - Type.width / 2)
-        imagey = round(top_left[1] + length / 2 - Type.height / 2)
+        imagex = round(top_left[0] + length / 2 - ship_type.width / 2)
+        imagey = round(top_left[1] + length / 2 - ship_type.height / 2)
         hud.blit(image, (imagex, imagey))
 
         self.draw_button("Cost:", gs.fonts[0], (255, 255, 255), hud, top_left[0], top_left[1] + 150)
-        ore_names = list(Type.cost)
-        for i in range(len(Type.cost)):
+        ore_names = list(ship_type.cost)
+        for i in range(len(ship_type.cost)):
             color = (255, 255, 255)
             self.draw_button(ore_names[i], gs.fonts[0], color, hud, top_left[0],
-                             top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(Type.cost) + 1)))))
-            self.draw_button(str(Type.cost[station_cargo[i]]), gs.fonts[0], color, hud, top_left[0] + 100,
-                             top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(Type.cost) + 1)))))
+                             top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(ship_type.cost) + 1)))))
+            self.draw_button(str(ship_type.cost[station_cargo[i]]), gs.fonts[0], color, hud, top_left[0] + 100,
+                             top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(ship_type.cost) + 1)))))
 
         bar_width = 20
         tranx = 75
@@ -479,11 +489,11 @@ class ShipMenu:
         pygame.draw.line(hud, (30, 30, 30), (top_left[0] + length + 5 + tranx, top_left[1] + 20 + 2 * bar_width),
                          (top_left[0] + length + 205 + tranx, top_left[1] + 20 + 2 * bar_width), bar_width+4)
 
-        pygame.draw.line(hud, (100, 0, 0), (top_left[0] + length + 5 + tranx, top_left[1] + 10), (top_left[0] + length + 5 + Type.health // 3 + tranx, top_left[1] + 10), bar_width)
+        pygame.draw.line(hud, (100, 0, 0), (top_left[0] + length + 5 + tranx, top_left[1] + 10), (top_left[0] + length + 5 + ship_type.health // 3 + tranx, top_left[1] + 10), bar_width)
         pygame.draw.line(hud, (0, 100, 0), (top_left[0] + length + 5 + tranx, top_left[1] + 15 + bar_width),
-                         (top_left[0] + length + 5 + Type.av * 100 + tranx, top_left[1] + 15 + bar_width), bar_width)
+                         (top_left[0] + length + 5 + ship_type.av * 100 + tranx, top_left[1] + 15 + bar_width), bar_width)
         pygame.draw.line(hud, (0, 0, 100), (top_left[0] + length + 5 + tranx, top_left[1] + 20 + 2 * bar_width),
-                         (top_left[0] + length + 5 + 30 * Type.velocity + tranx, top_left[1] + 20 + 2 * bar_width), bar_width)
+                         (top_left[0] + length + 5 + 30 * ship_type.velocity + tranx, top_left[1] + 20 + 2 * bar_width), bar_width)
         if True:  # keys_pressed[pygame.K_i]:
             damage_text = gs.fonts[1].render(f"HEALTH", 1, (255, 255, 0))
             range_text = gs.fonts[1].render(f"TURNING", 1, (255, 255, 0))

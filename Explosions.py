@@ -151,18 +151,28 @@ class PAExplosion(pygame.sprite.Sprite):
         if self.index >= len(self.images) - 1 and self.counter >= explosion_speed:
             self.kill()
 
+"""EXPLOSION DAMAGE CALCULATION"""
+
+def ExplosionDamage(max_damage, xo, yo, exp, target_list, gs):
+    for target in target_list:
+        d = (math.sqrt((target.centerx - xo) ** 2 + (target.centery - yo) ** 2))
+        r = math.sqrt(target.height * target.width)
+        if d < exp + r:
+            damage = round(2 * max_damage / (1 + math.exp((d + 1) / (r + exp + 1))))
+            target.health -= damage
+            target.sop += 2 * damage
 
 """PARTICLE CLASS"""
 
 
 class Particle:
-    def __init__(self, x, y, v, angle, radius, color, shrink=0):
+    def __init__(self, x, y, v, angle, radius, color, shrink=0, vx=0, vy=0):
         self.x = x
         self.y = y
         self.fx = x
         self.fy = y
-        self.vx = v * math.sin(angle * math.pi / 180)
-        self.vy = v * math.cos(angle * math.pi / 180)
+        self.vx = v * math.sin(angle * math.pi / 180) + vx
+        self.vy = v * math.cos(angle * math.pi / 180) + vy
         self.color = color
         self.radius = radius
         self.shrink = shrink
