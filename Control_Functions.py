@@ -292,8 +292,8 @@ def PlayerControl1(ship, global_state, faction):
             if i != faction:
                 target_list.extend(global_state.ships[i])
         ship.target = FindNearest(ship, target_list)
-    # elif keys_pressed[pygame.K_k]:
-    #     ship.target = FindNearest(ship.centerx, ship.centery, global_state.asteroids)
+    elif keys_pressed[pygame.K_o]:
+        ship.target = FindMineable(ship, global_state.asteroids)
     elif keys_pressed[pygame.K_SEMICOLON]:  # REMOVE TARGET LOCK
         ship.target = None
 

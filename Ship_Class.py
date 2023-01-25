@@ -56,6 +56,7 @@ class Ship(pygame.Rect):
         self.boost = False
         self.is_player = is_player
         self.is_visible = True
+        self.color = color
         self.Image = pygame.image.load(os.path.join('Assets', f'{ship_type}_{color}.png'))  # image with no flame
         self.Imagef = pygame.image.load(os.path.join('Assets', f'{ship_type}_{color}_f.png'))  # image with flame
         self.image = self.Image
@@ -224,7 +225,14 @@ class Ship(pygame.Rect):
         """MINE ASTEROID"""
         if commands[9] == 1 and type(self.target) is Asteroid and self.colliderect(self.target):  # harvest from asteroid
             roid = self.target  # identify specific asteroid from list
-            roid.mine(self)
+            if self.is_player:
+                self.vx = 0
+                self.vy = 0
+                global_state.ships[faction].remove(self)
+                global_state.update()
+                global_state.menu = AsteroidMenu(self, roid, faction)
+            else:
+                roid.mine(self)
             if sum(roid.ore.values()) > 0:
                 global_state.particle_list.append(
                     Particle(self.centerx, self.centery, rnd.random(), rnd.randint(0, 360), rnd.randint(4, 6),
@@ -301,6 +309,8 @@ class Ship(pygame.Rect):
         self.width = self.ship_type.width
         self.energy = self.ship_type.energy
         self.health = self.ship_type.health
+        self.Image = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}_{self.color}.png'))
+        self.Imagef = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}_{self.color}_f.png'))
 
         self.image = self.Image.copy()
         self.imagef = self.Imagef.copy()
