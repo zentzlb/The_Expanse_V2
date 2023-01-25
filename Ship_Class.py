@@ -14,7 +14,6 @@ class Ship(pygame.Rect):
     def __init__(self, control_module, turret_control_module, x, y, angle, color, ship_type, gs, is_player=False):
         # ShipType = ShipTypes(ship_type, color)
         ShipType = gs.ShipTypes[ship_type]
-        crg = CargoClass()
         Turrets = []
         for i in range(len(ShipType.turrets)):
             Turrets.append(Turret(x, y, ShipType.turret_pos[i], angle, ShipType.turrets[i], turret_control_module, gs))
@@ -52,8 +51,7 @@ class Ship(pygame.Rect):
         self.mine_sel = 0
         self.util_sel = 0
         self.turrets = Turrets
-        self.cargo = crg.cargo
-        self.cargo_total = 0
+        self.cargo = CargoClass()
         self.forward = False
         self.boost = False
         self.is_player = is_player
@@ -217,11 +215,11 @@ class Ship(pygame.Rect):
                     global_state.cx = self.centerx
                     global_state.cy = self.centery
                 else:
-                    for Type in station.cargo_types:
-                        cargo = self.cargo[Type]
-                        station.cargo[Type] += cargo
-                        self.cargo[Type] -= cargo
-                    self.cargo_total = sum(self.cargo.values())
+                    for Type in self.cargo.keys():
+                        cargo_transfer = self.cargo[Type]
+                        station.cargo[Type] += cargo_transfer
+                        self.cargo[Type] -= cargo_transfer
+                    self.cargo.cargo_total = sum(self.cargo.values())
 
         """MINE ASTEROID"""
         if commands[9] == 1 and type(self.target) is Asteroid and self.colliderect(self.target):  # harvest from asteroid
@@ -340,7 +338,9 @@ class Ship(pygame.Rect):
     def Unhide(self):  # method to turn ship visible
         self.is_visible = True
 
+
 """TURRET CLASS"""
+
 
 class Turret(pygame.Rect):
     def __init__(self, x, y, pos, angle, turret_type, control_module, gs, is_player=False):
@@ -416,13 +416,12 @@ class Turret(pygame.Rect):
             global_state.cy = self.centery
 
 
-
 """STATION CLASS"""
+
 
 class Station(pygame.Rect):
     def __init__(self, x, y, station_type, control_module, color, gs):
         StationType = StationTypes(station_type)
-        crg = CargoClass()
         Turrets = []
         for i in range(len(StationType.turrets)):
             Turrets.append(Turret(x, y, StationType.turret_loc[i], 0, StationType.turrets[i], control_module, gs))
@@ -442,7 +441,7 @@ class Station(pygame.Rect):
         self.image = StationType.image
         self.docked_ships = []
         self.docked_players = []
-        self.cargo = crg.cargo
+        self.cargo = CargoClass()
         # self.ships = ['Fighter', 'Sprinter', 'Frigate']
         # self.primary = ['HV', 'PA', 'railgun']
         # self.secondary = ['HE', 'torpedo', 'swarm missile', 'smart']
@@ -451,7 +450,7 @@ class Station(pygame.Rect):
         self.pilots = []
         self.ship_build = None
         self.ship_cost = None
-        self.cargo_types = list(self.cargo.keys())
+        self.cargo_types = list(self.cargo)
         self.is_visible = True
 
     def check_funds(self, item):
@@ -467,8 +466,7 @@ class Station(pygame.Rect):
         if funds:
             for ore in ship.cost.keys():
                 self.cargo[ore] -= ship.cost[ore]
-            new_ship = Ship(cm, self.turret_control, self.centerx, self.centery, 0, self.color,
-                 key, gs)
+            new_ship = Ship(cm, self.turret_control, self.centerx, self.centery, 0, self.color, key, gs)
             return new_ship
         else:
             return None
@@ -510,7 +508,6 @@ class Station(pygame.Rect):
                 else:
                     print(f'duplicate ship in faction {faction}')
 
-
         for turret in self.turrets:
             turret.x = self.centerx - turret.width / 2
             turret.y = self.centery - turret.height / 2
@@ -530,13 +527,13 @@ class Asteroid(pygame.Rect):
         self.health = math.inf
         self.cx = round(self.x + (
                 self.width - self.height * abs(math.sin(self.angle * math.pi / 180)) - self.width * abs(
-            math.cos(self.angle * math.pi / 180))) / 2)
+                    math.cos(self.angle * math.pi / 180))) / 2)
         self.cy = round(self.y + (
                 self.height - self.width * abs(math.sin(self.angle * math.pi / 180)) - self.height * abs(
-            math.cos(self.angle * math.pi / 180))) / 2)
+                    math.cos(self.angle * math.pi / 180))) / 2)
         if Type <= 100:
             self.ore = assign_ore('Std')
-        self.ore_types = list(self.ore.keys())
+        self.ore_types = list(self.ore)
 
     def harvest_all(self, ore_name):  # method to harvest all of one type of ore from an asteroid
         ore_num = self.ore[ore_name]
@@ -548,12 +545,12 @@ class Asteroid(pygame.Rect):
         return quantity  # returns the number of ore units removed from the asteroid
 
     def mine(self, ship):
-        if ship.cargo_total < ship.ship_type.cargo_cap:
+        if ship.cargo.cargo_total < ship.ship_type.cargo_cap:
             r = rnd.randint(0, len(self.ore_types)-1)
             if self.ore[self.ore_types[r]] > 0:
                 self.ore[self.ore_types[r]] -= 1
                 ship.cargo[self.ore_types[r]] += 1
-                ship.cargo_total = sum(ship.cargo.values())
+                ship.cargo.cargo_total = sum(ship.cargo.values())
 
 
     # def scoot(self, bullet_list, missile_list, target_list, ally_list, global_state):

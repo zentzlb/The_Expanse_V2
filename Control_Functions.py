@@ -139,9 +139,9 @@ def NPControl2(ship, global_state, faction):
 
     commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    if (ship.cargo_total >= ship.ship_type.cargo_cap or ship.health < 0.8 * ship.ship_type.health):  # type(ship.target) is not Station and
+    if (ship.cargo.cargo_total >= ship.ship_type.cargo_cap or ship.health < 0.8 * ship.ship_type.health):  # type(ship.target) is not Station and
         ship.target = FindNearest(ship, global_state.stations[faction])
-    elif type(ship.target) is not Asteroid and ship.cargo_total < ship.ship_type.cargo_cap:
+    elif type(ship.target) is not Asteroid and ship.cargo.cargo_total < ship.ship_type.cargo_cap:
         ship.target = FindMineable(ship, global_state.asteroids)
     elif type(ship.target) is Asteroid and sum(ship.target.ore.values()) == 0:
         ship.target = FindMineable(ship, global_state.asteroids)

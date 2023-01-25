@@ -22,14 +22,14 @@ AutoLoader = {'function': auto_loader,
               'energy': '1',
               'delay': 0,
               'description': 'This ship is fast',
-              'cost': {"Iron": 10, "Nickel": 5, "Platinum": 5, "Gold": 0},
+              'cost': {},
               'name': "Auto Loader"}
 
 JumpDrive = {'function': jump_drive,
              'energy': 'ship.height * 5',
              'delay': 60,
              'description': 'This ship is fast',
-             'cost': {"Iron": 10, "Nickel": 5, "Platinum": 5, "Gold": 0},
+             'cost': {},
              'name': "Jump Drive"}
 
 UtilityNames = [AutoLoader, JumpDrive]

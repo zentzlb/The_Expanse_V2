@@ -42,12 +42,22 @@ class GlobalState:
         self.WIN2 = pygame.Surface((width, height), pygame.SRCALPHA)  # create transparent surface
         self.HUD = pygame.Surface((width, height), pygame.SRCALPHA)  # create HUD surface
         self.ShipTypes = make_dict(ShipNames)
+        for Type in list(self.ShipTypes):
+            self.ShipTypes[Type].cost = assign_ship_cost(self.ShipTypes[Type])
         self.StationTypes = make_dict(StationNames)
         self.TurretTypes = make_dict(TurretNames)
         self.BulletTypes = make_dict(BulletNames)
+        for Type in list(self.BulletTypes):
+            self.BulletTypes[Type].cost = assign_bullet_cost(self.BulletTypes[Type])
         self.MissileTypes = make_dict(MissileNames)
+        for Type in list(self.MissileTypes):
+            self.MissileTypes[Type].cost = assign_missile_cost(self.MissileTypes[Type])
         self.MineTypes = make_dict(MineNames)
+        for Type in list(self.MineTypes):
+            self.MineTypes[Type].cost = assign_mine_cost(self.MineTypes[Type])
         self.UtilTypes = make_dict(UtilityNames)
+        for Type in list(self.UtilTypes):
+            self.UtilTypes[Type].cost = assign_util_cost(self.UtilTypes[Type])
         self.explosion_group = pygame.sprite.Group()  # initialize explosion group
         self.SPACE = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space2.png')),
                                        (width, height)).convert(self.HUD)  # background image
@@ -81,6 +91,31 @@ def make_dict(List):
     return Dict
 
 
+def assign_ship_cost(ship):
+    cost = {"Iron": int(ship.height*3), "Nickel": int(ship.velocity*20), "Platinum": int(ship.energy/50), "Gold": int(ship.av*50)}
+    return cost
+
+
+def assign_bullet_cost(bullet):
+    cost = {"Iron": bullet.height, "Nickel": int(bullet.range/300), "Platinum": int(bullet.delay/12), "Gold": int(bullet.damage/5)}
+    return cost
+
+
+def assign_missile_cost(missile):
+    cost = {"Iron": int(missile.height*10), "Nickel": int(missile.range/100), "Platinum": int(missile.delay/20), "Gold": missile.exp_damage}
+    return cost
+
+
+def assign_mine_cost(mine):
+    cost = {"Iron": int(mine.height*5), "Nickel": int(mine.time/20), "Platinum": int(mine.delay/20), "Gold": int(mine.arm/10)}
+    return cost
+
+
+def assign_util_cost(util):  # in case we want util costs to be formulaic later when utils are better fleshed out
+    cost = {"Iron": 50, "Nickel": 50, "Platinum": 20, "Gold": 10}
+    return cost
+
+
 class Dict2Object:
     def __init__(self, dic):
         # print(dic['name'])
@@ -92,10 +127,12 @@ class Dict2Object:
             # print(self.name)
             self.image.convert_alpha()
 
-class CargoClass(dict):
+
+class CargoClass(dict):  # inventory class
     def __init__(self):
         super().__init__()
-        self.cargo = assign_ore('Cargo')
+        self.cargo = {}
+        self.cargo_total = 0
 
     def __missing__(self, key):
         return 0
@@ -284,8 +321,6 @@ def assign_ore(name):
     if name == 'Std':  # standard asteroid with iron, nickel, platinum, and gold
         return {"Iron": rnd.randint(200, 300), "Nickel": rnd.randint(100, 200), "Platinum": rnd.randint(25, 125),
                 "Gold": rnd.randint(0, 75)}
-    if name == 'Cargo':  # shortcut to assign empty cargo to new ships
-        return {"Iron": 0, "Nickel": 0, "Platinum": 0, "Gold": 0}
 
 
 def check_purchase(station, target):

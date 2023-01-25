@@ -18,7 +18,7 @@ Fighter = {'velocity': 6.5,
            'mine': 0,
            'utility': 1,
            'cargo_cap': 50,
-           'cost': {"Iron": 100, "Nickel": 25, "Platinum": 25, "Gold": 5},
+           'cost': {},
            'name': "Fighter"}
 
 HeavyFighter = {'velocity': 6,
@@ -39,7 +39,7 @@ HeavyFighter = {'velocity': 6,
                 'mine': 0,
                 'utility': 2,
                 'cargo_cap': 50,
-                'cost': {"Iron": 200, "Nickel": 25, "Platinum": 25, "Gold": 5},
+                'cost': {},
                 'name': "Heavy Fighter"}
 
 Ghost = {'velocity': 6,
@@ -59,7 +59,7 @@ Ghost = {'velocity': 6,
          'mine': 0,
          'utility': 2,
          'cargo_cap': 20,
-         'cost': {"Iron": 150, "Nickel": 35, "Platinum": 25, "Gold": 15},
+         'cost': {},
          'name': "Ghost"}
 
 Sprinter = {'velocity': 7,
@@ -79,7 +79,7 @@ Sprinter = {'velocity': 7,
             'mine': 0,
             'utility': 1,
             'cargo_cap': 10,
-            'cost': {"Iron": 50, "Nickel": 30, "Platinum": 30, "Gold": 10},
+            'cost': {},
             'name': "Sprinter"}
 
 Frigate = {'velocity': 4,
@@ -99,7 +99,7 @@ Frigate = {'velocity': 4,
            'mine': 1,
            'utility': 2,
            'cargo_cap': 1000,
-           'cost': {"Iron": 300, "Nickel": 50, "Platinum": 40, "Gold": 30},
+           'cost': {},
            'name': "Frigate"}
 
 Destroyer = {'velocity': 3.5,
@@ -119,7 +119,7 @@ Destroyer = {'velocity': 3.5,
              'mine': 1,
              'utility': 3,
              'cargo_cap': 300,
-             'cost': {"Iron": 300, "Nickel": 50, "Platinum": 40, "Gold": 30},
+             'cost': {},
              'name': "Destroyer"}
 
 ShipNames = [Fighter, HeavyFighter, Ghost, Sprinter, Frigate, Destroyer]

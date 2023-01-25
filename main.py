@@ -80,7 +80,7 @@ def main():
     """SPAWN IN SPECIFIED SHIPS"""
     if PCS == 'y':
 
-        yellow = Ship(player_control, TurretControl, 90000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Sprinter', MyGS, is_player=True)
+        yellow = Ship(player_control, TurretControl, rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Sprinter', MyGS, is_player=True)
 
         yellow.add_bullet(MyGS, 'Plasma')
         yellow.add_bullet(MyGS, 'Railgun')
@@ -151,12 +151,12 @@ def main():
         clock.tick(FPS)
         fps = round(clock.get_fps())
 
-        if 0 < fps < 110:
-            print(f'fps: {fps}')
-            print(f'logic: {t3-t2}')  # 0.001
-            print(f'display: {t4-t3}')  # 0.007
-            print(f'other: {t2 - t1}')  # 0.000
-            print()
+        # if 0 < fps < 110:
+        #     print(f'fps: {fps}')
+        #     print(f'logic: {t3-t2}')  # 0.001
+        #     print(f'display: {t4-t3}')  # 0.007
+        #     print(f'other: {t2 - t1}')  # 0.000
+        #     print()
 
         t1 = time.time()
         MyGS.explosion_group.update()  # update all explosions

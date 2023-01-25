@@ -53,8 +53,6 @@ class StationMenu:
 
             self.draw_button(self.option_list[i], gs.fonts[0], color, hud, 100, 100 * (i + 1))
 
-
-
     def draw_button(self, text, font, color, surface, x, y):
         textobj = font.render(text, 1, color)
         textrect = textobj.get_rect()
@@ -208,12 +206,12 @@ class WepMenu:
 
 
         self.keys_pressed = keys_pressed
-        # self.draw_button("Ship Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 800, top_left[1])
-        # cargos = list(gs.docked.docked_ships[0].cargo)
-        # for i in range(len(gs.docked.docked_ships[0].cargo)):
-        #     color = (255, 255, 255)
-        #     self.draw_button(cargos[i], gs.fonts[0], color, hud, top_left[0] + 800, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
-        #     self.draw_button(str(gs.docked.docked_ships[0].cargo[cargos[i]]), gs.fonts[0], color, hud, top_left[0] + 900, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
+        self.draw_button("Ship Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 800, top_left[1])
+        cargos = list(gs.docked.docked_ships[0].cargo)
+        for i in range(len(gs.docked.docked_ships[0].cargo)):
+            color = (255, 255, 255)
+            self.draw_button(cargos[i], gs.fonts[0], color, hud, top_left[0] + 800, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
+            self.draw_button(str(gs.docked.docked_ships[0].cargo[cargos[i]]), gs.fonts[0], color, hud, top_left[0] + 900, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
         self.draw_button("Station Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 500, top_left[1])
         station_cargo = list(gs.docked.cargo)
         for i in range(len(gs.docked.cargo)):
@@ -242,7 +240,7 @@ class WepMenu:
             color = (255, 255, 255)
             self.draw_button(ore_names[i], gs.fonts[0], color, hud, top_left[0],
                              top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(bullet_type.cost) + 1)))))
-            self.draw_button(str(bullet_type.cost[station_cargo[i]]), gs.fonts[0], color, hud, top_left[0] + 100,
+            self.draw_button(str(bullet_type.cost[ore_names[i]]), gs.fonts[0], color, hud, top_left[0] + 100,
                              top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(bullet_type.cost) + 1)))))
 
         bar_width = 20
@@ -325,12 +323,12 @@ class WepMenu2:
 
 
         self.keys_pressed = keys_pressed
-        # self.draw_button("Ship Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 800, top_left[1])
-        # cargos = list(gs.docked.docked_ships[0].cargo)
-        # for i in range(len(gs.docked.docked_ships[0].cargo)):
-        #     color = (255, 255, 255)
-        #     self.draw_button(cargos[i], gs.fonts[0], color, hud, top_left[0] + 800, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
-        #     self.draw_button(str(gs.docked.docked_ships[0].cargo[cargos[i]]), gs.fonts[0], color, hud, top_left[0] + 900, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
+        self.draw_button("Ship Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 800, top_left[1])
+        cargos = list(gs.docked.docked_ships[0].cargo)
+        for i in range(len(gs.docked.docked_ships[0].cargo)):
+            color = (255, 255, 255)
+            self.draw_button(cargos[i], gs.fonts[0], color, hud, top_left[0] + 800, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
+            self.draw_button(str(gs.docked.docked_ships[0].cargo[cargos[i]]), gs.fonts[0], color, hud, top_left[0] + 900, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
         self.draw_button("Station Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 500, top_left[1])
         station_cargo = list(gs.docked.cargo)
         for i in range(len(gs.docked.cargo)):
@@ -359,7 +357,7 @@ class WepMenu2:
             color = (255, 255, 255)
             self.draw_button(ore_names[i], gs.fonts[0], color, hud, top_left[0],
                              top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(missile_type.cost) + 1)))))
-            self.draw_button(str(missile_type.cost[station_cargo[i]]), gs.fonts[0], color, hud, top_left[0] + 100,
+            self.draw_button(str(missile_type.cost[ore_names[i]]), gs.fonts[0], color, hud, top_left[0] + 100,
                              top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(missile_type.cost) + 1)))))
 
         bar_width = 20
@@ -441,12 +439,12 @@ class ShipMenu:
 
 
         self.keys_pressed = keys_pressed
-        # self.draw_button("Ship Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 800, top_left[1])
-        # cargos = list(gs.docked.docked_ships[0].cargo)
-        # for i in range(len(gs.docked.docked_ships[0].cargo)):
-        #     color = (255, 255, 255)
-        #     self.draw_button(cargos[i], gs.fonts[0], color, hud, top_left[0] + 800, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
-        #     self.draw_button(str(gs.docked.docked_ships[0].cargo[cargos[i]]), gs.fonts[0], color, hud, top_left[0] + 900, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
+        self.draw_button("Ship Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 800, top_left[1])
+        cargos = list(gs.docked.docked_ships[0].cargo)
+        for i in range(len(gs.docked.docked_ships[0].cargo)):
+            color = (255, 255, 255)
+            self.draw_button(cargos[i], gs.fonts[0], color, hud, top_left[0] + 800, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
+            self.draw_button(str(gs.docked.docked_ships[0].cargo[cargos[i]]), gs.fonts[0], color, hud, top_left[0] + 900, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
         self.draw_button("Station Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 500, top_left[1])
         station_cargo = list(gs.docked.cargo)
         for i in range(len(gs.docked.cargo)):
@@ -476,7 +474,7 @@ class ShipMenu:
             color = (255, 255, 255)
             self.draw_button(ore_names[i], gs.fonts[0], color, hud, top_left[0],
                              top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(ship_type.cost) + 1)))))
-            self.draw_button(str(ship_type.cost[station_cargo[i]]), gs.fonts[0], color, hud, top_left[0] + 100,
+            self.draw_button(str(ship_type.cost[ore_names[i]]), gs.fonts[0], color, hud, top_left[0] + 100,
                              top_left[1] + 150 + ((1 + i) * (outlineRect.height / (2 * (len(ship_type.cost) + 1)))))
 
         bar_width = 20
@@ -542,12 +540,12 @@ class CargoMenu:
                 gs.menu = StationMenu()
                 gs.menu.selected = gs.menu.option_list.index('Cargo Hold')
             elif self.selected == 1:
-                if gs.docked.docked_ships[0].cargo_total == 0:
+                if gs.docked.docked_ships[0].cargo.cargo_total == 0:
                     gs.menu = PopupMenu(self, "Error: You can't unload 0 cargo.")
                 for i in range(len(gs.docked.docked_ships[0].cargo)):
                     ores = list(gs.docked.docked_ships[0].cargo)
                     gs.docked.cargo[ores[i]] += gs.docked.docked_ships[0].cargo[ores[i]]
-                    gs.docked.docked_ships[0].cargo_total -= gs.docked.docked_ships[0].cargo[ores[i]]
+                    gs.docked.docked_ships[0].cargo.cargo_total -= gs.docked.docked_ships[0].cargo[ores[i]]
                     gs.docked.docked_ships[0].cargo[ores[i]] = 0
 
         self.keys_pressed = keys_pressed
