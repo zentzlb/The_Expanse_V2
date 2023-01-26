@@ -7,6 +7,12 @@ import time
 from Misc import FindNearest, FindMineable
 from Ship_Class import Ship, Station, Asteroid
 
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.health = math.inf
+
 
 """NPC LOGIC"""
 
@@ -23,9 +29,13 @@ def NPControl(ship, gs, faction):
     if ship.health < ship.ship_type.health // 10:
         ship.target = FindNearest(ship, gs.stations[faction])
 
-    elif ship.target is None or ship.target.health >= 0 or ship.counter == 60:
+    elif ship.target is None or ship.target.health <= 0 or ship.counter == 60:
         ship.target = FindNearest(ship, gs.targets[faction])
         ship.counter = 0
+        if ship.target is None:
+            ship.target = Point(rnd.randint(0, gs.size), rnd.randint(0, gs.size))
+            # print(ship.target)
+            # print(type(ship.target) is Point)
     else:
         ship.counter += 1
 
@@ -67,7 +77,7 @@ def NPControl(ship, gs, faction):
         if type(ship.target) is Asteroid:
             commands[8] = 1
 
-    elif ship.target is not None:
+    elif type(ship.target) is Ship:
 
         pos = ship.Q.transpose().dot(ship.ship_type.bullet_pos[ship.bullet_sel]) - np.array([ship.bullet_types[ship.bullet_sel].width // 2, ship.bullet_types[ship.bullet_sel].height // 2])
 
@@ -127,10 +137,27 @@ def NPControl(ship, gs, faction):
         if ship.health < 20 and ((ship.energy > ship.bullet_types[ship.bullet_sel].energy and ship.boost) or ship.energy > ship.bullet_types[ship.bullet_sel].energy + 30):
             commands[7] = 1
 
-    # else:
-    #     commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    elif type(ship.target) is Point:
+        # print('working')
+
+        dx = ship.target.x - ship.centerx
+        dy = ship.target.y - ship.centery
+
+        V = np.array([[dx], [dy]])
+        V_prime = ship.Q.dot(V)
+        angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
+
+        if angle2 > ship.av * math.pi / 360:  # LEFT
+            commands[0] = 1
+        elif angle2 < -ship.av * math.pi / 360:  # RIGHT
+            commands[0] = -1
+
+        """GO FORWARD"""
+        commands[1] = 1
 
     return commands
+
+
 
 """NPC MINER LOGIC"""
 
@@ -139,9 +166,9 @@ def NPControl2(ship, global_state, faction):
 
     commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    if (ship.cargo_total >= ship.ship_type.cargo_cap or ship.health < 0.8 * ship.ship_type.health):  # type(ship.target) is not Station and
+    if (ship.cargo.cargo_total >= ship.ship_type.cargo_cap or ship.health < 0.8 * ship.ship_type.health):  # type(ship.target) is not Station and
         ship.target = FindNearest(ship, global_state.stations[faction])
-    elif type(ship.target) is not Asteroid and ship.cargo_total < ship.ship_type.cargo_cap:
+    elif type(ship.target) is not Asteroid and ship.cargo.cargo_total < ship.ship_type.cargo_cap:
         ship.target = FindMineable(ship, global_state.asteroids)
     elif type(ship.target) is Asteroid and sum(ship.target.ore.values()) == 0:
         ship.target = FindMineable(ship, global_state.asteroids)
@@ -292,8 +319,8 @@ def PlayerControl1(ship, global_state, faction):
             if i != faction:
                 target_list.extend(global_state.ships[i])
         ship.target = FindNearest(ship, target_list)
-    # elif keys_pressed[pygame.K_k]:
-    #     ship.target = FindNearest(ship.centerx, ship.centery, global_state.asteroids)
+    elif keys_pressed[pygame.K_o]:
+        ship.target = FindMineable(ship, global_state.asteroids)
     elif keys_pressed[pygame.K_SEMICOLON]:  # REMOVE TARGET LOCK
         ship.target = None
 

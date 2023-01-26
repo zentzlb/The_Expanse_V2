@@ -53,7 +53,7 @@ YELLOW = (255, 255, 0)  # YELLOW
 # DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')), (6000, 6000)).convert(HUD)  # foreground image
 # FIELD = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'middle_ground.png')), (6000, 6000)).convert(HUD)  # middle ground image
 
-FPS = 120  # define frame rate
+FPS = 60  # define frame rate
 
 # YELLOW_HIT = pygame.USEREVENT + 1
 # RED_HIT = pygame.USEREVENT + 2
@@ -80,7 +80,7 @@ def main():
     """SPAWN IN SPECIFIED SHIPS"""
     if PCS == 'y':
 
-        yellow = Ship(player_control, TurretControl, 90000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Sprinter', MyGS, is_player=True)
+        yellow = Ship(player_control, TurretControl, rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Sprinter', MyGS, is_player=True)
 
         yellow.add_bullet(MyGS, 'Plasma')
         yellow.add_bullet(MyGS, 'Railgun')
@@ -151,12 +151,12 @@ def main():
         clock.tick(FPS)
         fps = round(clock.get_fps())
 
-        if 0 < fps < 110:
-            print(f'fps: {fps}')
-            print(f'logic: {t3-t2}')  # 0.001
-            print(f'display: {t4-t3}')  # 0.007
-            print(f'other: {t2 - t1}')  # 0.000
-            print()
+        # if 0 < fps < 110:
+        #     print(f'fps: {fps}')
+        #     print(f'logic: {t3-t2}')  # 0.001
+        #     print(f'display: {t4-t3}')  # 0.007
+        #     print(f'other: {t2 - t1}')  # 0.000
+        #     print()
 
         t1 = time.time()
         MyGS.explosion_group.update()  # update all explosions
