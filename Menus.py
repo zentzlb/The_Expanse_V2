@@ -164,7 +164,6 @@ class WepMenu:
         self.keys_pressed = pygame.key.get_pressed()
         self.option_list = []
         self.selected = 0
-        self.ship = None
         # self.launch_button = self.draw_button('Launch Ship', font, (255, 255, 0), hud, 100, 100)
 
     def draw_menu(self, hud,  gs):
@@ -180,10 +179,6 @@ class WepMenu:
         pygame.draw.rect(hud, (50, 30, 30, 255), outlineRect)
         pygame.draw.rect(hud, (20, 20, 20, 255), wepRect)
 
-        for i in range(len(gs.docked.docked_ships)):
-            if gs.docked.docked_ships[i].is_player:
-                self.ship = gs.docked.docked_ships[i]
-
         if keys_pressed[pygame.K_DOWN] and not self.keys_pressed[pygame.K_DOWN]:
             self.selected += 1
             if self.selected >= len(self.option_list):
@@ -195,14 +190,14 @@ class WepMenu:
         if keys_pressed[pygame.K_RETURN] and not self.keys_pressed[pygame.K_RETURN]:
             bullet = gs.BulletTypes[self.option_list[self.selected]]
             has_bullet = False  # this boolean will only be true if the ship already has that bullet type
-            for i in range(len(self.ship.bullet_types)):
-                if bullet.name == self.ship.bullet_types[i].name:
+            for i in range(len(gs.docked.docked_ships[0].bullet_types)):
+                if bullet.name == gs.docked.docked_ships[0].bullet_types[i].name:
                     gs.menu = PopupMenu(self, "You already have that type of bullet equipped.")
                     has_bullet = True
             if has_bullet is False:
                 if check_purchase(gs.docked, bullet):
                     purchase(gs.docked, bullet)
-                    self.ship.bullet_type = bullet
+                    gs.docked.docked_ships[0].bullet_type = bullet
                 else:
                     gs.menu = PopupMenu(self, "You don't have enough ore to purchase this item.")
         if keys_pressed[pygame.K_ESCAPE] and not self.keys_pressed[pygame.K_ESCAPE]:
@@ -212,11 +207,11 @@ class WepMenu:
 
         self.keys_pressed = keys_pressed
         self.draw_button("Ship Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 800, top_left[1])
-        cargos = list(self.ship.cargo)
-        for i in range(len(self.ship.cargo)):
+        cargos = list(gs.docked.docked_ships[0].cargo)
+        for i in range(len(gs.docked.docked_ships[0].cargo)):
             color = (255, 255, 255)
-            self.draw_button(cargos[i], gs.fonts[0], color, hud, top_left[0] + 800, top_left[1] + ((1 + i) * (outlineRect.height / (len(self.ship.cargo) + 1))))
-            self.draw_button(str(self.ship.cargo[cargos[i]]), gs.fonts[0], color, hud, top_left[0] + 900, top_left[1] + ((1 + i) * (outlineRect.height / (len(self.ship.cargo) + 1))))
+            self.draw_button(cargos[i], gs.fonts[0], color, hud, top_left[0] + 800, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
+            self.draw_button(str(gs.docked.docked_ships[0].cargo[cargos[i]]), gs.fonts[0], color, hud, top_left[0] + 900, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
         self.draw_button("Station Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 500, top_left[1])
         station_cargo = list(gs.docked.cargo)
         for i in range(len(gs.docked.cargo)):
@@ -286,7 +281,6 @@ class WepMenu2:
         self.keys_pressed = pygame.key.get_pressed()
         self.option_list = []
         self.selected = 0
-        self.ship = None
         # self.launch_button = self.draw_button('Launch Ship', font, (255, 255, 0), hud, 100, 100)
 
     def draw_menu(self, hud, gs):
@@ -302,10 +296,6 @@ class WepMenu2:
         pygame.draw.rect(hud, (50, 30, 30, 255), outlineRect)
         pygame.draw.rect(hud, (20, 20, 20, 255), wepRect)
 
-        for i in range(len(gs.docked.docked_ships)):
-            if gs.docked.docked_ships[i].is_player:
-                self.ship = gs.docked.docked_ships[i]
-
         if keys_pressed[pygame.K_DOWN] and not self.keys_pressed[pygame.K_DOWN]:
             self.selected += 1
             if self.selected >= len(self.option_list):
@@ -317,14 +307,14 @@ class WepMenu2:
         if keys_pressed[pygame.K_RETURN] and not self.keys_pressed[pygame.K_RETURN]:
             missile = gs.MissileTypes[self.option_list[self.selected]]
             has_missile = False  # this boolean will only be true if the ship already has that missile type
-            for i in range(len(self.ship.missile_types)):
-                if missile.name == self.ship.missile_types[i].name:
+            for i in range(len(gs.docked.docked_ships[0].missile_types)):
+                if missile.name == gs.docked.docked_ships[0].missile_types[i].name:
                     gs.menu = PopupMenu(self, "You already have that type of missile equipped.")
                     has_missile = True
             if has_missile is False:
                 if check_purchase(gs.docked, missile):
                     purchase(gs.docked, missile)
-                    self.ship.missile_type = missile
+                    gs.docked.docked_ships[0].missile_type = missile
                 else:
                     gs.menu = PopupMenu(self, "You don't have enough ore to purchase this item.")
         if keys_pressed[pygame.K_ESCAPE] and not self.keys_pressed[pygame.K_ESCAPE]:
@@ -334,11 +324,11 @@ class WepMenu2:
 
         self.keys_pressed = keys_pressed
         self.draw_button("Ship Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 800, top_left[1])
-        cargos = list(self.ship.cargo)
-        for i in range(len(self.ship.cargo)):
+        cargos = list(gs.docked.docked_ships[0].cargo)
+        for i in range(len(gs.docked.docked_ships[0].cargo)):
             color = (255, 255, 255)
-            self.draw_button(cargos[i], gs.fonts[0], color, hud, top_left[0] + 800, top_left[1] + ((1 + i) * (outlineRect.height / (len(self.ship.cargo) + 1))))
-            self.draw_button(str(self.ship.cargo[cargos[i]]), gs.fonts[0], color, hud, top_left[0] + 900, top_left[1] + ((1 + i) * (outlineRect.height / (len(self.ship.cargo) + 1))))
+            self.draw_button(cargos[i], gs.fonts[0], color, hud, top_left[0] + 800, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
+            self.draw_button(str(gs.docked.docked_ships[0].cargo[cargos[i]]), gs.fonts[0], color, hud, top_left[0] + 900, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
         self.draw_button("Station Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 500, top_left[1])
         station_cargo = list(gs.docked.cargo)
         for i in range(len(gs.docked.cargo)):
@@ -410,7 +400,6 @@ class ShipMenu:
         self.keys_pressed = pygame.key.get_pressed()
         self.option_list = []
         self.selected = 0
-        self.ship = None
         # self.launch_button = self.draw_button('Launch Ship', font, (255, 255, 0), hud, 100, 100)
 
     def draw_menu(self, hud, gs):
@@ -426,10 +415,6 @@ class ShipMenu:
         pygame.draw.rect(hud, (50, 30, 30, 255), outlineRect)
         pygame.draw.rect(hud, (20, 20, 20, 255), wepRect)
 
-        for i in range(len(gs.docked.docked_ships)):
-            if gs.docked.docked_ships[i].is_player:
-                self.ship = gs.docked.docked_ships[i]
-
         if keys_pressed[pygame.K_DOWN] and not self.keys_pressed[pygame.K_DOWN]:
             self.selected += 1
             if self.selected >= len(self.option_list):
@@ -440,12 +425,12 @@ class ShipMenu:
                 self.selected = len(self.option_list) - 1
         if keys_pressed[pygame.K_RETURN] and not self.keys_pressed[pygame.K_RETURN]:
             ship = gs.ShipTypes[self.option_list[self.selected]]
-            if self.ship.ship_type.name == ship.name:
+            if gs.docked.docked_ships[0].ship_type.name == ship.name:
                 gs.menu = PopupMenu(self, "You already have that type of ship equipped.")
             elif check_purchase(gs.docked, ship):
                 purchase(gs.docked, ship)
-                self.ship.ship_type = ship
-                self.ship.refresh(gs)
+                gs.docked.docked_ships[0].ship_type = ship
+                gs.docked.docked_ships[0].refresh(gs)
             else:
                 gs.menu = PopupMenu(self, "You don't have enough ore to purchase this item.")
         if keys_pressed[pygame.K_ESCAPE] and not self.keys_pressed[pygame.K_ESCAPE]:
@@ -455,11 +440,11 @@ class ShipMenu:
 
         self.keys_pressed = keys_pressed
         self.draw_button("Ship Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 800, top_left[1])
-        cargos = list(self.ship.cargo)
-        for i in range(len(self.ship.cargo)):
+        cargos = list(gs.docked.docked_ships[0].cargo)
+        for i in range(len(gs.docked.docked_ships[0].cargo)):
             color = (255, 255, 255)
-            self.draw_button(cargos[i], gs.fonts[0], color, hud, top_left[0] + 800, top_left[1] + ((1 + i) * (outlineRect.height / (len(self.ship.cargo) + 1))))
-            self.draw_button(str(self.ship.cargo[cargos[i]]), gs.fonts[0], color, hud, top_left[0] + 900, top_left[1] + ((1 + i) * (outlineRect.height / (len(self.ship.cargo) + 1))))
+            self.draw_button(cargos[i], gs.fonts[0], color, hud, top_left[0] + 800, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
+            self.draw_button(str(gs.docked.docked_ships[0].cargo[cargos[i]]), gs.fonts[0], color, hud, top_left[0] + 900, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
         self.draw_button("Station Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 500, top_left[1])
         station_cargo = list(gs.docked.cargo)
         for i in range(len(gs.docked.cargo)):
@@ -531,7 +516,6 @@ class CargoMenu:
         self.keys_pressed = pygame.key.get_pressed()
         self.option_list = ['Back', 'Unload Cargo']
         self.selected = 0
-        self.ship = None
 
     def draw_menu(self, hud, gs):
         keys_pressed = pygame.key.get_pressed()
@@ -542,10 +526,6 @@ class CargoMenu:
         outlineRect = pygame.Rect(top_left[0]-10, top_left[1]-10, length*10, gs.height-2*(top_left[1]-10))
         pygame.draw.rect(hud, (30, 30, 30, 225), menuRect)
         pygame.draw.rect(hud, (50, 30, 30, 255), outlineRect)
-
-        for i in range(len(gs.docked.docked_ships)):
-            if gs.docked.docked_ships[i].is_player:
-                self.ship = gs.docked.docked_ships[i]
 
         if keys_pressed[pygame.K_DOWN] and not self.keys_pressed[pygame.K_DOWN]:
             self.selected += 1
@@ -560,21 +540,21 @@ class CargoMenu:
                 gs.menu = StationMenu()
                 gs.menu.selected = gs.menu.option_list.index('Cargo Hold')
             elif self.selected == 1:
-                if self.ship.cargo.cargo_total == 0:
+                if gs.docked.docked_ships[0].cargo.cargo_total == 0:
                     gs.menu = PopupMenu(self, "Error: You can't unload 0 cargo.")
-                for i in range(len(self.ship.cargo) - 1, -1, -1):
-                    ores = list(self.ship.cargo)
-                    gs.docked.cargo[ores[i]] += self.ship.cargo[ores[i]]
-                    self.ship.cargo.cargo_total -= self.ship.cargo[ores[i]]
-                    del self.ship.cargo[ores[i]]
+                for i in range(len(gs.docked.docked_ships[0].cargo)):
+                    ores = list(gs.docked.docked_ships[0].cargo)
+                    gs.docked.cargo[ores[i]] += gs.docked.docked_ships[0].cargo[ores[i]]
+                    gs.docked.docked_ships[0].cargo.cargo_total -= gs.docked.docked_ships[0].cargo[ores[i]]
+                    gs.docked.docked_ships[0].cargo[ores[i]] = 0
 
         self.keys_pressed = keys_pressed
         self.draw_button("Ship Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0], top_left[1])
-        cargos = list(self.ship.cargo)
-        for i in range(len(self.ship.cargo)):
+        cargos = list(gs.docked.docked_ships[0].cargo)
+        for i in range(len(gs.docked.docked_ships[0].cargo)):
             color = (255, 255, 255)
-            self.draw_button(cargos[i], gs.fonts[0], color, hud, top_left[0], top_left[1] + ((1 + i) * (outlineRect.height / (len(self.ship.cargo) + 1))))
-            self.draw_button(str(self.ship.cargo[cargos[i]]), gs.fonts[0], color, hud, top_left[0] + 100, top_left[1] + ((1 + i) * (outlineRect.height / (len(self.ship.cargo) + 1))))
+            self.draw_button(cargos[i], gs.fonts[0], color, hud, top_left[0], top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
+            self.draw_button(str(gs.docked.docked_ships[0].cargo[cargos[i]]), gs.fonts[0], color, hud, top_left[0] + 100, top_left[1] + ((1 + i) * (outlineRect.height / (len(gs.docked.docked_ships[0].cargo) + 1))))
         self.draw_button("Station Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0] + 400, top_left[1])
         station_cargo = list(gs.docked.cargo)
         for i in range(len(gs.docked.cargo)):
@@ -601,12 +581,11 @@ class CargoMenu:
 
 class AsteroidMenu:
 
-    def __init__(self, ship, asteroid, faction):
+    def __init__(self, ship, asteroid):
         self.keys_pressed = pygame.key.get_pressed()
         self.option_list = ['Launch', 'Harvest']  # can add options later (Build Station, Build Turret, etc)
         self.selected = 0
         self.ship = ship
-        self.faction = faction
         self.asteroid = asteroid
 
     def draw_menu(self, hud, gs):
@@ -625,10 +604,10 @@ class AsteroidMenu:
                 self.selected = len(self.option_list) - 1
         if keys_pressed[pygame.K_RETURN] and not self.keys_pressed[pygame.K_RETURN]:
             if self.selected == 0:
-                gs.ships[self.faction].append(self.ship)
+                gs.ships[0].append(self.ship)
                 gs.menu = None
             elif self.selected == 1:
-                gs.menu = AsteroidMenu2(self.ship, self.asteroid, self.faction)
+                gs.menu = AsteroidMenu2(self.ship, self.asteroid)
 
         self.keys_pressed = keys_pressed
 
@@ -648,13 +627,12 @@ class AsteroidMenu:
 
 class AsteroidMenu2:
 
-    def __init__(self, ship, asteroid, faction):
+    def __init__(self, ship, asteroid):
         self.keys_pressed = pygame.key.get_pressed()
         self.option_list = ['Back']
         self.selected = 0
         self.ship = ship
         self.asteroid = asteroid
-        self.faction = faction
         for i in range(len(asteroid.ore)):
             self.option_list.append('Harvest All/Max')
             self.option_list.append('Harvest 10')
@@ -683,33 +661,30 @@ class AsteroidMenu2:
                 self.selected = len(self.option_list) - 1
         if keys_pressed[pygame.K_RETURN] and not self.keys_pressed[pygame.K_RETURN]:
             if self.selected == 0:
-                gs.menu = AsteroidMenu(self.ship, self.asteroid, self.faction)
+                gs.menu = AsteroidMenu(self.ship, self.asteroid)
             elif self.selected >= 0:
                 if self.selected % 2 != 0:  # odd number = Harvest All/Max for some ore
                     ores_index = self.selected // 2
                     if self.asteroid.ore[ores[ores_index]] == 0:
                         gs.menu = PopupMenu(self, "Error: You can't harvest 0 ore.")
-                    elif (self.ship.cargo.cargo_total + self.asteroid.ore[ores[ores_index]]) < self.ship.ship_type.cargo_cap:
+                    elif (self.ship.cargo_total + self.asteroid.ore[ores[ores_index]]) < self.ship.ship_type.cargo_cap:
                         added_cargo = self.asteroid.harvest_all(ores[ores_index])
-                        self.ship.cargo.cargo_total += added_cargo
+                        self.ship.cargo_total += added_cargo
                         self.ship.cargo[ores[ores_index]] += added_cargo
-                        cargos = list(self.ship.cargo)
-                    elif self.ship.cargo.cargo_total < self.ship.ship_type.cargo_cap:
-                        added_cargo = self.ship.ship_type.cargo_cap - self.ship.cargo.cargo_total
+                    elif self.ship.cargo_total < self.ship.ship_type.cargo_cap:
+                        added_cargo = self.ship.ship_type.cargo_cap - self.ship.cargo_total
                         self.asteroid.harvest(ores[ores_index], added_cargo)
-                        self.ship.cargo.cargo_total += added_cargo
+                        self.ship.cargo_total += added_cargo
                         self.ship.cargo[ores[ores_index]] += added_cargo
-                        cargos = list(self.ship.cargo)
                     else:
                         gs.menu = PopupMenu(self, "Error: Harvest All/Max failed. Cargo full.")
                 if self.selected % 2 == 0:  # even number = Harvest 10 for some ore
                     ores_index = int(self.selected / 2 - 1)
                     if self.asteroid.ore[ores[ores_index]] < 10:
                         gs.menu = PopupMenu(self, "Error: You can't harvest 10 of this ore.")
-                    elif (self.ship.cargo.cargo_total + 10) <= self.ship.ship_type.cargo_cap:
-                        self.ship.cargo.cargo_total += 10
+                    elif (self.ship.cargo_total + 10) <= self.ship.ship_type.cargo_cap:
+                        self.ship.cargo_total += 10
                         self.ship.cargo[ores[ores_index]] += self.asteroid.harvest(ores[ores_index], 10)
-                        cargos = list(self.ship.cargo)
                     else:
                         gs.menu = PopupMenu(self, "Error: Harvest 10 failed. Cargo full.")
 

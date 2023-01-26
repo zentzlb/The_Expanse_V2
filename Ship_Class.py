@@ -73,11 +73,11 @@ class Ship(pygame.Rect):
             self.missile_types.append(gs.MissileTypes[key])
 
     def add_mine(self, gs, key):
-        if len(self.mine_types) <= self.ship_type.mine:
+        if len(self.mine_types) < self.ship_type.mine:
             self.mine_types.append(gs.MineTypes[key])
 
     def add_util(self, gs, key):
-        if len(self.util_types) <= self.ship_type.utility:
+        if len(self.util_types) < self.ship_type.utility:
             self.util_types.append(gs.UtilTypes[key])
 
     def scoot(self, global_state, faction):
@@ -225,14 +225,7 @@ class Ship(pygame.Rect):
         """MINE ASTEROID"""
         if commands[9] == 1 and type(self.target) is Asteroid and self.colliderect(self.target):  # harvest from asteroid
             roid = self.target  # identify specific asteroid from list
-            if self.is_player:
-                self.vx = 0
-                self.vy = 0
-                global_state.ships[faction].remove(self)
-                global_state.update()
-                global_state.menu = AsteroidMenu(self, roid, faction)
-            else:
-                roid.mine(self)
+            roid.mine(self)
             if sum(roid.ore.values()) > 0:
                 global_state.particle_list.append(
                     Particle(self.centerx, self.centery, rnd.random(), rnd.randint(0, 360), rnd.randint(4, 6),
