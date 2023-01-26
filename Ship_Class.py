@@ -230,7 +230,7 @@ class Ship(pygame.Rect):
                 self.vy = 0
                 global_state.ships[faction].remove(self)
                 global_state.update()
-                global_state.menu = AsteroidMenu(self, roid, faction)
+                global_state.menu = AsteroidMenu(self, roid)
             else:
                 roid.mine(self)
             if sum(roid.ore.values()) > 0:
