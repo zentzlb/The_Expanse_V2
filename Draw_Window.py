@@ -1,5 +1,6 @@
 import pygame
 import os
+import numpy as np
 import math
 import time
 from Misc import TargetingComputer
@@ -146,6 +147,16 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
                         adjust_x = (ship.target.width - ship.target.height * abs(math.sin(ship.target.angle * math.pi / 180)) - ship.target.width * abs(math.cos(ship.target.angle * math.pi / 180))) / 2
                         adjust_y = (ship.target.height - ship.target.width * abs(math.sin(ship.target.angle * math.pi / 180)) - ship.target.height * abs(math.cos(ship.target.angle * math.pi / 180))) / 2
                         gs.HUD.blit(SHIP, (center[0] - ship.target.width // 2 + adjust_x, center[1] - ship.target.height // 2 + adjust_y))
+                        cos = math.cos(ship.target.angle * math.pi / 180)
+                        sin = math.sin(ship.target.angle * math.pi / 180)
+                        Q = np.array([[cos, sin], [-sin, cos]])
+                        for turret in ship.target.turrets:
+                            target_turret = pygame.transform.rotate(turret.image, turret.angle)
+                            adjust_turret_x = (turret.width - turret.height * abs(math.sin(turret.angle * math.pi / 180)) - turret.width * abs(math.cos(turret.angle * math.pi / 180))) / 2
+                            adjust_turret_y = (turret.height - turret.width * abs(math.sin(turret.angle * math.pi / 180)) - turret.height * abs(math.cos(turret.angle * math.pi / 180))) / 2
+                            target_turret_x = (center[0] - turret.width // 2 + adjust_turret_x) + Q.dot(turret.pos)[0]
+                            target_turret_y = (center[1] - turret.height // 2 + adjust_turret_y) + Q.dot(turret.pos)[1]
+                            gs.HUD.blit(target_turret, (target_turret_x, target_turret_y))
                         health_text = gs.fonts[2].render(f"Shields: {100 * ship.target.health / ship.target.ship_type.health:0.0f}%", True, SILVER)
                         energy_text = gs.fonts[2].render(
                             f"Energy: {100 * ship.target.energy / ship.target.ship_type.energy:0.0f}%", True, SILVER)
