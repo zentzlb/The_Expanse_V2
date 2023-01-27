@@ -487,6 +487,14 @@ class ShipMenu:
         imagex = round(top_left[0] + length / 2 - ship_type.width / 2)
         imagey = round(top_left[1] + length / 2 - ship_type.height / 2)
         hud.blit(image, (imagex, imagey))
+        for i in range(len(ship_type.turrets)):
+            for turretKey in gs.TurretTypes.keys():
+                if gs.TurretTypes[turretKey].name is ship_type.turrets[i]:
+                    turretType = gs.TurretTypes[turretKey]
+                    turret_image = pygame.image.load(os.path.join('Assets', f'{ship_type.turrets[i]}.png'))
+                    turret_image_x = (top_left[0] + length / 2) + ship_type.turret_pos[i][0] - (turretType.width / 2)
+                    turret_image_y = (top_left[1] + length / 2) + ship_type.turret_pos[i][1] - (turretType.height / 2)
+                    hud.blit(turret_image, (turret_image_x, turret_image_y))
 
         self.draw_button("Cost:", gs.fonts[0], (255, 255, 255), hud, top_left[0], top_left[1] + 150)
         ore_names = list(ship_type.cost)
