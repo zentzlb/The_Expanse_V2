@@ -330,8 +330,8 @@ class Ship(pygame.Rect):
         self.image.blit(self.Image, (0, 0))
         self.imagef.blit(self.Imagef, (0, 0))
 
-        self.image.convert(gs.WIN2)
-        self.imagef.convert(gs.WIN2)
+        self.image.convert_alpha()
+        self.imagef.convert_alpha()
 
 
         Turrets = []

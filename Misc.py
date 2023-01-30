@@ -39,8 +39,9 @@ class GlobalState:
         self.mining_sound = pygame.mixer.Sound(os.path.join('Assets', 'mining.mp3'))
         self.mining = pygame.mixer.Channel(2)
         self.WIN = pygame.display.set_mode((width, height))  # create window
-        self.WIN2 = pygame.Surface((width, height), pygame.SRCALPHA)  # create transparent surface
-        self.HUD = pygame.Surface((width, height), pygame.SRCALPHA)  # create HUD surface
+        # self.WIN.set_alpha(255)
+        # self.WIN2 = pygame.Surface((width, height), pygame.SRCALPHA)  # create transparent surface
+        # self.HUD = pygame.Surface((width, height), pygame.SRCALPHA)  # create HUD surface
         self.ShipTypes = make_dict(ShipNames)
         for Type in list(self.ShipTypes):
             self.ShipTypes[Type].cost = assign_ship_cost(self.ShipTypes[Type])
@@ -60,11 +61,11 @@ class GlobalState:
             self.UtilTypes[Type].cost = assign_util_cost(self.UtilTypes[Type])
         self.explosion_group = pygame.sprite.Group()  # initialize explosion group
         self.SPACE = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space2.png')),
-                                       (width, height)).convert(self.HUD)  # background image
+                                       (width, height)).convert_alpha()  # background image
         self.DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')),
-                                      (6000, 6000)).convert(self.HUD)  # foreground image
+                                      (6000, 6000)).convert_alpha()  # foreground image
         self.FIELD = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'middle_ground.png')),
-                                       (6000, 6000)).convert(self.HUD)  # middle ground image
+                                       (6000, 6000)).convert_alpha()  # middle ground image
         self.update()
 
     def update(self):
@@ -287,14 +288,6 @@ def TargetingComputer(ship):
 
     dx = x - ship.centerx
     dy = y - ship.centery
-
-    # cos = math.cos(ship.angle * math.pi / 180)
-    # sin = math.sin(ship.angle * math.pi / 180)
-    #
-    # Q = np.array([[cos, -sin], [sin, cos]])
-    # V = np.array([[dx], [dy]])
-    # V_prime = Q.dot(V)
-    # angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
 
     angle2 = math.atan2(dy, dx)
 

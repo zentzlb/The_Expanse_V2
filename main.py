@@ -53,7 +53,7 @@ YELLOW = (255, 255, 0)  # YELLOW
 # DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')), (6000, 6000)).convert(HUD)  # foreground image
 # FIELD = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'middle_ground.png')), (6000, 6000)).convert(HUD)  # middle ground image
 
-FPS = 60  # define frame rate
+FPS = 2000  # define frame rate
 
 # YELLOW_HIT = pygame.USEREVENT + 1
 # RED_HIT = pygame.USEREVENT + 2
@@ -64,8 +64,8 @@ pygame.mixer.init()
 
 # explosion_group = pygame.sprite.Group()  # initialize explosion group
 
-pygame.init()
-pygame.mixer.init()
+# pygame.init()
+# pygame.mixer.init()
 
 MyGS = GlobalState(100000, 0, 0, HEIGHT, WIDTH, [FONT1, FONT2, FONT3], [[], []], [[], []], [[], []], [[], []], [], [NPControl, NPControl2])  # global state object: used to keep track of global variables
 
@@ -80,7 +80,7 @@ def main():
     """SPAWN IN SPECIFIED SHIPS"""
     if PCS == 'y':
 
-        yellow = Ship(player_control, TurretControl, rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Sprinter', MyGS, is_player=True)
+        yellow = Ship(player_control, TurretControl, 90000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Ghost', MyGS, is_player=True)
 
         yellow.add_bullet(MyGS, 'Plasma')
         yellow.add_bullet(MyGS, 'Railgun')
@@ -107,7 +107,7 @@ def main():
 
     for i in range(nE):
 
-        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Ghost', MyGS)
+        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Destroyer', MyGS)
         red.add_bullet(MyGS, 'Plasma')
         red.add_missile(MyGS, 'Swarm Missile')
         MyGS.ships[1].append(red)
