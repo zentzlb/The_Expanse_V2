@@ -85,10 +85,10 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
 
         for ship in gs.ships[faction]:
             if ship.health > 0 and (ship.x - gs.x < WIDTH and ship.x - gs.x + ship.width > 0) and (ship.y - gs.y < HEIGHT and ship.y - gs.y + ship.height > 0):
-                if ship.forward:
-                    SHIP = pygame.transform.rotate(ship.imagef, ship.angle)  # display with thrusters active
-                else:
-                    SHIP = pygame.transform.rotate(ship.image, ship.angle)  # display without thrusters
+                # if ship.forward:
+                #     SHIP = pygame.transform.rotate(ship.imagef, ship.angle)  # display with thrusters active
+                # else:
+                SHIP = pygame.transform.rotate(ship.image, ship.angle)  # display without thrusters
                 gs.WIN.blit(SHIP, (ship.cx - gs.x, ship.cy - gs.y))
 
                 if ship.sop > 0:

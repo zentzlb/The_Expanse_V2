@@ -414,7 +414,7 @@ def PlayerControl2(ship, global_state, faction):
     V_prime = Q.dot(V)
     angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
 
-    print(angle2)
+    # print(angle2)
 
     if angle2 > ship.av * math.pi / 360:  # LEFT
         commands[0] = 1

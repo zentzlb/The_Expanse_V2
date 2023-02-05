@@ -181,7 +181,7 @@ class Ship(pygame.Rect):
             global_state.missiles[faction].append(mine)
 
         if commands[6] == 1 and self.utilC == 0 and len(self.util_types) > 0:
-            self.util_types[self.util_sel].function(self, global_state)
+            self.util_types[self.util_sel].function(self, global_state, faction)
             self.utilC += self.util_types[self.util_sel].delay
 
         if commands[7] == 1 and self.energy > 0.75:  # boost

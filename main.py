@@ -82,7 +82,7 @@ def main():
 
         yellow = Ship(PlayerControl2, TurretControl, 90000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Ghost', MyGS, is_player=True)
 
-        yellow.add_bullet(MyGS, 'Plasma')
+        yellow.add_bullet(MyGS, 'AP AutoCannon')
         yellow.add_bullet(MyGS, 'Railgun')
         yellow.add_missile(MyGS, 'Swarm Missile')
         yellow.add_missile(MyGS, 'EMP Missile')
