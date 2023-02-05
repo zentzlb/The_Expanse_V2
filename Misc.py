@@ -38,7 +38,7 @@ class GlobalState:
         self.pilots = pilots
         self.mining_sound = pygame.mixer.Sound(os.path.join('Assets', 'mining.mp3'))
         self.mining = pygame.mixer.Channel(2)
-        self.WIN = pygame.display.set_mode((width, height))  # create window
+        self.WIN = pygame.display.set_mode((width, height), pygame.SCALED | pygame.FULLSCREEN)  # create window
         # self.WIN.set_alpha(255)
         # self.WIN2 = pygame.Surface((width, height), pygame.SRCALPHA)  # create transparent surface
         # self.HUD = pygame.Surface((width, height), pygame.SRCALPHA)  # create HUD surface
@@ -62,8 +62,12 @@ class GlobalState:
         self.explosion_group = pygame.sprite.Group()  # initialize explosion group
         self.SPACE = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space2.png')),
                                        (width, height)).convert_alpha()  # background image
-        self.DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')),
-                                      (6000, 6000)).convert_alpha()  # foreground image
+        self.dust = []
+        self.dust_images = [pygame.image.load(os.path.join('Assets', 'dust4.png')).convert_alpha(), pygame.image.load(os.path.join('Assets', 'dust5.png')).convert_alpha(), pygame.image.load(os.path.join('Assets', 'dust6.png')).convert_alpha()]
+        for i in range(250):
+            self.dust.append((rnd.randint(0, 6000), rnd.randint(0, 6000), rnd.randint(0, 2)))
+        # self.DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')),
+        #                               (6000, 6000)).convert_alpha()  # foreground image
         self.FIELD = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'middle_ground.png')),
                                        (6000, 6000)).convert_alpha()  # middle ground image
         self.update()

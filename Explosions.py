@@ -166,7 +166,7 @@ def ExplosionDamage(max_damage, xo, yo, exp, target_list, gs):
 
 
 class Particle:
-    def __init__(self, x, y, v, angle, radius, color, shrink=0, vx=0, vy=0):
+    def __init__(self, x, y, v, angle, radius, color, shrink=0, vx=0, vy=0, glow=(0, 0, 0), show=True):
         self.x = x
         self.y = y
         self.fx = x
@@ -176,6 +176,8 @@ class Particle:
         self.color = color
         self.radius = radius
         self.shrink = shrink
+        self.glow = glow
+        self.show = show
 
     def update(self):
         self.fx += self.vx

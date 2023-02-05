@@ -112,9 +112,11 @@ class Ship(pygame.Rect):
             self.vx += self.acc * math.sin(self.angle * math.pi / 180)
             self.vy += self.acc * math.cos(self.angle * math.pi / 180)
             self.forward = True
+            R = 255
+            G = rnd.randint(0, 255)
             global_state.particle_list.append(
-                Particle(self.centerx, self.centery, -rnd.randint(round(self.velocity), 2*round(self.velocity)), self.angle + rnd.randint(-15, 15), 3,
-                         (255, rnd.randint(0, 255), 0), shrink=0.5, vx=self.vx, vy=self.vy))
+                Particle(self.centerx, self.centery, -rnd.randint(10, 12), self.angle + rnd.randint(-15, 15), 3,
+                         (R, G, 0), shrink=0.5, vx=self.vx, vy=self.vy, glow=(R//2, G//2, 0)))
         elif commands[1] == -1:  # DOWN
             self.vx -= self.acc * math.sin(self.angle * math.pi / 180) / 3
             self.vy -= self.acc * math.cos(self.angle * math.pi / 180) / 3
@@ -188,8 +190,10 @@ class Ship(pygame.Rect):
             self.acc = self.ship_type.acc * 1.2
             self.av = self.ship_type.av * 1.2
             self.energy -= 0.75
-            for i in range(5):
-                global_state.particle_list.append(Particle(self.centerx, self.centery, -rnd.randint(2*round(self.velocity), 3*round(self.velocity)), self.angle + rnd.randint(-15, 15), 4, (255, rnd.randint(0, 255), 0), shrink=0.3))
+            for i in range(3):
+                R = 255
+                G = rnd.randint(0, 255)
+                global_state.particle_list.append(Particle(self.centerx, self.centery, -rnd.randint(round(2*self.velocity), 3*round(self.velocity)), self.angle + rnd.randint(-15, 15), 3, (R, G, 0), vx=self.vx, vy=self.vy, glow=(R//2, G//2, 0), shrink=0.5))
         else:
             self.boost = False
             self.velocity = self.ship_type.velocity

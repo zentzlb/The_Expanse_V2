@@ -75,7 +75,7 @@ Plasma = {'velocity': 9.5,
           'name': "Plasma",
           'image': pygame.image.load(os.path.join('Assets', 'Plasma.png')),
           'l_image': pygame.image.load(os.path.join('Assets', 'Plasma_Launcher.png')),
-          'sound': None,
+          'sound': pygame.mixer.Sound(os.path.join('Assets', 'PA_launch.mp3')),
           'function': plasma}
 
 Railgun = {'velocity': 30,

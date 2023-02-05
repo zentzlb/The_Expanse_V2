@@ -92,7 +92,10 @@ class Missile(pygame.Rect):
     def scoot(self, gs):
 
         for i in range(self.missile_type.par_num):
-            gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.randint(3, 5), self.angle + rnd.randint(-self.missile_type.par_rnd, self.missile_type.par_rnd), 5, (255, rnd.randint(0, 255), 0)))
+            R = 255
+            G = rnd.randint(0, 255)
+            gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.randint(3, 5), self.angle + rnd.randint(-self.missile_type.par_rnd, self.missile_type.par_rnd), 3, (R, G, 0), glow=(R//2, G//2, 0), shrink=0.5))
+            gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.randint(2, 3), self.angle + rnd.randint(-self.missile_type.par_rnd+5, self.missile_type.par_rnd+5), 5, (80, 80, 80), shrink=0.9))
 
         if self.target is None or self.target.health <= 0:
             self.target = FindNearest(self, gs.targets[self.faction])

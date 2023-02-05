@@ -13,7 +13,7 @@ def jump_drive(ship, gs):
     if ship.energy > ship.height * 4:
         ship.energy -= ship.height * 4
         for i in range(0, 60, 2):
-            gs.particle_list.append(Particle(ship.centerx + ship.vx * i, ship.centery + ship.vy * i, 1, rnd.randint(0, 360), 5, (220, 220, 255), shrink=0.9))
+            gs.particle_list.append(Particle(ship.centerx + ship.vx * i, ship.centery + ship.vy * i, 1, rnd.randint(0, 360), 1, (220, 220, 255), shrink=0.99, glow=(100, 100, 150)))
         ship.fx = ship.fx + ship.vx * 60
         ship.fy = ship.fy + ship.vy * 60
 

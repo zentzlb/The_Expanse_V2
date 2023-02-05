@@ -380,6 +380,96 @@ def PlayerControl1(ship, global_state, faction):
     return commands
 
 
+def PlayerControl2(ship, global_state, faction):
+
+    keys_pressed = pygame.key.get_pressed()
+    mouse_pressed = pygame.mouse.get_pressed()
+    commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+
+    if keys_pressed[pygame.K_l]:  # LOCK ONTO THE NEAREST TARGET
+        target_list = []
+        for i in range(len(global_state.ships)):
+            if i != faction:
+                target_list.extend(global_state.ships[i])
+        ship.target = FindNearest(ship, target_list)
+    elif keys_pressed[pygame.K_o]:
+        ship.target = FindMineable(ship, global_state.asteroids)
+    elif keys_pressed[pygame.K_SEMICOLON]:  # REMOVE TARGET LOCK
+        ship.target = None
+
+
+    """MOVEMENT"""
+
+    xy = pygame.mouse.get_pos()
+
+    dx = xy[0] - global_state.width // 2
+    dy = xy[1] - global_state.height // 2
+
+    cos = math.cos(ship.angle * math.pi / 180)
+    sin = math.sin(ship.angle * math.pi / 180)
+
+    Q = np.array([[cos, -sin], [sin, cos]])
+    V = np.array([[dx], [dy]])
+    V_prime = Q.dot(V)
+    angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
+
+    print(angle2)
+
+    if angle2 > ship.av * math.pi / 360:  # LEFT
+        commands[0] = 1
+    elif angle2 < -ship.av * math.pi / 360:  # RIGHT
+        commands[0] = -1
+
+    if keys_pressed[pygame.K_w]:  # UP
+        commands[1] = 1
+    elif keys_pressed[pygame.K_s]:  # DOWN
+        commands[1] = -1
+
+    if keys_pressed[pygame.K_a]:  # LEFT
+        commands[2] = 1
+    elif keys_pressed[pygame.K_d]:  # RIGHT
+        commands[2] = -1
+
+    if mouse_pressed[0]:  # fire bullet
+        commands[3] = 1
+
+    if mouse_pressed[2]:  # fire missile
+        commands[4] = 1
+
+    if keys_pressed[pygame.K_n]:  # fire mine
+        commands[5] = 1
+
+    if mouse_pressed[1]:  # utility
+        commands[6] = 1
+
+    if keys_pressed[pygame.K_LSHIFT]:  # boost
+        commands[7] = 1
+
+    if keys_pressed[pygame.K_u]:  # dock
+        commands[8] = 1
+
+    if keys_pressed[pygame.K_h]:  # mine
+        commands[9] = 1
+
+    for i in range(1, 10):
+        if eval(f'keys_pressed[pygame.K_{i}]'):
+            if i <= len(ship.bullet_types):
+                commands[10] = i
+                # print(f"command 10: {commands[10]}")
+            elif i <= len(ship.bullet_types) + len(ship.missile_types):
+                commands[11] = i - len(ship.bullet_types)
+                # print(f"command 11: {commands[11]}")
+            elif i <= len(ship.bullet_types) + len(ship.missile_types) + len(ship.mine_types):
+                commands[12] = i - len(ship.bullet_types) - len(ship.missile_types)
+                # print(f"command 12: {commands[12]}")
+            elif i <= len(ship.bullet_types) + len(ship.missile_types) + len(ship.mine_types) + len(ship.util_types):
+                commands[13] = i - len(ship.bullet_types) - len(ship.missile_types) - len(ship.mine_types)
+                # print(f"command 13: {commands[13]}")
+
+    return commands
+
+
 def minmax(mylist, rng):
     temp = []
     for r in mylist:

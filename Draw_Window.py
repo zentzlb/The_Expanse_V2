@@ -43,8 +43,14 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
 
     gs.WIN.blit(gs.SPACE, (0, 0))  # draw background
 
-    gs.WIN.blit(gs.DUST, (-2000 - gs.x % 2000, -2000 - gs.y % 2000))  # draw foreground
+    # gs.WIN.blit(gs.DUST, (-2000 - gs.x % 2000, -2000 - gs.y % 2000))  # draw foreground
+
     gs.WIN.blit(gs.FIELD, (-2000 - (gs.x / 5) % 2000, -2000 - (gs.y / 5) % 2000))  # draw foreground
+
+    for dust in gs.dust:
+        x = (dust[0] - gs.x) % 6000 - 1000
+        y = (dust[1] - gs.y) % 6000 - 1000
+        gs.WIN.blit(gs.dust_images[dust[2]], (x, y))
 
     if keys_pressed[pygame.K_PERIOD]:
         gs.show_bars = True
@@ -61,7 +67,10 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
         p.update()
         if (p.x - gs.x - p.radius < WIDTH and p.x - gs.x + p.radius > 0) and (
                 p.y - gs.y - p.radius < WIDTH and p.y - gs.y + p.radius > 0):
+            # if p.show:
             pygame.draw.circle(gs.WIN, p.color, (p.x - gs.x, p.y - gs.y), p.radius)
+            if p.glow != (0, 0, 0):
+                glow_circle(gs.WIN, p.x - gs.x, p.y - gs.y, 2*p.radius, p.glow)
         if p.radius <= 0:
             gs.particle_list.pop(i)
 
@@ -321,6 +330,17 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
 
         c = rr2 / (math.log((rng ** 2) / (1000 + rng) + 1) ** 2)
 
+        for roid in gs.asteroids:
+            dx = roid.centerx - gs.cx
+            dy = roid.centery - gs.cy
+            d = math.sqrt(dx ** 2 + dy ** 2)
+            r = c * math.log((d ** 2) / (1000 + d) + 1) ** 2
+            if r < rr2:
+                angle = math.atan2(dy, dx)
+                X = rr + r * math.cos(angle) + 3
+                Y = rr + r * math.sin(angle) + 3
+                pygame.draw.circle(HUD, (255, 255, 255), (X, Y), 4)
+
         for faction in range(len(gs.ships)):
             if faction == 0:
                 MyColor = YELLOW
@@ -361,17 +381,6 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
                     X = rr + r * math.cos(angle) + 3
                     Y = rr + r * math.sin(angle) + 3
                     pygame.draw.circle(HUD, MyColor, (X, Y), 1)
-
-        for roid in gs.asteroids:
-            dx = roid.centerx - gs.cx
-            dy = roid.centery - gs.cy
-            d = math.sqrt(dx ** 2 + dy ** 2)
-            r = c * math.log((d ** 2) / (1000 + d) + 1) ** 2
-            if r < rr2:
-                angle = math.atan2(dy, dx)
-                X = rr + r * math.cos(angle) + 3
-                Y = rr + r * math.sin(angle) + 3
-                pygame.draw.circle(HUD, (255, 255, 255), (X, Y), 4)
 
         gs.WIN.blit(HUD, (0, 0))
 
