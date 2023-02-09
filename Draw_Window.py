@@ -91,9 +91,10 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
                 SHIP = pygame.transform.rotate(ship.image, ship.angle)  # display without thrusters
                 gs.WIN.blit(SHIP, (ship.cx - gs.x, ship.cy - gs.y))
 
-                if ship.sop > 0:
-                    trans_circle(gs.WIN, ship.centerx - gs.x, ship.centery - gs.y,  math.sqrt(2) * ship.width // 2, (0, 0, 255, round(ship.sop)))
-                    glow_circle(gs.WIN, ship.centerx - gs.x, ship.centery - gs.y,  math.sqrt(2) * ship.width // 2, (0, 0, round(ship.sop)))
+                if ship.heat > 0:
+                    opacity = 50 * (ship.heat / ship.ship_type.heat_capacity)
+                    trans_circle(gs.WIN, ship.centerx - gs.x, ship.centery - gs.y, math.sqrt(2) * ship.width // 2, (0, 0, 255, round(opacity)))
+                    glow_circle(gs.WIN, ship.centerx - gs.x, ship.centery - gs.y, math.sqrt(2) * ship.width // 2, (0, 0, round(opacity)))
 
                 for turret in ship.turrets:
                     TURRET = pygame.transform.rotate(turret.image, turret.angle)
@@ -137,7 +138,13 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
 
     if player_ship is not None:
 
-        box_tl = (0, 2 * rr + 5 * hbh / 2 + 5)
+        box1_pos = (0, 2 * rr + hbh / 2)
+        box2_pos = (0, 2 * rr + bt * hbh / 2 + bt)
+        box3_pos = (0, 2 * rr + 5 * hbh / 2 + 5)
+        bw = bt + 2 * rr + bt + 1
+        bh = hbh + bt + 2
+
+        box_tl = (0, box3_pos[1] + hbh + bt - 1)
         length = 2 * rr + 7
         rect1 = pygame.Rect(box_tl[0], box_tl[1], length, length)
         rect2 = pygame.Rect(box_tl[0], box_tl[1] + length - bt, length, length)
@@ -148,27 +155,41 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
         """PUT STUFF HERE"""
 
         """DRAW HEALTH AND ENERGY BARS"""
+        # hbc = (255 * min((player_ship.heat, player_ship.ship_type.heat_capacity)) // player_ship.ship_type.heat_capacity, 255, 0, 60)
+
         pygame.draw.line(HUD, (0, 255, 0, 60), (bt, 2 * rr + hbh),
                          (bt + 2 * rr * player_ship.health / player_ship.ship_type.health, 2 * rr + hbh), hbh)
         pygame.draw.line(HUD, (80, 100, 255, 60), (bt, 2 * rr + 2 * hbh + bt),
                          (bt + 2 * rr * player_ship.energy / player_ship.ship_type.energy, 2 * rr + 2 * hbh + bt), hbh)
-        pygame.draw.line(HUD, SILVER, (0, 2 * rr + hbh / 2), (bt + 2 * rr + bt, 2 * rr + hbh / 2), bt)
-        pygame.draw.line(HUD, SILVER, (0, 2 * rr + bt * hbh / 2 + 2), (bt + 2 * rr + bt, 2 * rr + bt * hbh / 2 + 2), bt)
-        pygame.draw.line(HUD, SILVER, (0, 2 * rr + 5 * hbh / 2 + 5), (bt + 2 * rr + bt, 2 * rr + 5 * hbh / 2 + 5), bt)
-        pygame.draw.line(HUD, SILVER, (1, 2 * rr + hbh / 2), (1, 2 * rr + 5 * hbh / 2 + 5), bt)
-        pygame.draw.line(HUD, SILVER, (bt + 2 * rr + 2, 2 * rr + hbh / 2), (bt + 2 * rr + 2, 2 * rr + 5 * hbh / 2 + 5),
-                         bt)
+        pygame.draw.line(HUD, (255, 100, 0, 60), (bt, 2 * rr + 3 * hbh + 2*bt),
+                         (bt + 2 * rr * player_ship.heat / player_ship.ship_type.heat_capacity, 2 * rr + 3 * hbh + 2*bt), hbh)
 
-        """DRAW TARGET HUDDOW"""
+
+
+        pygame.draw.rect(HUD, SILVER, (box1_pos[0], box1_pos[1], bw, bh), bt)
+        pygame.draw.rect(HUD, SILVER, (box2_pos[0], box2_pos[1], bw, bh), bt)
+        pygame.draw.rect(HUD, SILVER, (box3_pos[0], box3_pos[1], bw, bh), bt)
+
+        # pygame.draw.line(HUD, SILVER, (0, 2 * rr + hbh / 2), (bt + 2 * rr + bt, 2 * rr + hbh / 2), bt)
+        # pygame.draw.line(HUD, SILVER, (0, 2 * rr + bt * hbh / 2 + 2), (bt + 2 * rr + bt, 2 * rr + bt * hbh / 2 + 2), bt)
+        # pygame.draw.line(HUD, SILVER, (0, 2 * rr + 5 * hbh / 2 + 5), (bt + 2 * rr + bt, 2 * rr + 5 * hbh / 2 + 5), bt)
+        # pygame.draw.line(HUD, SILVER, (1, 2 * rr + hbh / 2), (1, 2 * rr + 5 * hbh / 2 + 5), bt)
+        # pygame.draw.line(HUD, SILVER, (bt + 2 * rr + 2, 2 * rr + hbh / 2), (bt + 2 * rr + 2, 2 * rr + 5 * hbh / 2 + 5),
+        #                  bt)
+
+        """DRAW TARGET WINDOW"""
 
         health_text = gs.fonts[0].render(
             f"{fps} Shields: {100 * player_ship.health / player_ship.ship_type.health:0.0f}%", 1,
             YELLOW)
         energy_text = gs.fonts[0].render(f"Energy: {100 * player_ship.energy / player_ship.ship_type.energy:0.0f}%", 1,
                                          YELLOW)
+        heat_text = gs.fonts[0].render(f"Heat: {100 * player_ship.heat / player_ship.ship_type.heat_capacity:0.0f}%", 1,
+                                         YELLOW)
 
         HUD.blit(health_text, (7, 2 * rr + hbh / 2))  # display health
         HUD.blit(energy_text, (7, 2 * rr + 3 * hbh / 2 + bt))  # display energy
+        HUD.blit(heat_text, (7, 2 * rr + 5 * hbh / 2 + 2 * bt))  # display energy
 
         if type(player_ship.target) is Ship and player_ship.target.health > 0:
             # print('targeting')

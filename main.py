@@ -80,17 +80,17 @@ def main():
     """SPAWN IN SPECIFIED SHIPS"""
     if PCS == 'y':
 
-        yellow = Ship(PlayerControl2, TurretControl, 90000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Ghost', MyGS, is_player=True)
+        yellow = Ship(PlayerControl2, TurretControl, 90000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Fighter', MyGS, is_player=True)
 
         yellow.add_bullet(MyGS, 'AP AutoCannon')
-        yellow.add_bullet(MyGS, 'Railgun')
-        yellow.add_missile(MyGS, 'Swarm Missile')
+        yellow.add_bullet(MyGS, 'Flame Thrower')
+        yellow.add_missile(MyGS, 'Smart Missile')
         yellow.add_missile(MyGS, 'EMP Missile')
         yellow.add_missile(MyGS, 'Smart Missile')
-        yellow.add_util(MyGS, 'Jump Drive')
+        yellow.add_util(MyGS, 'Reactor')
         yellow.add_util(MyGS, 'Auto Loader')
-        yellow.add_mine(MyGS, 'Black Hole')
-        # yellow.add_mine(MyGS, 'Proximity Mine')
+        # yellow.add_mine(MyGS, 'Black Hole')
+        yellow.add_mine(MyGS, 'Proximity Mine')
         MyGS.ships[0].append(yellow)
 
 
@@ -107,14 +107,14 @@ def main():
 
     for i in range(nE):
 
-        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Heavy Fighter', MyGS)
-        red.add_bullet(MyGS, 'Plasma')
-        red.add_missile(MyGS, 'Swarm Missile')
-        MyGS.ships[1].append(red)
+        # red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Heavy Fighter', MyGS)
+        # red.add_bullet(MyGS, 'Plasma')
+        # red.add_missile(MyGS, 'Swarm Missile')
+        # MyGS.ships[1].append(red)
 
         red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size - 2000, MyGS.size - 1000), rnd.randint(2000, 5000),
                    0, 'red', 'Heavy Fighter', MyGS)
-        red.add_bullet(MyGS, 'Plasma')
+        red.add_bullet(MyGS, 'Flame Thrower')
         red.add_missile(MyGS, 'Swarm Missile')
         MyGS.ships[1].append(red)
 

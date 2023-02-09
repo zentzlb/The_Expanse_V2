@@ -437,7 +437,7 @@ def PlayerControl2(ship, global_state, faction):
     if mouse_pressed[2]:  # fire missile
         commands[4] = 1
 
-    if keys_pressed[pygame.K_n]:  # fire mine
+    if keys_pressed[pygame.K_SPACE]:  # fire mine
         commands[5] = 1
 
     if mouse_pressed[1]:  # utility

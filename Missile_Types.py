@@ -10,7 +10,7 @@ pygame.mixer.init()
 def explosion(self, gs, dmgList):
     for i in dmgList:
         gs.targets[self.faction][i].health -= self.damage
-        gs.targets[self.faction][i].sop += 2 * self.damage
+        gs.targets[self.faction][i].heat += self.damage
 
     for i in range(100):
         c = rnd.randint(100, 200)
@@ -24,7 +24,7 @@ def explosion(self, gs, dmgList):
 def emp_explosion(self, gs, dmgList):
     for i in dmgList:
         gs.targets[self.faction][i].health -= self.damage
-        gs.targets[self.faction][i].sop += 2 * self.damage
+        gs.targets[self.faction][i].heat += self.damage
         gs.targets[self.faction][i].energy = 0
         # target_list[i].bulletC += 180
         # target_list[i].missileC += 180
@@ -45,10 +45,10 @@ def emp_explosion(self, gs, dmgList):
 Seeker = {'velocity': 10.5,
           'av': 0.75,
           'damage': 10,
-          'exp_damage': 15,
+          'exp_damage': 20,
           'exp_radius': 100,
           'energy': 200,
-          'range': 7000,
+          'range': 8000,
           'delay': 180,
           'height': 12,
           'width': 12,
@@ -64,11 +64,11 @@ Seeker = {'velocity': 10.5,
 
 EMPMissile = {'velocity': 8.5,
               'av': 0.5,
-              'damage': 15,
-              'exp_damage': 80,
+              'damage': 10,
+              'exp_damage': 85,
               'exp_radius': 200,
               'energy': 250,
-              'range': 4000,
+              'range': 3500,
               'delay': 250,
               'height': 15,
               'width': 15,
@@ -85,10 +85,10 @@ EMPMissile = {'velocity': 8.5,
 SwarmMissile = {'velocity': 9,
                 'av': 2.5,
                 'damage': 15,
-                'exp_damage': 5,
+                'exp_damage': 10,
                 'exp_radius': 50,
                 'energy': 180,
-                'range': 5000,
+                'range': 4500,
                 'delay': 90,
                 'height': 10,
                 'width': 10,
@@ -105,7 +105,7 @@ SwarmMissile = {'velocity': 9,
 SmartMissile = {'velocity': 11,
                 'av': 0.5,
                 'damage': 10,
-                'exp_damage': 10,
+                'exp_damage': 15,
                 'exp_radius': 80,
                 'energy': 220,
                 'range': 15000,

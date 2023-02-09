@@ -30,7 +30,7 @@ class Ship(pygame.Rect):
         self.cx = x
         self.cy = y
         self.health = ShipType.health
-        self.sop = 0
+        self.heat = 0
         # self.Energy = ShipType.energy
         self.energy = ShipType.energy
         self.vx = 0
@@ -56,11 +56,13 @@ class Ship(pygame.Rect):
         self.boost = False
         self.is_player = is_player
         self.is_visible = True
+        self.cloaked = False
+        self.hidden = False
         self.color = color
         self.Image = pygame.image.load(os.path.join('Assets', f'{ship_type}_{color}.png'))  # image with no flame
-        self.Imagef = pygame.image.load(os.path.join('Assets', f'{ship_type}_{color}_f.png'))  # image with flame
+        # self.Imagef = pygame.image.load(os.path.join('Assets', f'{ship_type}_{color}_f.png'))  # image with flame
         self.image = self.Image
-        self.imagef = self.Imagef
+        # self.imagef = self.Imagef
 
         self.refresh(gs)
 
@@ -79,6 +81,22 @@ class Ship(pygame.Rect):
     def add_util(self, gs, key):
         if len(self.util_types) < self.ship_type.utility:
             self.util_types.append(gs.UtilTypes[key])
+
+    def determine_visibility(self):
+        if self.cloaked and self.bulletC == 0 and self.missileC == 0:
+            self.is_visible = False
+            self.image.set_alpha(100)
+        elif self.hidden:
+            self.is_visible = False
+        else:
+            self.is_visible = True
+
+    def concealed(self, gs):
+        if rnd.random() > 0.99:
+            if self.collidelistall(gs.asteroids):
+                self.hidden = True
+            else:
+                self.hidden = False
 
     def scoot(self, global_state, faction):
 
@@ -127,41 +145,19 @@ class Ship(pygame.Rect):
             self.vy += self.acc * math.sin(self.angle * math.pi / 180) / 2
             self.vx -= self.acc * math.cos(self.angle * math.pi / 180) / 2
 
-        # """DON'T GO OVER SPEED LIMIT"""
-        # if self.vx * self.vx + self.vy * self.vy > self.velocity * self.velocity:
-        #     self.vx = self.vx * self.velocity / math.sqrt(self.vx ** 2 + self.vy ** 2)
-        #     self.vy = self.vy * self.velocity / math.sqrt(self.vx ** 2 + self.vy ** 2)
-        #
-        # self.fx += self.vx
-        # self.fy += self.vy
-        #
-        # self.x = round(self.fx)
-        # self.y = round(self.fy)
-        #
-        # self.cx = round(self.x + (
-        #             self.width - self.height * abs(math.sin(self.angle * math.pi / 180)) - self.width * abs(math.cos(self.angle * math.pi / 180))) / 2)
-        # self.cy = round(self.y + (
-        #             self.height - self.width * abs(math.sin(self.angle * math.pi / 180)) - self.height * abs(math.cos(self.angle * math.pi / 180))) / 2)
-
-        """HIDE BEHIND ASTEROID"""
-        if rnd.random() > 0.99:
-            if self.collidelistall(global_state.asteroids):
-                self.Hide()
-            else:
-                self.Unhide()
-
         """FIRE BULLETS and MISSILES"""
         if commands[3] == 1 and len(self.bullet_types) > 0 and self.energy >= self.bullet_types[self.bullet_sel].energy and self.bulletC == 0:  # DOWN
             self.energy -= self.bullet_types[self.bullet_sel].energy
             self.bulletC = self.bullet_types[self.bullet_sel].delay
 
-            pos = self.center + self.Q.transpose().dot(self.ship_type.bullet_pos[self.bullet_sel]) - np.array([self.bullet_types[self.bullet_sel].width // 2, self.bullet_types[self.bullet_sel].height // 2])
-            bullet = Bullet(pos[0], pos[1], self.angle,
-                            self.bullet_types[self.bullet_sel], faction)
+            self.bullet_types[self.bullet_sel].init(self, global_state, faction)
 
-            # bullet = Bullet(self.x + self.width // 2 - self.bullet_types[self.bullet_sel].width // 2, self.y + self.height // 2 - self.bullet_types[self.bullet_sel].height // 2, self.angle, self.bullet_types[self.bullet_sel], faction)
-
-            global_state.bullets[faction].append(bullet)
+            # pos = self.center + self.Q.transpose().dot(self.ship_type.bullet_pos[self.bullet_sel]) - np.array([self.bullet_types[self.bullet_sel].width // 2, self.bullet_types[self.bullet_sel].height // 2])
+            #
+            # bullet = Bullet(pos[0], pos[1], self.angle,
+            #                 self.bullet_types[self.bullet_sel], faction)
+            #
+            # global_state.bullets[faction].append(bullet)
         if commands[4] == 1 and self.missileC == 0 and len(self.missile_types) > 0 and self.energy >= self.missile_types[self.missile_sel].energy and self.target is not None:
             self.energy -= self.missile_types[self.missile_sel].energy
             self.missileC = self.missile_types[self.missile_sel].delay
@@ -186,9 +182,9 @@ class Ship(pygame.Rect):
 
         if commands[7] == 1 and self.energy > 0.75:  # boost
             self.boost = True
-            self.velocity = self.ship_type.velocity * 1.2
-            self.acc = self.ship_type.acc * 1.2
-            self.av = self.ship_type.av * 1.2
+            self.velocity = self.ship_type.velocity * 1.25
+            self.acc = self.ship_type.acc * 1.25
+            self.av = self.ship_type.av * 1.25
             self.energy -= 0.75
             for i in range(3):
                 R = 255
@@ -256,8 +252,9 @@ class Ship(pygame.Rect):
 
         """DON'T GO OVER SPEED LIMIT"""
         if self.vx * self.vx + self.vy * self.vy > self.velocity * self.velocity:
-            self.vx = self.vx * self.velocity / math.sqrt(self.vx ** 2 + self.vy ** 2)
-            self.vy = self.vy * self.velocity / math.sqrt(self.vx ** 2 + self.vy ** 2)
+            v2 = math.sqrt(self.vx ** 2 + self.vy ** 2)
+            self.vx = self.vx * self.velocity / v2
+            self.vy = self.vy * self.velocity / v2
 
         self.fx += self.vx
         self.fy += self.vy
@@ -270,19 +267,29 @@ class Ship(pygame.Rect):
         self.cy = round(self.y + (
                     self.height - self.width * abs(math.sin(self.angle * math.pi / 180)) - self.height * abs(math.cos(self.angle * math.pi / 180))) / 2)
 
-        """UPDATE ENERGY AND HEALTH"""
+        """UPDATE ENERGY, HEALTH, AND VISIBILITY"""
 
-        if self.sop > 0.2:
-            self.sop -= 0.2
-            if self.sop > 50:
-                self.sop = 50
-        else:
-            self.sop = 0
+        # if self.utilC == 0 and self.cloaked:
+        #     self.cloaked = False
+        #     self.image.set_alpha(255)
 
-        if self.energy < self.ship_type.energy:
-            self.energy += 0.5
-        if self.health < self.ship_type.health and self.sop == 0:
-            self.health += 0.02
+        self.concealed(global_state)
+        self.determine_visibility()
+
+        if not self.cloaked:
+            heat_loss = 0.02 + self.heat * self.ship_type.heat_venting
+            if self.heat > heat_loss:
+                self.heat -= heat_loss
+                if self.heat > self.ship_type.heat_capacity:
+                    self.health -= round(self.heat - self.ship_type.heat_capacity) / 4
+                    self.heat = self.ship_type.heat_capacity
+            else:
+                self.heat = 0
+
+            if self.energy < self.ship_type.energy and not self.cloaked:
+                self.energy += 0.5
+            if self.health < self.ship_type.health and self.heat == 0:
+                self.health += 0.02
         if self.bulletC > 0:
             self.bulletC -= 1
         if self.missileC > 0:
@@ -314,28 +321,29 @@ class Ship(pygame.Rect):
         self.energy = self.ship_type.energy
         self.health = self.ship_type.health
         self.Image = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}_{self.color}.png'))
-        self.Imagef = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}_{self.color}_f.png'))
+        # self.Imagef = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}_{self.color}_f.png'))
 
         self.image = self.Image.copy()
-        self.imagef = self.Imagef.copy()
+        # self.imagef = self.Imagef.copy()
 
         for i in range(len(self.bullet_types)):
             x = self.width // 2 + self.ship_type.bullet_pos[i][0] - self.bullet_types[i].l_image.get_width() // 2
             y = self.height // 2 + self.ship_type.bullet_pos[i][1] - self.bullet_types[i].l_image.get_height() // 2
             self.image.blit(self.bullet_types[i].l_image, (x, y))
-            self.imagef.blit(self.bullet_types[i].l_image, (x, y))
+            # self.imagef.blit(self.bullet_types[i].l_image, (x, y))
 
         for i in range(len(self.missile_types)):
             x = self.width // 2 + self.ship_type.missile_pos[i][0]-self.missile_types[i].image.get_width() // 2
             y = self.height // 2 + self.ship_type.missile_pos[i][1]-self.missile_types[i].image.get_height() // 2
             self.image.blit(self.missile_types[i].image, (x, y))
-            self.imagef.blit(self.missile_types[i].image, (x, y))
+            # self.imagef.blit(self.missile_types[i].image, (x, y))
 
         self.image.blit(self.Image, (0, 0))
-        self.imagef.blit(self.Imagef, (0, 0))
+        # self.imagef.blit(self.Imagef, (0, 0))
 
         self.image.convert_alpha()
-        self.imagef.convert_alpha()
+        # self.imagef.convert_alpha()
+        # self.image.set_alpha(100)
 
 
         Turrets = []
@@ -348,11 +356,11 @@ class Ship(pygame.Rect):
 
         self.turrets = Turrets
 
-    def Hide(self):  # method to turn ship invisible
-        self.is_visible = False
-
-    def Unhide(self):  # method to turn ship visible
-        self.is_visible = True
+    # def Hide(self):  # method to turn ship invisible
+    #     self.is_visible = False
+    #
+    # def Unhide(self):  # method to turn ship visible
+    #     self.is_visible = True
 
 
 """TURRET CLASS"""

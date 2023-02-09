@@ -3,7 +3,7 @@ import math
 import numpy as np
 import random as rnd
 import time
-from Misc import FindNearest
+# from Misc import FindNearest
 from Explosions import Particle, ExplosionDamage
 
 """BULLET CLASS"""
@@ -18,11 +18,9 @@ class Bullet(pygame.Rect):
         self.velocity = bullet_type.velocity
         self.range = bullet_type.range
         self.damage = bullet_type.damage
-        # self.pen = bullet_type.pen
         self.timer = 0
         self.fx = x
         self.fy = y
-        # self.exptype = bullet_type.exptype
         self.image = pygame.transform.rotate(bullet_type.image, angle)
         self.faction = faction
 
@@ -34,31 +32,12 @@ class Bullet(pygame.Rect):
         self.x = round(self.fx)
         self.y = round(self.fy)
 
-
-
         if self.collidelist(gs.targets[self.faction]) != -1:  # bullet hits red
-            # if self.exptype is not None:
-            #     explosion = self.exptype(self.centerx, self.centery, gs)
-            #     explosion_group.add(explosion)
             dmgList = self.collidelistall(gs.targets[self.faction])
-            # for i in dmgList:
-            #     gs.targets[self.faction][i].health -= self.damage
-            #     gs.targets[self.faction][i].sop += 2 * self.damage
-                # if gs.targets[self.faction][i].health <= 0:
-                #     explosion = ShipExplosion(gs.targets[self.faction][i].centerx, gs.targets[self.faction][i].centery, gs)
-                #     explosion_group.add(explosion)
             self.bullet_type.function(self, gs, dmgList)
-            # if not self.pen:
-            #     gs.bullets[self.faction].remove(self)
-
-
-            # pygame.event.post(pygame.event.Event(RED_HIT))
         elif self.timer > self.range / self.velocity:  # missile runs out of thrust
             gs.bullets[self.faction].remove(self)
-
         self.timer += 1
-        # elif self.x > width or self.x < 0 or self.y > height or self.y < 0:  # bullets leaves arena
-        #     bullet_list.remove(self)
 
 
 """MISSILE CLASS"""
@@ -199,3 +178,33 @@ class Mine(pygame.Rect):
                 self.mine_type.explosion(self, gs)
 
         self.timer += 1
+
+
+def FindNearest(ship, target_list):
+    if len(target_list) > 0:
+        # d = []
+        ind = 0
+        min_r2 = math.inf
+        rng2 = ship.range * ship.range
+        for i in range(len(target_list)):
+            target = target_list[i]
+            dx = target.centerx - ship.centerx
+            dy = target.centery - ship.centery
+
+            r2 = dx * dx + dy * dy
+            a = target.is_visible and r2 < rng2  # is uncloaked and within radar range
+            b = r2 < 2250000  # is within visual range
+            c = r2 < min_r2
+
+
+            if c and (a or b):  # and target.health > 0:  # only add ships to the target list if they're visible
+                min_r2 = r2
+                ind = i
+            # else:
+            #     d.append(math.inf)
+        if min_r2 < math.inf:
+            return target_list[ind]
+        else:
+            return None
+    else:
+        return None

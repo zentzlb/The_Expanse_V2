@@ -160,7 +160,7 @@ def ExplosionDamage(max_damage, xo, yo, exp, target_list, gs):
         if d < exp + r:
             damage = round(2 * max_damage / (1 + math.exp((d + 1) / (r + exp + 1))))
             target.health -= damage
-            target.sop += 2 * damage
+            target.heat += damage
 
 """PARTICLE CLASS"""
 

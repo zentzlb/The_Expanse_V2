@@ -66,7 +66,7 @@ def black_hole(self, gs):
         dmgList = self.collidelistall(gs.targets[self.faction])
         for i in dmgList:
             gs.targets[self.faction][i].health -= self.damage
-            gs.targets[self.faction][i].sop += 2 * self.damage
+            gs.targets[self.faction][i].heat += 2 * self.damage
         if not self.pen:
             gs.missiles[self.faction].remove(self)
 

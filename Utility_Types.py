@@ -32,8 +32,23 @@ def chaff(ship, gs, faction):
                     if missile.target is ship:
                         missile.target = None
         for i in range(0, 10):
-            gs.ships[faction].append(Spark(ship.centerx + rnd.randint(-ship.width, ship.width), ship.centery + rnd.randint(-ship.height, ship.height), rnd.randint(0, 359)))
+            gs.ships[faction].append(Spark(ship.centerx + rnd.randint(-ship.width, ship.width),
+                                           ship.centery + rnd.randint(-ship.height, ship.height), rnd.randint(0, 359)))
 
+
+def cloak(ship, gs, faction):
+    if ship.cloaked:
+        pass
+    elif ship.energy > 100:
+        ship.cloaked = True
+        ship.image.set_alpha(100)
+        ship.energy -= 100
+
+
+def overload_reactor(ship, gs, faction):
+    if ship.energy < ship.ship_type.energy:
+        ship.heat += 0.5
+        ship.energy += 0.5
 
 class Spark(pygame.Rect):
     def __init__(self, x, y, angle):
@@ -86,6 +101,20 @@ JumpDrive = {'function': jump_drive,
              'cost': {},
              'name': "Jump Drive"}
 
+Cloak = {'function': cloak,
+         'energy': '0.5',
+         'delay': 1,
+         'description': 'This ship is fast',
+         'cost': {},
+         'name': "Cloak"}
+
+Reactor = {'function': overload_reactor,
+           'energy': '0',
+           'delay': 1,
+           'description': 'This ship is fast',
+           'cost': {},
+           'name': "Reactor"}
+
 Chaff = {'function': chaff,
          'energy': '100',
          'delay': 240,
@@ -93,4 +122,4 @@ Chaff = {'function': chaff,
          'cost': {},
          'name': "Chaff"}
 
-UtilityNames = [AutoLoader, JumpDrive]
+UtilityNames = [AutoLoader, JumpDrive, Cloak, Reactor]
