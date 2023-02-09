@@ -281,7 +281,7 @@ class Ship(pygame.Rect):
             if self.heat > heat_loss:
                 self.heat -= heat_loss
                 if self.heat > self.ship_type.heat_capacity:
-                    self.health -= round(self.heat - self.ship_type.heat_capacity) / 4
+                    self.health -= round(self.heat - self.ship_type.heat_capacity, 1) / 2
                     self.heat = self.ship_type.heat_capacity
             else:
                 self.heat = 0
