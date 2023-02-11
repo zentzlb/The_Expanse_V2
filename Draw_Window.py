@@ -7,18 +7,9 @@ import time
 from Misc import TargetingComputer
 from Menus import StationMenu
 from Ship_Class import Ship, Asteroid
+from Explosions import trans_circle, glow_circle
 
 
-def trans_circle(display, x, y, radius, color):
-    surf = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-    pygame.draw.circle(surf, color, (radius, radius), radius)
-    display.blit(surf, (x - radius, y - radius))
-
-def glow_circle(display, x, y, radius, color):
-    surf = pygame.Surface((radius * 2, radius * 2))
-    surf.set_colorkey((0, 0, 0))
-    pygame.draw.circle(surf, color, (radius, radius), radius)
-    display.blit(surf, (x - radius, y - radius), special_flags=BLEND_RGB_ADD)
 def draw_window(gs, fps, HEIGHT, WIDTH):
 
     keys_pressed = pygame.key.get_pressed()
@@ -67,10 +58,10 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
         p.update()
         if (p.x - gs.x - p.radius < WIDTH and p.x - gs.x + p.radius > 0) and (
                 p.y - gs.y - p.radius < WIDTH and p.y - gs.y + p.radius > 0):
-            # if p.show:
-            pygame.draw.circle(gs.WIN, p.color, (p.x - gs.x, p.y - gs.y), p.radius)
-            if p.glow != (0, 0, 0):
-                glow_circle(gs.WIN, p.x - gs.x, p.y - gs.y, 2*p.radius, p.glow)
+            p.draw(gs)
+            # pygame.draw.circle(gs.WIN, p.color, (p.x - gs.x, p.y - gs.y), p.radius)
+            # if p.glow != (0, 0, 0):
+            #     glow_circle(gs.WIN, p.x - gs.x, p.y - gs.y, 2*p.radius, p.glow)
         if p.radius <= 0:
             gs.particle_list.pop(i)
 
@@ -116,7 +107,8 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
         """DISPLAY BULLETS AND MISSILES"""
         for bullet in gs.bullets[faction]:
             if (bullet.x - gs.x < WIDTH and bullet.x - gs.x + bullet.width > 0) and (bullet.y - gs.y < HEIGHT and bullet.y - gs.y + bullet.height > 0):
-                gs.WIN.blit(bullet.image, (bullet.x - gs.x, bullet.y - gs.y))
+                # gs.WIN.blit(bullet.image, (bullet.x - gs.x, bullet.y - gs.y))
+                bullet.draw(gs)
         for missile in gs.missiles[faction]:
             if (missile.x - gs.x < WIDTH and missile.x - gs.x + missile.width > 0) and (missile.y - gs.y < HEIGHT and missile.y - gs.y + missile.height > 0):
                 if missile.angle == 0:
@@ -131,7 +123,7 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
         p = gs.particle_list2[i]
         p.update()
         if (p.x - gs.x - p.radius < WIDTH and p.x - gs.x + p.radius > 0) and (p.y - gs.y - p.radius < WIDTH and p.y - gs.y + p.radius > 0):
-            pygame.draw.circle(gs.WIN, p.color, (p.x - gs.x, p.y - gs.y), p.radius)
+            p.draw(gs)
         if p.radius <= 0:
             gs.particle_list2.pop(i)
 
@@ -242,11 +234,14 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
                 True, SILVER)
             energy_text = gs.fonts[2].render(
                 f"Energy: {100 * player_ship.target.energy / player_ship.target.ship_type.energy:0.0f}%", True, SILVER)
+            heat_text = gs.fonts[2].render(
+                f"Heat: {100 * player_ship.target.heat / player_ship.target.ship_type.heat_capacity:0.0f}%", True, SILVER)
             range_text = gs.fonts[2].render(
                 f"Range: {math.sqrt(dx * dx + dy * dy):0.0f}", True, SILVER)
             HUD.blit(health_text, (7, box_tl[1] + 1))
             HUD.blit(energy_text, (7, box_tl[1] + 1 + gs.fonts[2].get_height()))
-            HUD.blit(range_text, (7, box_tl[1] + 1 + 2 * gs.fonts[2].get_height()))
+            HUD.blit(heat_text, (7, box_tl[1] + 1 + 2 * gs.fonts[2].get_height()))
+            HUD.blit(range_text, (7, box_tl[1] + 1 + 3 * gs.fonts[2].get_height()))
         elif type(player_ship.target) is Asteroid:
             """DRAW TARGET"""
 

@@ -244,61 +244,91 @@ def NPControl2(ship, global_state, faction):
 
 """TURRET CONTROLS"""
 
-def TurretControl(ship, gs, faction):
 
-    commands = []
+def TurretControl(turret, gs, faction):
 
-    if ship.target is None or ship.target.health >= 0 or ship.counter == 60:
-        ship.target = FindNearest(ship, gs.targets[faction])
-        ship.counter = 0
-    else:
-        ship.counter += 1
+    commands = [0, 0, 0]
+    
+    if turret.counter == 30:
+        turret.targets = []
+        R2 = 9 * turret.range * turret.range
+        for f in range(len(gs.ships)):
+            if f != faction:
+                if turret.turret_type.targets_missiles:
+                    # print('Looking for missiles')
+                    for missile in gs.missiles[f]:
+                        dx = turret.centerx - missile.centerx
+                        dy = turret.centerx - missile.centerx
+                        r2 = dx * dx + dy * dy
+                        if r2 < R2:
+                            turret.targets.append(missile)
+                for ship in gs.ships[f]:
+                    dx = turret.centerx - ship.centerx
+                    dy = turret.centerx - ship.centerx
+                    r2 = dx * dx + dy * dy
+                    if r2 < R2:
+                        turret.targets.append(ship)
+        turret.counter = 0
+    
+    if turret.target is None or turret.target.health <= 0 or turret.counter == 10:
+        turret.target = FindNearest(turret, turret.targets)
 
-    if ship.target is not None:
-        vx = ship.target.vx
-        vy = ship.target.vy
-        xo = ship.target.centerx
-        yo = ship.target.centery
-        bullet_velocity = ship.bullet_types[ship.bullet_sel].velocity
+    turret.counter += 1
+
+    if turret.target is not None:
+        vx = turret.target.vx
+        vy = turret.target.vy
+        xo = turret.target.centerx
+        yo = turret.target.centery
+        bullet_velocity = turret.bullet_types[turret.bullet_sel].velocity
 
         a = vx ** 2 + vy ** 2 - bullet_velocity ** 2
-        b = 2 * (vx * (xo - ship.centerx) + vy * (yo - ship.centery))
-        c = (xo - ship.centerx) ** 2 + (yo - ship.centery) ** 2
+        b = 2 * (vx * (xo - turret.centerx) + vy * (yo - turret.centery))
+        c = (xo - turret.centerx) ** 2 + (yo - turret.centery) ** 2
 
         t = (-b - math.sqrt(b ** 2 - 4 * a * c)) / (2 * a)
         x = xo + vx * t
         y = yo + vy * t
 
-        dx = x - ship.centerx
-        dy = y - ship.centery
+        dx = x - turret.centerx
+        dy = y - turret.centery
 
-        cos = math.cos(ship.angle * math.pi / 180)
-        sin = math.sin(ship.angle * math.pi / 180)
+        cos = math.cos(turret.angle * math.pi / 180)
+        sin = math.sin(turret.angle * math.pi / 180)
 
         Q = np.array([[cos, -sin], [sin, cos]])
         V = np.array([[dx], [dy]])
         V_prime = Q.dot(V)
         angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
 
-        if angle2 > ship.av * math.pi / 360:  # LEFT
-            commands.append(1)
-        elif angle2 < -ship.av * math.pi / 360:  # RIGHT
-            commands.append(-1)
-        else:
-            commands.append(0)
+        if angle2 > turret.av * math.pi / 360:  # LEFT
+            commands[0] = 1
+        elif angle2 < -turret.av * math.pi / 360:  # RIGHT
+            commands[0] = -1
 
         """SHOOT"""
-        if abs(angle2 * 180 / math.pi) < ship.av and ship.energy >= 30 and ship.bullet_types[ship.bullet_sel].range * ship.bullet_types[ship.bullet_sel].range > dx * dx + dy * dy:  # SHOOT BULLET
-            commands.append(1)
-        else:
-            commands.append(0)
-        if len(ship.missile_types) > 0 and (ship.energy >= ship.missile_types[ship.missile_sel].energy and ship.missile_types[ship.missile_sel].range > math.sqrt(dx ** 2 + dy ** 2)):
-            commands.append(1)
-        else:
-            commands.append(0)
+        if abs(angle2 * 180 / math.pi) < turret.av and turret.energy >= 30 and turret.bullet_types[turret.bullet_sel].range * turret.bullet_types[turret.bullet_sel].range > dx * dx + dy * dy:  # SHOOT BULLET
+            commands[1] = 1
+
+        if len(turret.missile_types) > 0 and (turret.energy >= turret.missile_types[turret.missile_sel].energy and turret.missile_types[turret.missile_sel].range > math.sqrt(dx ** 2 + dy ** 2)):
+            commands[2] = 1
 
     else:
-        commands = [0, 0, 0]
+
+        cos = math.cos(turret.angle * math.pi / 180)
+        sin = math.sin(turret.angle * math.pi / 180)
+
+        Q = np.array([[cos, -sin], [sin, cos]])
+        V = np.array([[math.sin(turret.ship.angle * math.pi / 180)], [math.cos(turret.ship.angle * math.pi / 180)]])
+        V_prime = Q.dot(V)
+        angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
+
+        if angle2 > turret.av * math.pi / 360:  # LEFT
+            commands[0] = 1
+        elif angle2 < -turret.av * math.pi / 360:  # RIGHT
+            commands[0] = -1
+
+
 
 
 

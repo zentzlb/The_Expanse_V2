@@ -20,19 +20,19 @@ def explosion(self, gs):
 
 def proximity(self, gs):
 
-    if self.timer > self.arm:
+    if self.timer < self.arm:
         dr2 = self.mine_type.det_radius * self.mine_type.det_radius
         for target in gs.targets[self.faction]:
             dx = target.centerx - self.centerx
             dy = target.centery - self.centery
             if dx * dx + dy * dy < dr2:
                 explosion(self, gs)
-                gs.missiles[self.faction].remove(self)
+                self.health = 0
                 break
 
 
 def black_hole(self, gs):
-    if self.timer > self.arm:
+    if self.timer < self.arm:
         for i in range(self.mine_type.par_num):
             angle = rnd.randint(-180, 180)
             r = rnd.randint(95, 105)
@@ -40,14 +40,14 @@ def black_hole(self, gs):
             y = self.centery + r * math.cos(math.pi * angle / 180)
             gs.particle_list2.append(Particle(x, y, 10, angle + 180, 10, (rnd.randint(0, 30), 0, rnd.randint(0, 100))))
     else:
-        for i in range(self.timer // 10):
+        for i in range(10):
             angle = rnd.randint(-180, 180)
             r = rnd.randint(1, 100)
             x = self.centerx + r * math.sin(math.pi * angle / 180)
             y = self.centery + r * math.cos(math.pi * angle / 180)
             gs.particle_list2.append(
                 Particle(x, y, 0, 0, 10, (rnd.randint(0, 30), 0, rnd.randint(0, 100))))
-    if self.grav and self.timer > self.arm:
+    if self.grav and self.timer < self.arm:
         for ship in gs.targets[self.faction]:
             dx = ship.centerx - self.centerx
             dy = ship.centery - self.centery
@@ -68,7 +68,8 @@ def black_hole(self, gs):
             gs.targets[self.faction][i].health -= self.damage
             gs.targets[self.faction][i].heat += 2 * self.damage
         if not self.pen:
-            gs.missiles[self.faction].remove(self)
+            self.health = 0
+            # gs.missiles[self.faction].remove(self)
 
 
 ProximityMine = {'damage': 0,
@@ -79,6 +80,7 @@ ProximityMine = {'damage': 0,
                  'time': 1600,
                  'delay': 80,
                  'arm': 80,
+                 'health': 50,
                  'height': 20,
                  'width': 20,
                  'par_num': 0,
@@ -101,6 +103,7 @@ BlackHole = {'damage': 1,
              'time': 3200,
              'delay': 400,
              'arm': 160,
+             'health': 1000,
              'height': 19,
              'width': 19,
              'par_num': 30,

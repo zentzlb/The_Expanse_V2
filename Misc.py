@@ -80,10 +80,6 @@ class GlobalState:
                 if j != i:
                     self.targets[i].extend(self.ships[j])
 
-
-    # def convert(self):
-
-
     def play_mining(self, volume=1):
         if not self.mining.get_busy():
             self.mining.play(self.mining_sound)
@@ -186,24 +182,22 @@ def FindNearest(ship, target_list):
         ind = 0
         min_r2 = math.inf
         rng2 = ship.range * ship.range
-        for i in range(len(target_list)):
-            target = target_list[i]
+        for target in target_list:
             dx = target.centerx - ship.centerx
             dy = target.centery - ship.centery
 
             r2 = dx * dx + dy * dy
             a = target.is_visible and r2 < rng2  # is uncloaked and within radar range
             b = r2 < 2250000  # is within visual range
-            c = r2 < min_r2
-
+            c = r2 < min_r2 and target.health > 0
 
             if c and (a or b):  # and target.health > 0:  # only add ships to the target list if they're visible
                 min_r2 = r2
-                ind = i
+                ind = target
             # else:
             #     d.append(math.inf)
         if min_r2 < math.inf:
-            return target_list[ind]
+            return ind
         else:
             return None
     else:

@@ -80,7 +80,7 @@ def main():
     """SPAWN IN SPECIFIED SHIPS"""
     if PCS == 'y':
 
-        yellow = Ship(PlayerControl2, TurretControl, 90000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Fighter', MyGS, is_player=True)
+        yellow = Ship(PlayerControl2, TurretControl, 80000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Destroyer', MyGS, is_player=True)
 
         yellow.add_bullet(MyGS, 'AP AutoCannon')
         yellow.add_bullet(MyGS, 'Flame Thrower')
@@ -107,21 +107,21 @@ def main():
 
     for i in range(nE):
 
-        # red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Heavy Fighter', MyGS)
-        # red.add_bullet(MyGS, 'Plasma')
-        # red.add_missile(MyGS, 'Swarm Missile')
-        # MyGS.ships[1].append(red)
-
-        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size - 2000, MyGS.size - 1000), rnd.randint(2000, 5000),
-                   0, 'red', 'Heavy Fighter', MyGS)
-        red.add_bullet(MyGS, 'Flame Thrower')
+        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Heavy Fighter', MyGS)
+        red.add_bullet(MyGS, 'Plasma')
         red.add_missile(MyGS, 'Swarm Missile')
         MyGS.ships[1].append(red)
 
-        red = Ship(NPControl2, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(MyGS.size-2000, MyGS.size-1000), 0, 'red', 'Frigate', MyGS)
-        red.add_bullet(MyGS, 'Plasma')
-        red.add_missile(MyGS, 'EMP Missile')
+        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size - 2000, MyGS.size - 1000), rnd.randint(2000, 5000),
+                   0, 'red', 'Destroyer', MyGS)
+        red.add_bullet(MyGS, 'Flame Thrower')
+        red.add_missile(MyGS, 'Smart Missile')
         MyGS.ships[1].append(red)
+
+        # red = Ship(NPControl2, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(MyGS.size-2000, MyGS.size-1000), 0, 'red', 'Frigate', MyGS)
+        # red.add_bullet(MyGS, 'Plasma')
+        # red.add_missile(MyGS, 'EMP Missile')
+        # MyGS.ships[1].append(red)
 
         red = Station(rnd.randint(MyGS.size-5000, MyGS.size-2000), rnd.randint(MyGS.size-5000, MyGS.size-2000), 'Partrid', TurretControl, 'red', MyGS)
         # red.image.convert(HUD)
@@ -210,12 +210,14 @@ def main():
             for i in range(len(MyGS.bullets[faction]) - 1, -1, -1):
                 bullet = MyGS.bullets[faction][i]
                 bullet.scoot(MyGS)  # move bullets
+            MyGS.bullets[faction] = [bullet for bullet in MyGS.bullets[faction] if bullet.timer > 0]
 
         for faction in range(len(MyGS.missiles)):
             # for missile in MyGS.missiles[faction]:
             for i in range(len(MyGS.missiles[faction]) - 1, -1, -1):
                 missile = MyGS.missiles[faction][i]
                 missile.scoot(MyGS)  # move missiles
+            MyGS.missiles[faction] = [missile for missile in MyGS.missiles[faction] if missile.timer > 0 and missile.health > 0]
 
         """Render Window"""
         t3 = time.time()

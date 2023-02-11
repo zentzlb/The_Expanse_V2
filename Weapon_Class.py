@@ -9,7 +9,7 @@ from Explosions import Particle, ExplosionDamage
 """BULLET CLASS"""
 
 class Bullet(pygame.Rect):
-    def __init__(self, x, y, angle, bullet_type, faction):
+    def __init__(self, x, y, angle, bullet_type, faction, gs):
         self.bullet_type = bullet_type
         if bullet_type.sound is not None:
             bullet_type.sound.play()
@@ -18,12 +18,34 @@ class Bullet(pygame.Rect):
         self.velocity = bullet_type.velocity
         self.range = bullet_type.range
         self.damage = bullet_type.damage
-        self.timer = 0
+        self.targets = []
+        self.timer = self.range / self.velocity
         self.fx = x
         self.fy = y
         self.image = pygame.transform.rotate(bullet_type.image, angle)
         self.faction = faction
+        self.build_target_list(gs)
 
+    def draw(self, gs):
+        self.bullet_type.draw(self, gs)
+
+    def build_target_list(self, gs):
+        R2 = self.range * self.range
+        for faction in range(len(gs.ships)):
+            if faction != self.faction:
+                if self.bullet_type.targets_missiles:
+                    for missile in gs.missiles[faction]:
+                        dx = self.centerx - missile.centerx
+                        dy = self.centerx - missile.centerx
+                        r2 = dx * dx + dy * dy
+                        if r2 < 9 * R2:
+                            self.targets.append(missile)
+                for ship in gs.ships[faction]:
+                    dx = self.centerx - ship.centerx
+                    dy = self.centerx - ship.centerx
+                    r2 = dx * dx + dy * dy
+                    if r2 < 9 * R2:
+                        self.targets.append(ship)
 
     def scoot(self, gs):
         self.fx += self.velocity * math.sin(self.angle * math.pi / 180)
@@ -32,19 +54,20 @@ class Bullet(pygame.Rect):
         self.x = round(self.fx)
         self.y = round(self.fy)
 
-        if self.collidelist(gs.targets[self.faction]) != -1:  # bullet hits red
-            dmgList = self.collidelistall(gs.targets[self.faction])
+        # if self.collidelist(gs.targets[self.faction]) != -1:  # bullet hits red
+        if self.collidelist(self.targets) != -1:
+            dmgList = self.collidelistall(self.targets)
             self.bullet_type.function(self, gs, dmgList)
-        elif self.timer > self.range / self.velocity:  # missile runs out of thrust
-            gs.bullets[self.faction].remove(self)
-        self.timer += 1
+        # elif self.timer > self.range / self.velocity:  # missile runs out of thrust
+        #     gs.bullets[self.faction].remove(self)
+        self.timer -= 1
 
 
 """MISSILE CLASS"""
 
 
 class Missile(pygame.Rect):
-    def __init__(self, x, y, angle, height, width, missile_type, target, faction):
+    def __init__(self, x, y, angle, height, width, missile_type, target, faction, gs):
         if missile_type.sound is not None:
             missile_type.sound.play()#.set_volume(0.5)
         super().__init__(x, y, width, height)
@@ -56,17 +79,33 @@ class Missile(pygame.Rect):
         self.av = missile_type.av
         self.fx = x
         self.fy = y
+        self.vx = 0
+        self.vy = 0
+        self.health = missile_type.health
+        self.targets = []
+        self.heat = 0
         self.er = missile_type.exp_radius
-        self.timer = 0
-        self.arm = 60
+        self.timer = self.range / self.velocity
+        self.arm = self.range / self.velocity - 60
         self.target = target
+        self.is_visible = True
         # self.emp = missile_type.emp
         self.image = missile_type.image
         self.missile_type = missile_type
         self.faction = faction
-        # for i in range(len(gs.ships)):
-        #     if i != faction:
-        #         self.target_list.extend(gs.ships[i])
+
+        self.build_target_list(gs)
+
+    def build_target_list(self, gs):
+        R2 = 9 * self.range * self.range
+        for faction in range(len(gs.ships)):
+            if faction != self.faction:
+                for ship in gs.ships[faction]:
+                    dx = self.centerx - ship.centerx
+                    dy = self.centerx - ship.centerx
+                    r2 = dx * dx + dy * dy
+                    if r2 < R2:
+                        self.targets.append(ship)
 
     def scoot(self, gs):
 
@@ -77,13 +116,14 @@ class Missile(pygame.Rect):
             gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.randint(2, 3), self.angle + rnd.randint(-self.missile_type.par_rnd+5, self.missile_type.par_rnd+5), 5, (80, 80, 80), shrink=0.9))
 
         if self.target is None or self.target.health <= 0:
-            self.target = FindNearest(self, gs.targets[self.faction])
+            self.target = FindNearest(self, self.targets)
 
         if self.target is None:
             # explosion = MissileExplosion(self.centerx, self.centery, gs, self.er)
             # explosion_group.add(explosion)
             self.missile_type.explosion(self, gs, [])
-            gs.missiles[self.faction].remove(self)
+            self.timer = 0
+            # gs.missiles[self.faction].remove(self)
 
         else:
             if self.missile_type.smart:
@@ -124,25 +164,29 @@ class Missile(pygame.Rect):
             else:
                 self.angle += self.av
 
-        self.fx += self.velocity * math.sin(self.angle * math.pi / 180)
-        self.fy += self.velocity * math.cos(self.angle * math.pi / 180)
+        self.vx = self.velocity * math.sin(self.angle * math.pi / 180)
+        self.vy = self.velocity * math.cos(self.angle * math.pi / 180)
+
+        self.fx += self.vx
+        self.fy += self.vy
 
         self.x = round(self.fx)
         self.y = round(self.fy)
 
-        if self.collidelist(gs.targets[self.faction]) != -1 and self.timer > self.arm:  # missile hits target
-            dmgList = self.collidelistall(gs.targets[self.faction])
+        if self.collidelist(self.targets) != -1 and self.timer < self.arm:  # missile hits target
+            dmgList = self.collidelistall(self.targets)
             self.missile_type.explosion(self, gs, dmgList)
+            self.health = 0
             # ExplosionDamage(self.exp_damage, self.centerx, self.centery, self.er, gs.targets[self.faction], gs)
-            gs.missiles[self.faction].remove(self)
+            # gs.missiles[self.faction].remove(self)
 
-        elif self.timer > self.range / self.velocity:  # missile runs out of thrust
+        elif self.timer <= 1:  # missile runs out of thrust
             # explosion = MissileExplosion(self.centerx, self.centery, gs, self.er)
             # explosion_group.add(explosion)
             self.missile_type.explosion(self, gs, [])
             # ExplosionDamage(self.exp_damage, self.centerx, self.centery, self.er, gs.targets[self.faction], gs)
-            gs.missiles[self.faction].remove(self)
-        self.timer += 1
+            # gs.missiles[self.faction].remove(self)
+        self.timer -= 1
 
 class Mine(pygame.Rect):
     def __init__(self, x, y, angle, height, width, mine_type, target, faction):
@@ -154,10 +198,12 @@ class Mine(pygame.Rect):
         self.er = mine_type.exp_radius
         self.exp_damage = mine_type.exp_damage
         self.pen = mine_type.pen
-        self.timer = 0
-        self.arm = mine_type.arm
-        self.time = mine_type.time
+        self.timer = mine_type.time
+        self.arm = mine_type.time - mine_type.arm
+        self.health = mine_type.health
+        self.heat = 0
         self.exptype = None
+        self.is_visible = True
         self.grav = True
         self.fx = x
         self.fy = y
@@ -172,12 +218,12 @@ class Mine(pygame.Rect):
 
         self.mine_type.function(self, gs)
 
-        if self.timer > self.time:  # missile runs out of thrust
-            gs.missiles[self.faction].remove(self)
+        if self.timer <= 1:  # missile runs out of thrust
+            # gs.missiles[self.faction].remove(self)
             if self.mine_type.explosion is not None:
                 self.mine_type.explosion(self, gs)
 
-        self.timer += 1
+        self.timer -= 1
 
 
 def FindNearest(ship, target_list):

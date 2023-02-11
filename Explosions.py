@@ -1,6 +1,7 @@
 import pygame
 import math
 import random as rnd
+from pygame.locals import *
 
 """SHIP EXPLOSION"""
 
@@ -162,6 +163,7 @@ def ExplosionDamage(max_damage, xo, yo, exp, target_list, gs):
             target.health -= damage
             target.heat += damage
 
+
 """PARTICLE CLASS"""
 
 
@@ -186,3 +188,21 @@ class Particle:
         self.y = round(self.fy)
         if rnd.random() > self.shrink:
             self.radius -= 1
+    
+    def draw(self, gs):
+        pygame.draw.circle(gs.WIN, self.color, (self.x - gs.x, self.y - gs.y), self.radius)
+        if self.glow != (0, 0, 0):
+            glow_circle(gs.WIN, self.x - gs.x, self.y - gs.y, 2 * self.radius, self.glow)
+
+
+def trans_circle(display, x, y, radius, color):
+    surf = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+    pygame.draw.circle(surf, color, (radius, radius), radius)
+    display.blit(surf, (x - radius, y - radius))
+
+
+def glow_circle(display, x, y, radius, color):
+    surf = pygame.Surface((radius * 2, radius * 2))
+    surf.set_colorkey((0, 0, 0))
+    pygame.draw.circle(surf, color, (radius, radius), radius)
+    display.blit(surf, (x - radius, y - radius), special_flags=BLEND_RGB_ADD)

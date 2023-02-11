@@ -18,7 +18,7 @@ def explosion(self, gs, dmgList):
                                           rnd.randint(0, 360), 10,
                                           (c + 50, c, 100), shrink=0.5))
 
-    ExplosionDamage(self.exp_damage, self.centerx, self.centery, self.er, gs.targets[self.faction], gs)
+    ExplosionDamage(self.exp_damage, self.centerx, self.centery, self.er, self.targets, gs)
 
 
 def emp_explosion(self, gs, dmgList):
@@ -49,6 +49,7 @@ Seeker = {'velocity': 10.5,
           'exp_radius': 100,
           'energy': 200,
           'range': 8000,
+          'health': 3,
           'delay': 180,
           'height': 12,
           'width': 12,
@@ -69,6 +70,7 @@ EMPMissile = {'velocity': 8.5,
               'exp_radius': 200,
               'energy': 250,
               'range': 3500,
+              'health': 8,
               'delay': 250,
               'height': 15,
               'width': 15,
@@ -89,6 +91,7 @@ SwarmMissile = {'velocity': 9,
                 'exp_radius': 50,
                 'energy': 180,
                 'range': 4500,
+                'health': 4,
                 'delay': 90,
                 'height': 10,
                 'width': 10,
@@ -109,6 +112,7 @@ SmartMissile = {'velocity': 11,
                 'exp_radius': 80,
                 'energy': 220,
                 'range': 15000,
+                'health': 3,
                 'delay': 240,
                 'height': 12,
                 'width': 12,

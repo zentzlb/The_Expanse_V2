@@ -16,7 +16,7 @@ class Ship(pygame.Rect):
         ShipType = gs.ShipTypes[ship_type]
         Turrets = []
         for i in range(len(ShipType.turrets)):
-            Turrets.append(Turret(x, y, ShipType.turret_pos[i], angle, ShipType.turrets[i], turret_control_module, gs))
+            Turrets.append(Turret(x, y, ShipType.turret_pos[i], angle, ShipType.turrets[i], turret_control_module, gs, self))
         super().__init__(x, y, ShipType.height, ShipType.width)
         self.ship_type = ShipType
         self.range = self.ship_type.range
@@ -54,6 +54,7 @@ class Ship(pygame.Rect):
         self.cargo = CargoClass()
         self.forward = False
         self.boost = False
+        self.is_ship = True
         self.is_player = is_player
         self.is_visible = True
         self.cloaked = False
@@ -98,13 +99,13 @@ class Ship(pygame.Rect):
             else:
                 self.hidden = False
 
-    def scoot(self, global_state, faction):
+    def scoot(self, gs, faction):
 
         cos = math.cos(self.angle * math.pi / 180)
         sin = math.sin(self.angle * math.pi / 180)
         self.Q = np.array([[cos, -sin], [sin, cos]])
 
-        commands = self.control_module(self, global_state, faction)
+        commands = self.control_module(self, gs, faction)
         self.forward = False
 
         """WEAPON SELECTION"""
@@ -132,7 +133,7 @@ class Ship(pygame.Rect):
             self.forward = True
             R = 255
             G = rnd.randint(0, 255)
-            global_state.particle_list.append(
+            gs.particle_list.append(
                 Particle(self.centerx, self.centery, -rnd.randint(10, 12), self.angle + rnd.randint(-15, 15), 3,
                          (R, G, 0), shrink=0.5, vx=self.vx, vy=self.vy, glow=(R//2, G//2, 0)))
         elif commands[1] == -1:  # DOWN
@@ -150,7 +151,7 @@ class Ship(pygame.Rect):
             self.energy -= self.bullet_types[self.bullet_sel].energy
             self.bulletC = self.bullet_types[self.bullet_sel].delay
 
-            self.bullet_types[self.bullet_sel].init(self, global_state, faction)
+            self.bullet_types[self.bullet_sel].init(self, gs, faction)
 
             # pos = self.center + self.Q.transpose().dot(self.ship_type.bullet_pos[self.bullet_sel]) - np.array([self.bullet_types[self.bullet_sel].width // 2, self.bullet_types[self.bullet_sel].height // 2])
             #
@@ -166,18 +167,18 @@ class Ship(pygame.Rect):
                 [self.missile_types[self.missile_sel].width // 2, self.missile_types[self.missile_sel].height // 2])
             missile = Missile(pos[0], pos[1], self.angle,
                               self.missile_types[self.missile_sel].height, self.missile_types[self.missile_sel].width,
-                              self.missile_types[self.missile_sel], self.target, faction)
+                              self.missile_types[self.missile_sel], self.target, faction, gs)
 
             # missile = Missile(self.x + self.width // 2, self.y + self.height // 2 - 2, self.angle, self.missile_types[self.missile_sel].height, self.missile_types[self.missile_sel].width, self.missile_types[self.missile_sel], self.target, faction)
-            global_state.missiles[faction].append(missile)
+            gs.missiles[faction].append(missile)
         if commands[5] == 1 and len(self.mine_types) > 0 and self.energy >= self.mine_types[self.mine_sel].energy and self.missileC == 0:
             self.energy -= self.mine_types[self.mine_sel].energy
             self.missileC = self.mine_types[self.mine_sel].delay
             mine = Mine(self.centerx, self.centery, self.angle, self.mine_types[self.mine_sel].height, self.mine_types[self.mine_sel].width, self.mine_types[self.mine_sel], self.target, faction)
-            global_state.missiles[faction].append(mine)
+            gs.missiles[faction].append(mine)
 
         if commands[6] == 1 and self.utilC == 0 and len(self.util_types) > 0:
-            self.util_types[self.util_sel].function(self, global_state, faction)
+            self.util_types[self.util_sel].function(self, gs, faction)
             self.utilC += self.util_types[self.util_sel].delay
 
         if commands[7] == 1 and self.energy > 0.75:  # boost
@@ -189,7 +190,7 @@ class Ship(pygame.Rect):
             for i in range(3):
                 R = 255
                 G = rnd.randint(0, 255)
-                global_state.particle_list.append(Particle(self.centerx, self.centery, -rnd.randint(round(2*self.velocity), 3*round(self.velocity)), self.angle + rnd.randint(-15, 15), 3, (R, G, 0), vx=self.vx, vy=self.vy, glow=(R//2, G//2, 0), shrink=0.5))
+                gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.randint(round(2 * self.velocity), 3 * round(self.velocity)), self.angle + rnd.randint(-15, 15), 3, (R, G, 0), vx=self.vx, vy=self.vy, glow=(R // 2, G // 2, 0), shrink=0.5))
         else:
             self.boost = False
             self.velocity = self.ship_type.velocity
@@ -198,23 +199,23 @@ class Ship(pygame.Rect):
 
         """DOCK"""
         if commands[8] == 1:
-            MyList = self.collidelistall(global_state.stations[faction])
+            MyList = self.collidelistall(gs.stations[faction])
             if len(MyList) == 1:
-                station = global_state.stations[faction][MyList[0]]
+                station = gs.stations[faction][MyList[0]]
                 self.center = station.center
                 self.vx = 0
                 self.vy = 0
                 station.docked_ships.append(self)
-                global_state.ships[faction].remove(self)
-                global_state.update()
+                gs.ships[faction].remove(self)
+                gs.update()
                 if self.is_player:
                     station.docked_players.append(self)
-                    global_state.docked = station
-                    global_state.menu = StationMenu()
-                    global_state.x = self.centerx - global_state.width / 2
-                    global_state.y = self.centery - global_state.height / 2
-                    global_state.cx = self.centerx
-                    global_state.cy = self.centery
+                    gs.docked = station
+                    gs.menu = StationMenu()
+                    gs.x = self.centerx - gs.width / 2
+                    gs.y = self.centery - gs.height / 2
+                    gs.cx = self.centerx
+                    gs.cy = self.centery
                 else:
                     for Type in self.cargo.keys():
                         cargo_transfer = self.cargo[Type]
@@ -228,21 +229,21 @@ class Ship(pygame.Rect):
             if self.is_player:
                 self.vx = 0
                 self.vy = 0
-                global_state.ships[faction].remove(self)
-                global_state.update()
-                global_state.menu = AsteroidMenu(self, roid)
+                gs.ships[faction].remove(self)
+                gs.update()
+                gs.menu = AsteroidMenu(self, roid)
             else:
                 roid.mine(self)
             if sum(roid.ore.values()) > 0:
-                global_state.particle_list.append(
+                gs.particle_list.append(
                     Particle(self.centerx, self.centery, rnd.random(), rnd.randint(0, 360), rnd.randint(4, 6),
                              (rnd.randint(0, 50), rnd.randint(0, 50), rnd.randint(0, 50)), 0.95))
             else:
-                global_state.particle_list.append(
+                gs.particle_list.append(
                     Particle(self.centerx, self.centery, rnd.random(), rnd.randint(0, 360), rnd.randint(4, 6),
                              (50, 50, 50), 0.95))
-            if abs(self.centerx - global_state.x) < 2000 and abs(self.centery - global_state.y) < 2000:
-                global_state.play_mining(1)
+            if abs(self.centerx - gs.x) < 2000 and abs(self.centery - gs.y) < 2000:
+                gs.play_mining(1)
 
         # if commands[9] != 0:
         #     self.bullet_sel = commands[9] - 1
@@ -273,7 +274,7 @@ class Ship(pygame.Rect):
         #     self.cloaked = False
         #     self.image.set_alpha(255)
 
-        self.concealed(global_state)
+        self.concealed(gs)
         self.determine_visibility()
 
         if not self.cloaked:
@@ -281,7 +282,7 @@ class Ship(pygame.Rect):
             if self.heat > heat_loss:
                 self.heat -= heat_loss
                 if self.heat > self.ship_type.heat_capacity:
-                    self.health -= round(self.heat - self.ship_type.heat_capacity, 1) / 2
+                    self.health -= round(self.heat - self.ship_type.heat_capacity, 1)
                     self.heat = self.ship_type.heat_capacity
             else:
                 self.heat = 0
@@ -289,7 +290,7 @@ class Ship(pygame.Rect):
             if self.energy < self.ship_type.energy and not self.cloaked:
                 self.energy += 0.5
             if self.health < self.ship_type.health and self.heat == 0:
-                self.health += 0.02
+                self.health += 0.05
         if self.bulletC > 0:
             self.bulletC -= 1
         if self.missileC > 0:
@@ -307,13 +308,13 @@ class Ship(pygame.Rect):
             for turret in self.turrets:
                 turret.centerx = self.centerx + Q.dot(turret.pos)[0]
                 turret.centery = self.centery + Q.dot(turret.pos)[1]
-                turret.scoot(global_state, faction)
+                turret.scoot(gs, faction)
 
         if self.is_player:
-            global_state.x = self.centerx - global_state.width / 2
-            global_state.y = self.centery - global_state.height / 2
-            global_state.cx = self.centerx
-            global_state.cy = self.centery
+            gs.x = self.centerx - gs.width / 2
+            gs.y = self.centery - gs.height / 2
+            gs.cx = self.centerx
+            gs.cy = self.centery
 
     def refresh(self, gs):
         self.height = self.ship_type.height
@@ -352,7 +353,7 @@ class Ship(pygame.Rect):
         # self.turrets = Turrets
 
         for i in range(len(self.ship_type.turrets)):
-            Turrets.append(Turret(self.x, self.y, self.ship_type.turret_pos[i], self.angle, self.ship_type.turrets[i], self.turret_control_module, gs))
+            Turrets.append(Turret(self.x, self.y, self.ship_type.turret_pos[i], self.angle, self.ship_type.turrets[i], self.turret_control_module, gs, self))
 
         self.turrets = Turrets
 
@@ -367,9 +368,10 @@ class Ship(pygame.Rect):
 
 
 class Turret(pygame.Rect):
-    def __init__(self, x, y, pos, angle, turret_type, control_module, gs, is_player=False):
+    def __init__(self, x, y, pos, angle, turret_type, control_module, gs, ship, is_player=False):
         TurretType = gs.TurretTypes[turret_type]
         super().__init__(x, y, TurretType.height, TurretType.width)
+        self.ship = ship
         self.range = TurretType.range
         self.angle = angle
         self.av = TurretType.av
@@ -382,16 +384,19 @@ class Turret(pygame.Rect):
         self.health = self.Health
         self.Energy = TurretType.energy
         self.energy = self.Energy
+        self.targets = []
         self.vx = 0
         self.vy = 0
         self.counter = 0
         self.bulletC = 0
         self.missileC = 0
+        self.is_ship = False
         self.target = None
         self.control_module = control_module
         self.bullet_types = [gs.BulletTypes[TurretType.bullet_types[0]]]
         self.bullet_sel = 0
         self.missile_sel = 0
+        self.turret_type = TurretType
         if TurretType.missile_type is not None:
             self.missile_types = [gs.MissileTypes[TurretType.missile_type]]
         else:
@@ -399,9 +404,9 @@ class Turret(pygame.Rect):
         self.image = TurretType.image
         self.is_player = is_player
 
-    def scoot(self, global_state, faction):
+    def scoot(self, gs, faction):
 
-        commands = self.control_module(self, global_state, faction)
+        commands = self.control_module(self, gs, faction)
 
         """MOVEMENT- ROTATION"""
 
@@ -414,15 +419,16 @@ class Turret(pygame.Rect):
         if commands[1] == 1 and self.energy >= self.bullet_types[self.bullet_sel].energy and self.bulletC == 0:
             self.energy -= self.bullet_types[self.bullet_sel].energy
             self.bulletC = self.bullet_types[self.bullet_sel].delay
-            bullet = Bullet(self.x + self.width // 2, self.y + self.height // 2 - 2, self.angle, self.bullet_types[self.bullet_sel], faction)
-            global_state.bullets[faction].append(bullet)
+            self.bullet_types[self.bullet_sel].init(self, gs, faction)
+            # bullet = Bullet(self.x + self.width // 2, self.y + self.height // 2 - 2, self.angle, self.bullet_types[self.bullet_sel], faction, gs)
+            # gs.bullets[faction].append(bullet)
         if len(self.missile_types) > 0 and commands[2] == 1 and self.energy >= self.missile_types[self.missile_sel].energy and self.missileC == 0 and self.target is not None:
             self.energy -= self.missile_types[self.missile_sel].energy
             self.missileC = self.missile_types[self.missile_sel].delay
-            missile = Missile(self.x + self.width // 2, self.y + self.height // 2 - 2, self.angle, 2, 10, self.missile_types[self.missile_sel], self.target, faction)
-            global_state.missiles[faction].append(missile)
+            missile = Missile(self.x + self.width // 2, self.y + self.height // 2 - 2, self.angle, 2, 10, self.missile_types[self.missile_sel], self.target, faction, gs)
+            gs.missiles[faction].append(missile)
         if self.energy < self.Energy:
-            self.energy += 0.2
+            self.energy += 0.25
         if self.health < self.Health:
             self.health += 0.005
         if self.bulletC > 0:
@@ -434,10 +440,10 @@ class Turret(pygame.Rect):
         self.cy = round(self.y + (self.height - self.width * abs(math.sin(self.angle * math.pi / 180)) - self.height * abs(math.cos(self.angle * math.pi / 180))) / 2)
 
         if self.is_player:
-            global_state.x = self.centerx - global_state.width / 2
-            global_state.y = self.centery - global_state.height / 2
-            global_state.cx = self.centerx
-            global_state.cy = self.centery
+            gs.x = self.centerx - gs.width / 2
+            gs.y = self.centery - gs.height / 2
+            gs.cx = self.centerx
+            gs.cy = self.centery
 
 
 """STATION CLASS"""
@@ -448,7 +454,7 @@ class Station(pygame.Rect):
         StationType = StationTypes(station_type)
         Turrets = []
         for i in range(len(StationType.turrets)):
-            Turrets.append(Turret(x, y, StationType.turret_loc[i], 0, StationType.turrets[i], control_module, gs))
+            Turrets.append(Turret(x, y, StationType.turret_loc[i], 0, StationType.turrets[i], control_module, gs, self))
         # for turret in StationType.turrets:
         #     Turrets.append(Turret(x, y, 0, turret, control_module, is_player=False))
         super().__init__(x, y, StationType.height, StationType.width)
@@ -461,6 +467,7 @@ class Station(pygame.Rect):
         self.Energy = StationType.energy
         self.energy = self.Energy
         self.counter = 0
+        self.angle = 0
         self.turrets = Turrets
         self.image = StationType.image
         self.docked_ships = []
