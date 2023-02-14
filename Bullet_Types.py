@@ -82,8 +82,8 @@ def plasma(self, gs, dmglist):
 
 def rail(self, gs, dmglist):
     for i in dmglist:
-        gs.targets[self.faction][i].health -= self.damage
-        gs.targets[self.faction][i].heat += self.damage
+        self.targets[i].health -= self.damage
+        self.targets[i].heat += self.damage
     for num in range(8):
         gs.particle_list2.append(
             Particle(self.centerx, self.centery, 3, rnd.randint(0, 360), 10, (0, 223, 255), shrink=0.5))
