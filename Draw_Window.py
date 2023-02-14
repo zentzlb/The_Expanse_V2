@@ -52,18 +52,25 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
         if (roid.x - gs.x < WIDTH and roid.x - gs.x + roid.width > 0) and (roid.y - gs.y < HEIGHT and roid.y - gs.y + roid.height > 0):
             gs.WIN.blit(roid.image, (roid.cx - gs.x, roid.cy - gs.y))
 
+    # for i in range(len(gs.particle_list) - 1, -1, -1):
+    #     p = gs.particle_list[i]
+    #     p.scoot()
+    #     if (p.x - gs.x - p.radius < WIDTH and p.x - gs.x + p.radius > 0) and (
+    #             p.y - gs.y - p.radius < WIDTH and p.y - gs.y + p.radius > 0):
+    #         p.draw(gs)
+    #         # pygame.draw.circle(gs.WIN, p.color, (p.x - gs.x, p.y - gs.y), p.radius)
+    #         # if p.glow != (0, 0, 0):
+    #         #     glow_circle(gs.WIN, p.x - gs.x, p.y - gs.y, 2*p.radius, p.glow)
+    #     if p.radius <= 0:
+    #         gs.particle_list.pop(i)
 
-    for i in range(len(gs.particle_list) - 1, -1, -1):
-        p = gs.particle_list[i]
-        p.update()
+    for p in gs.particle_list:
+        p.scoot()
         if (p.x - gs.x - p.radius < WIDTH and p.x - gs.x + p.radius > 0) and (
                 p.y - gs.y - p.radius < WIDTH and p.y - gs.y + p.radius > 0):
             p.draw(gs)
-            # pygame.draw.circle(gs.WIN, p.color, (p.x - gs.x, p.y - gs.y), p.radius)
-            # if p.glow != (0, 0, 0):
-            #     glow_circle(gs.WIN, p.x - gs.x, p.y - gs.y, 2*p.radius, p.glow)
-        if p.radius <= 0:
-            gs.particle_list.pop(i)
+
+    gs.particle_list = [p for p in gs.particle_list if p.radius > 0]
 
     for faction in range(len(gs.ships)):
 
@@ -119,13 +126,12 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
 
     gs.explosion_group.draw(gs.WIN)
 
-    for i in range(len(gs.particle_list2) - 1, -1, -1):
-        p = gs.particle_list2[i]
-        p.update()
+    for p in gs.particle_list2:
+        p.scoot()
         if (p.x - gs.x - p.radius < WIDTH and p.x - gs.x + p.radius > 0) and (p.y - gs.y - p.radius < WIDTH and p.y - gs.y + p.radius > 0):
             p.draw(gs)
-        if p.radius <= 0:
-            gs.particle_list2.pop(i)
+
+    gs.particle_list2 = [p for p in gs.particle_list2 if p.radius > 0]
 
 
     if player_ship is not None:
@@ -406,4 +412,4 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
     # gs.WIN.blit(gs.WIN2, (0, 0))
     # gs.WIN.blit(gs.WIN, (0, 0))
 
-    pygame.display.update()  # update window
+    pygame.display.update()  # scoot window

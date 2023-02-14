@@ -11,6 +11,7 @@ from Bullet_Types import BulletNames
 from Missile_Types import MissileNames
 from Mine_Types import MineNames
 from Utility_Types import UtilityNames
+from Debris_Types import Debris
 
 
 class GlobalState:
@@ -59,6 +60,7 @@ class GlobalState:
         self.UtilTypes = make_dict(UtilityNames)
         for Type in list(self.UtilTypes):
             self.UtilTypes[Type].cost = assign_util_cost(self.UtilTypes[Type])
+        self.DebrisTypes = make_dict(Debris)
         self.explosion_group = pygame.sprite.Group()  # initialize explosion group
         self.SPACE = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space2.png')),
                                        (width, height)).convert_alpha()  # background image

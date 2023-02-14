@@ -9,8 +9,8 @@ pygame.mixer.init()
 
 def explosion(self, gs, dmgList):
     for i in dmgList:
-        gs.targets[self.faction][i].health -= self.damage
-        gs.targets[self.faction][i].heat += self.damage
+        self.targets[i].health -= self.damage
+        self.targets[i].heat += self.damage
 
     for i in range(100):
         c = rnd.randint(100, 200)
@@ -23,12 +23,12 @@ def explosion(self, gs, dmgList):
 
 def emp_explosion(self, gs, dmgList):
     for i in dmgList:
-        gs.targets[self.faction][i].health -= self.damage
-        gs.targets[self.faction][i].heat += self.damage
-        gs.targets[self.faction][i].energy = 0
+        self.targets[i].health -= self.damage
+        self.targets[i].heat += self.damage
+        self.targets[i].energy = 0
         # target_list[i].bulletC += 180
         # target_list[i].missileC += 180
-        for turret in gs.targets[self.faction][i].turrets:
+        for turret in self.targets[i].turrets:
             turret.energy = 0
             turret.angle += 120 * rnd.uniform(-1, 1) / math.pi
             # turret.bulletC += 180
@@ -39,7 +39,7 @@ def emp_explosion(self, gs, dmgList):
                                           rnd.randint(0, 360), 10,
                                           (c + 50, c, 100), shrink=0.5))
 
-    ExplosionDamage(self.exp_damage, self.centerx, self.centery, self.er, gs.targets[self.faction], gs)
+    ExplosionDamage(self.exp_damage, self.centerx, self.centery, self.er, self.targets, gs)
 
 
 Seeker = {'velocity': 10.5,

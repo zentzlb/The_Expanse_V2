@@ -23,7 +23,7 @@ from pygame.locals import *
 #         self.rect.center = [x - gs.x, y - gs.y]
 #         self.counter = 0
 #
-#     def update(self):
+#     def scoot(self):
 #         explosion_speed = 2
 #         self.counter += 1
 #         self.rect.center = [self.x - self.gs.x, self.y - self.gs.y]
@@ -45,6 +45,12 @@ def ShipExplosion(ship, gs):
                                           (c + 50, c, 100), shrink=0.75))
         gs.particle_list2.append(
             Particle(rnd.randint(ship.x, ship.x+ship.width), rnd.randint(ship.y, ship.y+ship.height), 3*rnd.random(), rnd.randint(0, 360), size, (rnd.randint(200, 255), rnd.randint(200, 255), 200), shrink=0.98))
+
+    for j in range(ship.height // 10):
+        i = rnd.randint(0, len(gs.DebrisTypes) - 1)
+        key = list(gs.DebrisTypes.keys())[i]
+        debris = Debris(ship.centerx, ship.centery, rnd.random(), rnd.randint(0, 360), gs.DebrisTypes[key], 6000, rnd.random()-0.5)
+        gs.particle_list.append(debris)
 
 
 
@@ -181,7 +187,7 @@ class Particle:
         self.glow = glow
         self.show = show
 
-    def update(self):
+    def scoot(self):
         self.fx += self.vx
         self.fy += self.vy
         self.x = round(self.fx)
@@ -193,6 +199,45 @@ class Particle:
         pygame.draw.circle(gs.WIN, self.color, (self.x - gs.x, self.y - gs.y), self.radius)
         if self.glow != (0, 0, 0):
             glow_circle(gs.WIN, self.x - gs.x, self.y - gs.y, 2 * self.radius, self.glow)
+
+
+class Debris:
+    def __init__(self, x, y, v, angle, debris_type, time, av, vx=0, vy=0, show=True):
+        self.x = x
+        self.y = y
+        self.fx = x
+        self.fy = y
+        self.cx = x
+        self.cy = y
+        self.vx = v * math.sin(angle * math.pi / 180) + vx
+        self.vy = v * math.cos(angle * math.pi / 180) + vy
+        self.type = debris_type
+        self.height = debris_type.image.get_height()
+        self.width = debris_type.image.get_width()
+        self.radius = time
+        self.angle = rnd.randint(-180, 180)
+        self.av = av
+        self.show = show
+        print(self.av)
+
+    def scoot(self):
+        self.fx += self.vx
+        self.fy += self.vy
+
+        self.x = round(self.fx)
+        self.y = round(self.fy)
+
+        self.angle += self.av
+
+        self.cx = round(self.x + (
+                    self.width - self.height * abs(math.sin(self.angle * math.pi / 180)) - self.width * abs(math.cos(self.angle * math.pi / 180))) / 2)
+        self.cy = round(self.y + (
+                    self.height - self.width * abs(math.sin(self.angle * math.pi / 180)) - self.height * abs(math.cos(self.angle * math.pi / 180))) / 2)
+        self.radius -= 1
+
+    def draw(self, gs):
+        debris = pygame.transform.rotate(self.type.image, self.angle)
+        gs.WIN.blit(debris, (self.cx - gs.x, self.cy - gs.y))
 
 
 def trans_circle(display, x, y, radius, color):

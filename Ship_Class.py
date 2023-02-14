@@ -187,7 +187,7 @@ class Ship(pygame.Rect):
             self.acc = self.ship_type.acc * 1.25
             self.av = self.ship_type.av * 1.25
             self.energy -= 0.75
-            for i in range(3):
+            for i in range(300):
                 R = 255
                 G = rnd.randint(0, 255)
                 gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.randint(round(2 * self.velocity), 3 * round(self.velocity)), self.angle + rnd.randint(-15, 15), 3, (R, G, 0), vx=self.vx, vy=self.vy, glow=(R // 2, G // 2, 0), shrink=0.5))
@@ -226,14 +226,14 @@ class Ship(pygame.Rect):
         """MINE ASTEROID"""
         if commands[9] == 1 and type(self.target) is Asteroid and self.colliderect(self.target):  # harvest from asteroid
             roid = self.target  # identify specific asteroid from list
-            if self.is_player:
-                self.vx = 0
-                self.vy = 0
-                gs.ships[faction].remove(self)
-                gs.update()
-                gs.menu = AsteroidMenu(self, roid)
-            else:
-                roid.mine(self)
+            # if self.is_player:
+            #     self.vx = 0
+            #     self.vy = 0
+            #     gs.ships[faction].remove(self)
+            #     gs.update()
+            #     gs.menu = AsteroidMenu(self, roid)
+            # else:
+            roid.mine(self)
             if sum(roid.ore.values()) > 0:
                 gs.particle_list.append(
                     Particle(self.centerx, self.centery, rnd.random(), rnd.randint(0, 360), rnd.randint(4, 6),
@@ -252,10 +252,11 @@ class Ship(pygame.Rect):
         #     self.missile_sel = commands[10] - 1
 
         """DON'T GO OVER SPEED LIMIT"""
-        if self.vx * self.vx + self.vy * self.vy > self.velocity * self.velocity:
-            v2 = math.sqrt(self.vx ** 2 + self.vy ** 2)
-            self.vx = self.vx * self.velocity / v2
-            self.vy = self.vy * self.velocity / v2
+        v2 = self.vx * self.vx + self.vy * self.vy
+        if v2 > self.velocity * self.velocity:
+            v = math.sqrt(v2)
+            self.vx = self.vx * self.velocity / v
+            self.vy = self.vy * self.velocity / v
 
         self.fx += self.vx
         self.fy += self.vy

@@ -82,7 +82,7 @@ def main():
 
         yellow = Ship(PlayerControl2, TurretControl, 80000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Destroyer', MyGS, is_player=True)
 
-        yellow.add_bullet(MyGS, 'AP AutoCannon')
+        yellow.add_bullet(MyGS, 'Plasma')
         yellow.add_bullet(MyGS, 'Flame Thrower')
         yellow.add_missile(MyGS, 'Smart Missile')
         yellow.add_missile(MyGS, 'EMP Missile')
@@ -165,7 +165,7 @@ def main():
         #     print()
 
         t1 = time.time()
-        MyGS.explosion_group.update()  # update all explosions
+        MyGS.explosion_group.update()  # scoot all explosions
         if PCS == 'n':
             MoveScreen(MyGS)
 
@@ -177,7 +177,7 @@ def main():
         # """Station Function"""
         # for faction in range(len(MyGS.stations)):
         #     for station in MyGS.stations[faction]:
-        #         station.scoot(MyGS, faction)  # update stations
+        #         station.scoot(MyGS, faction)  # scoot stations
 
         t2 = time.time()
 
@@ -202,7 +202,7 @@ def main():
             # for station in MyGS.stations[faction]:
             for i in range(len(MyGS.stations[faction]) - 1, -1, -1):
                 station = MyGS.stations[faction][i]
-                station.scoot(MyGS, faction)  # update stations
+                station.scoot(MyGS, faction)  # scoot stations
 
         """Bullet Movement"""
         for faction in range(len(MyGS.bullets)):
