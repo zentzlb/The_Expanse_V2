@@ -20,8 +20,8 @@ def use_auto_loader(ship, gs, faction):
 
 
 def jump_drive(ship, gs, faction):
-    if ship.energy > ship.height:
-        ship.energy -= ship.height
+    if ship.energy > ship.height * 2:
+        ship.energy -= ship.height * 2
         for i in range(0, 60, 2):
             gs.particle_list.append(
                 Particle(ship.centerx + ship.vx * i, ship.centery + ship.vy * i, 1, rnd.randint(0, 360), 1,
@@ -31,7 +31,7 @@ def jump_drive(ship, gs, faction):
 
 
 def use_jump_drive(ship, gs, faction):
-    if ship.energy > ship.height and ship.vx * ship.vx + ship.vy * ship.vy > 15:
+    if ship.energy > ship.height * 2 and ship.vx * ship.vx + ship.vy * ship.vy > 15:
         R2 = 40000
         for f in range(len(gs.missiles)):
             if f != faction:
@@ -136,7 +136,7 @@ AutoLoader = {'function': auto_loader,
 JumpDrive = {'function': jump_drive,
              'logic': use_jump_drive,
              'energy': 'ship.height * 5',
-             'delay': 60,
+             'delay': 90,
              'description': 'This ship is fast',
              'cost': {},
              'name': "Jump Drive"}
