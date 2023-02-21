@@ -135,7 +135,7 @@ AutoLoader = {'function': auto_loader,
 
 JumpDrive = {'function': jump_drive,
              'logic': use_jump_drive,
-             'energy': 'ship.height * 5',
+             'energy': 'ship.height * 2',
              'delay': 90,
              'description': 'This ship is fast',
              'cost': {},
