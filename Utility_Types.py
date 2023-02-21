@@ -12,9 +12,16 @@ def auto_loader(ship, gs, faction):
         ship.energy -= 1
 
 
+def use_auto_loader(ship, gs, faction):
+    if ship.energy > ship.ship_type.energy * 0.4 and ship.missileC > 0:
+        return 1
+    else:
+        return 0
+
+
 def jump_drive(ship, gs, faction):
-    if ship.energy > ship.height * 4:
-        ship.energy -= ship.height * 4
+    if ship.energy > ship.height:
+        ship.energy -= ship.height
         for i in range(0, 60, 2):
             gs.particle_list.append(
                 Particle(ship.centerx + ship.vx * i, ship.centery + ship.vy * i, 1, rnd.randint(0, 360), 1,
@@ -22,6 +29,25 @@ def jump_drive(ship, gs, faction):
         ship.fx = ship.fx + ship.vx * 60
         ship.fy = ship.fy + ship.vy * 60
 
+
+def use_jump_drive(ship, gs, faction):
+    if ship.energy > ship.height and ship.vx * ship.vx + ship.vy * ship.vy > 15:
+        R2 = 40000
+        for f in range(len(gs.missiles)):
+            if f != faction:
+                for missile in gs.missiles[f]:
+                    dx = ship.centerx - missile.centerx
+                    dy = ship.centerx - missile.centerx
+                    r2 = dx * dx + dy * dy
+                    if r2 < R2:
+                        return 1
+                for bullet in gs.bullets[f]:
+                    dx = ship.centerx - bullet.centerx
+                    dy = ship.centerx - bullet.centerx
+                    r2 = dx * dx + dy * dy
+                    if r2 < R2:
+                        return 1
+    return 0
 
 def chaff(ship, gs, faction):
     if ship.energy > 100:
@@ -34,6 +60,10 @@ def chaff(ship, gs, faction):
         for i in range(0, 10):
             gs.ships[faction].append(Spark(ship.centerx + rnd.randint(-ship.width, ship.width),
                                            ship.centery + rnd.randint(-ship.height, ship.height), rnd.randint(0, 359)))
+
+
+def null(ship, gs, faction):
+    return 0
 
 
 def cloak(ship, gs, faction):
@@ -49,6 +79,14 @@ def overload_reactor(ship, gs, faction):
     if ship.energy < ship.ship_type.energy:
         ship.heat += 0.5
         ship.energy += 0.5
+
+
+def use_overload_reactor(ship, gs, faction):
+    if ship.energy < ship.ship_type.energy * 0.9 and ship.heat < ship.ship_type.heat_capacity * 0.8:
+        return 1
+    else:
+        return 0
+
 
 class Spark(pygame.Rect):
     def __init__(self, x, y, angle):
@@ -88,6 +126,7 @@ class Spark(pygame.Rect):
 
 
 AutoLoader = {'function': auto_loader,
+              'logic': use_auto_loader,
               'energy': '1',
               'delay': 0,
               'description': 'This ship is fast',
@@ -95,6 +134,7 @@ AutoLoader = {'function': auto_loader,
               'name': "Auto Loader"}
 
 JumpDrive = {'function': jump_drive,
+             'logic': use_jump_drive,
              'energy': 'ship.height * 5',
              'delay': 60,
              'description': 'This ship is fast',
@@ -102,6 +142,7 @@ JumpDrive = {'function': jump_drive,
              'name': "Jump Drive"}
 
 Cloak = {'function': cloak,
+         'logic': null,
          'energy': '0.5',
          'delay': 1,
          'description': 'This ship is fast',
@@ -109,6 +150,7 @@ Cloak = {'function': cloak,
          'name': "Cloak"}
 
 Reactor = {'function': overload_reactor,
+           'logic': use_overload_reactor,
            'energy': '0',
            'delay': 1,
            'description': 'This ship is fast',
@@ -116,6 +158,7 @@ Reactor = {'function': overload_reactor,
            'name': "Reactor"}
 
 Chaff = {'function': chaff,
+         'logic': null,
          'energy': '100',
          'delay': 240,
          'description': 'This ship is fast',

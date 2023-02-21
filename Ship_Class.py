@@ -22,6 +22,7 @@ class Ship(pygame.Rect):
         self.range = self.ship_type.range
         self.angle = angle
         self.Q = np.array([[1, 0], [0, 1]])
+        self.Qt = np.transpose(self.Q)
         self.velocity = ShipType.velocity
         self.av = ShipType.av
         self.acc = ShipType.acc
@@ -104,6 +105,7 @@ class Ship(pygame.Rect):
         cos = math.cos(self.angle * math.pi / 180)
         sin = math.sin(self.angle * math.pi / 180)
         self.Q = np.array([[cos, -sin], [sin, cos]])
+        self.Qt = self.Q.transpose()
 
         commands = self.control_module(self, gs, faction)
         self.forward = False
@@ -187,10 +189,10 @@ class Ship(pygame.Rect):
             self.acc = self.ship_type.acc * 1.25
             self.av = self.ship_type.av * 1.25
             self.energy -= 0.75
-            for i in range(300):
+            for i in range(3):
                 R = 255
                 G = rnd.randint(0, 255)
-                gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.randint(round(2 * self.velocity), 3 * round(self.velocity)), self.angle + rnd.randint(-15, 15), 3, (R, G, 0), vx=self.vx, vy=self.vy, glow=(R // 2, G // 2, 0), shrink=0.5))
+                gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.randint(round(2 * self.velocity), 3 * round(self.velocity)), self.angle + rnd.randint(-15, 15), 3, (R, G, 0), vx=self.vx, vy=self.vy, glow=(R // 2, G // 2, 0), shrink=0.7))
         else:
             self.boost = False
             self.velocity = self.ship_type.velocity
@@ -452,10 +454,10 @@ class Turret(pygame.Rect):
 
 class Station(pygame.Rect):
     def __init__(self, x, y, station_type, control_module, color, gs):
-        StationType = StationTypes(station_type)
+        StationType = gs.StationTypes[station_type]
         Turrets = []
         for i in range(len(StationType.turrets)):
-            Turrets.append(Turret(x, y, StationType.turret_loc[i], 0, StationType.turrets[i], control_module, gs, self))
+            Turrets.append(Turret(x, y, StationType.turret_pos[i], 0, StationType.turrets[i], control_module, gs, self))
         # for turret in StationType.turrets:
         #     Turrets.append(Turret(x, y, 0, turret, control_module, is_player=False))
         super().__init__(x, y, StationType.height, StationType.width)
@@ -473,6 +475,7 @@ class Station(pygame.Rect):
         self.image = StationType.image
         self.docked_ships = []
         self.docked_players = []
+        # self.obs = None
         self.cargo = CargoClass()
         # self.ships = ['Fighter', 'Sprinter', 'Frigate']
         # self.primary = ['HV', 'PA', 'railgun']
@@ -504,6 +507,10 @@ class Station(pygame.Rect):
             return None
 
     def scoot(self, global_state, faction):
+        # if self.obs is not None:
+        #     global_state.x = self.obs.x
+        #     global_state.y = self.obs.y
+
         if self.ship_build is None:
             i = rnd.randint(0, len(global_state.ShipTypes) - 1)
             self.ship_build = list(global_state.ShipTypes.keys())[i]

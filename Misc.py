@@ -39,6 +39,7 @@ class GlobalState:
         self.pilots = pilots
         self.mining_sound = pygame.mixer.Sound(os.path.join('Assets', 'mining.mp3'))
         self.mining = pygame.mixer.Channel(2)
+        self.radio = {}
         self.WIN = pygame.display.set_mode((width, height), pygame.SCALED | pygame.FULLSCREEN)  # create window
         # self.WIN.set_alpha(255)
         # self.WIN2 = pygame.Surface((width, height), pygame.SRCALPHA)  # create transparent surface
@@ -191,9 +192,10 @@ def FindNearest(ship, target_list):
             r2 = dx * dx + dy * dy
             a = target.is_visible and r2 < rng2  # is uncloaked and within radar range
             b = r2 < 2250000  # is within visual range
-            c = r2 < min_r2 and target.health > 0
+            c = r2 < min_r2  # target.health > 0
+            d = target.width > 200
 
-            if c and (a or b):  # and target.health > 0:  # only add ships to the target list if they're visible
+            if d or c and (a or b):  # and target.health > 0:  # only add ships to the target list if they're visible
                 min_r2 = r2
                 ind = target
             # else:

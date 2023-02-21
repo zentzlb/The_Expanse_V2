@@ -79,33 +79,17 @@ def NPControl(ship, gs, faction):
 
     elif type(ship.target) is Ship:
 
-        pos = ship.Q.transpose().dot(ship.ship_type.bullet_pos[ship.bullet_sel]) - np.array([ship.bullet_types[ship.bullet_sel].width // 2, ship.bullet_types[ship.bullet_sel].height // 2])
+        bs, dx, dy = find_bullet(ship)
+        ms, r = find_missile(ship)
+        us, use = use_util(ship, gs, faction)
 
-        vx = ship.target.vx
-        vy = ship.target.vy
-        xo = ship.target.centerx - pos[0]
-        yo = ship.target.centery - pos[1]
-        bullet_velocity = ship.bullet_types[ship.bullet_sel].velocity
-
-        a = vx ** 2 + vy ** 2 - bullet_velocity ** 2
-        b = 2 * (vx * (xo - ship.centerx) + vy * (yo - ship.centery))
-        c = (xo - ship.centerx) ** 2 + (yo - ship.centery) ** 2
-
-        t = (-b - math.sqrt(b ** 2 - 4 * a * c)) / (2 * a)
-
-        x = xo + vx * t
-        y = yo + vy * t
-
-        dx = x - ship.centerx
-        dy = y - ship.centery
-
-        cos = math.cos(ship.angle * math.pi / 180)
-        sin = math.sin(ship.angle * math.pi / 180)
-
-        Q = np.array([[cos, -sin], [sin, cos]])
         V = np.array([[dx], [dy]])
-        V_prime = Q.dot(V)
+        V_prime = ship.Q.dot(V)
         angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
+        # print(bs)
+        commands[10] = bs + 1
+        commands[11] = ms + 1
+        commands[13] = us + 1
 
         # print(angle2)
 
@@ -124,17 +108,17 @@ def NPControl(ship, gs, faction):
         commands[2] = round(math.sin(time.time()))
 
         """SHOOT"""
-        if abs(angle2 * 180 / math.pi) < ship.av and ship.energy >= 30 and ship.bullet_types[ship.bullet_sel].range * ship.bullet_types[ship.bullet_sel].range > dx * dx + dy * dy:  # SHOOT BULLET
+        if abs(angle2 * 180 / math.pi) < 1.5 * ship.av and ship.energy >= 30 and ship.bullet_types[bs].range * ship.bullet_types[bs].range > dx * dx + dy * dy:  # SHOOT BULLET
             commands[3] = 1
 
-        if len(ship.missile_types) > 0 and ship.energy >= ship.missile_types[ship.missile_sel].energy and ship.missile_types[ship.missile_sel].range > math.sqrt(dx ** 2 + dy ** 2):
+        if len(ship.missile_types) > 0 and ship.energy >= ship.missile_types[ms].energy and ship.missile_types[ms].range > math.sqrt(dx * dx + dy * dy):
             commands[4] = 1
 
-        """MINES"""
-        # commands.append(0)
+        """UTIL"""
+        commands[6] = use
 
         """BOOST"""
-        if ship.health < 20 and ((ship.energy > ship.bullet_types[ship.bullet_sel].energy and ship.boost) or ship.energy > ship.bullet_types[ship.bullet_sel].energy + 30):
+        if ship.health < 20 and ((ship.energy > ship.bullet_types[bs].energy and ship.boost) or ship.energy > ship.bullet_types[bs].energy + 30):
             commands[7] = 1
 
     elif type(ship.target) is Point:
@@ -500,16 +484,77 @@ def PlayerControl2(ship, global_state, faction):
     return commands
 
 
-def minmax(mylist, rng):
-    temp = []
-    for r in mylist:
-        if r * 0.8 > rng:
-            temp.append(r)
-        else:
-            temp.append(math.inf)
-    if min(temp) < math.inf:
-        return temp.index(min(temp))
-    else:
-        return mylist.index(max(mylist))
+# def minmax(mylist, rng):
+#     temp = []
+#     for r in mylist:
+#         if r * 0.8 > rng:
+#             temp.append(r)
+#         else:
+#             temp.append(math.inf)
+#     if min(temp) < math.inf:
+#         return temp.index(min(temp))
+#     else:
+#         return mylist.index(max(mylist))
 
 
+def find_bullet(ship):
+    ind = -1
+    rng = math.inf
+    DX = 0
+    DY = 0
+    for bs in range(len(ship.bullet_types)):
+
+        pos = ship.Q.transpose().dot(ship.ship_type.bullet_pos[bs]) - np.array([ship.bullet_types[bs].width // 2, ship.bullet_types[bs].height // 2])
+
+        vx = ship.target.vx
+        vy = ship.target.vy
+        xo = ship.target.centerx - pos[0]
+        yo = ship.target.centery - pos[1]
+        bullet_velocity = ship.bullet_types[bs].velocity
+
+
+
+        a = vx * vx + vy * vy - bullet_velocity * bullet_velocity
+        b = 2 * (vx * (xo - ship.centerx) + vy * (yo - ship.centery))
+        c = (xo - ship.centerx) ** 2 + (yo - ship.centery) ** 2
+
+        t = (-b - math.sqrt(b * b - 4 * a * c)) / (2 * a)
+
+        x = xo + vx * t
+        y = yo + vy * t
+
+        dx = x - ship.centerx
+        dy = y - ship.centery
+
+        r = math.sqrt(dx * dx + dy * dy)
+
+        if rng > ship.bullet_types[bs].range > r or ind == -1 or (r > rng and ship.bullet_types[bs].range > rng):
+            rng = ship.bullet_types[bs].range
+            ind = bs
+            DX = dx
+            DY = dy
+
+    return ind, DX, DY
+
+
+def find_missile(ship):
+
+    ind = -1
+    rng = math.inf
+    dx = ship.target.centerx - ship.centerx
+    dy = ship.target.centery - ship.centery
+    r = math.sqrt(dx * dx + dy * dy)
+
+    for ms in range(len(ship.missile_types)):
+        if rng > ship.missile_types[ms].range > r or ind == -1 or (r > rng and ship.missile_types[ms].range > rng):
+            rng = ship.missile_types[ms].range
+            ind = ms
+    return ind, r
+
+
+def use_util(ship, gs, faction):
+    for us in range(len(ship.util_types)):
+        use = ship.util_types[us].logic(ship, gs, faction)
+        if use == 1:
+            return us, 1
+    return 0, 0

@@ -36,12 +36,13 @@ def draw_bullet(bullet, gs):
 
 
 def draw_flame(bullet, gs):
-    radius1 = 2 + bullet.timer // 20
+    scale = (bullet.range / bullet.velocity - bullet.timer) / 20
+    radius1 = 2 + round(scale)
     # radius2 = 1 + bullet.timer // 40
     x = bullet.centerx - gs.x
     y = bullet.centery - gs.y
-    r = 255 / (1 + bullet.timer / 20)
-    g = rnd.randint(0, 200) / (1 + bullet.timer / 20)
+    r = 255 / (1 + scale)
+    g = rnd.randint(0, 200) / (1 + scale)
     color1 = (r, g, 0)
     surf = pygame.Surface((radius1 * 2, radius1 * 2))
     surf.set_colorkey((0, 0, 0))
@@ -132,7 +133,7 @@ AutoCannon2 = {'velocity': 15,
 Plasma = {'velocity': 10.5,
           'damage': 55,
           'energy': 140,
-          'range': 1500,
+          'range': 1000,
           'delay': 120,
           'targets_missiles': False,
           'height': 15,

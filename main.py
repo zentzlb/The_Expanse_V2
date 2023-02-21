@@ -80,15 +80,15 @@ def main():
     """SPAWN IN SPECIFIED SHIPS"""
     if PCS == 'y':
 
-        yellow = Ship(PlayerControl2, TurretControl, 80000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Destroyer', MyGS, is_player=True)
+        yellow = Ship(PlayerControl2, TurretControl, 80000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Sprinter', MyGS, is_player=True)
 
         yellow.add_bullet(MyGS, 'Plasma')
         yellow.add_bullet(MyGS, 'Flame Thrower')
         yellow.add_missile(MyGS, 'Smart Missile')
         yellow.add_missile(MyGS, 'EMP Missile')
         yellow.add_missile(MyGS, 'Smart Missile')
-        yellow.add_util(MyGS, 'Reactor')
-        yellow.add_util(MyGS, 'Auto Loader')
+        # yellow.add_util(MyGS, 'Reactor')
+        yellow.add_util(MyGS, 'Jump Drive')
         # yellow.add_mine(MyGS, 'Black Hole')
         yellow.add_mine(MyGS, 'Proximity Mine')
         MyGS.ships[0].append(yellow)
@@ -107,16 +107,20 @@ def main():
 
     for i in range(nE):
 
-        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Heavy Fighter', MyGS)
+        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Ghost', MyGS)
         red.add_bullet(MyGS, 'Plasma')
+        red.add_bullet(MyGS, 'AutoCannon')
+        red.add_missile(MyGS, 'Smart Missile')
         red.add_missile(MyGS, 'Swarm Missile')
+        red.add_util(MyGS, 'Jump Drive')
+        red.add_util(MyGS, 'Reactor')
         MyGS.ships[1].append(red)
 
-        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size - 2000, MyGS.size - 1000), rnd.randint(2000, 5000),
-                   0, 'red', 'Destroyer', MyGS)
-        red.add_bullet(MyGS, 'Flame Thrower')
-        red.add_missile(MyGS, 'Smart Missile')
-        MyGS.ships[1].append(red)
+        # red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size - 2000, MyGS.size - 1000), rnd.randint(2000, 5000),
+        #            0, 'red', 'Heavy Fighter', MyGS)
+        # red.add_bullet(MyGS, 'Flame Thrower')
+        # red.add_missile(MyGS, 'Smart Missile')
+        # MyGS.ships[1].append(red)
 
         # red = Ship(NPControl2, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(MyGS.size-2000, MyGS.size-1000), 0, 'red', 'Frigate', MyGS)
         # red.add_bullet(MyGS, 'Plasma')

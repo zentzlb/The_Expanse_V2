@@ -218,7 +218,7 @@ class Debris:
         self.angle = rnd.randint(-180, 180)
         self.av = av
         self.show = show
-        print(self.av)
+        # print(self.av)
 
     def scoot(self):
         self.fx += self.vx
