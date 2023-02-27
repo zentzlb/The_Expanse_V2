@@ -99,7 +99,7 @@ def NPControl(ship, gs, faction):
             commands[0] = -1
 
         """GO FORWARD"""
-        if angle2 < math.pi / 180:
+        if angle2 < math.pi / 100:
             commands[1] = 1
         else:
             commands[1] = -1
@@ -504,29 +504,36 @@ def find_bullet(ship):
     DY = 0
     for bs in range(len(ship.bullet_types)):
 
-        pos = ship.Q.transpose().dot(ship.ship_type.bullet_pos[bs]) - np.array([ship.bullet_types[bs].width // 2, ship.bullet_types[bs].height // 2])
+        pos = ship.Qt.dot(ship.ship_type.bullet_pos[bs]) - np.array([ship.bullet_types[bs].width // 2, ship.bullet_types[bs].height // 2])
 
-        vx = ship.target.vx
-        vy = ship.target.vy
-        xo = ship.target.centerx - pos[0]
-        yo = ship.target.centery - pos[1]
-        bullet_velocity = ship.bullet_types[bs].velocity
+        if ship.bullet_types[ship.bullet_sel].velocity != math.inf:
+
+            vx = ship.target.vx
+            vy = ship.target.vy
+            xo = ship.target.centerx - pos[0]
+            yo = ship.target.centery - pos[1]
+            bullet_velocity = ship.bullet_types[bs].velocity
 
 
 
-        a = vx * vx + vy * vy - bullet_velocity * bullet_velocity
-        b = 2 * (vx * (xo - ship.centerx) + vy * (yo - ship.centery))
-        c = (xo - ship.centerx) ** 2 + (yo - ship.centery) ** 2
+            a = vx * vx + vy * vy - bullet_velocity * bullet_velocity
+            b = 2 * (vx * (xo - ship.centerx) + vy * (yo - ship.centery))
+            c = (xo - ship.centerx) ** 2 + (yo - ship.centery) ** 2
 
-        t = (-b - math.sqrt(b * b - 4 * a * c)) / (2 * a)
+            t = (-b - math.sqrt(b * b - 4 * a * c)) / (2 * a)
 
-        x = xo + vx * t
-        y = yo + vy * t
+            x = xo + vx * t
+            y = yo + vy * t
 
-        dx = x - ship.centerx
-        dy = y - ship.centery
+            dx = x - ship.centerx
+            dy = y - ship.centery
 
-        r = math.sqrt(dx * dx + dy * dy)
+            r = math.sqrt(dx * dx + dy * dy)
+
+        else:
+            dx = ship.target.centerx - pos[0] - ship.centerx
+            dy = ship.target.centery - pos[1] - ship.centery
+            r = math.sqrt(dx * dx + dy * dy)
 
         if rng > ship.bullet_types[bs].range > r or ind == -1 or (r > rng and ship.bullet_types[bs].range > rng):
             rng = ship.bullet_types[bs].range

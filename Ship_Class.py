@@ -148,6 +148,24 @@ class Ship(pygame.Rect):
             self.vy += self.acc * math.sin(self.angle * math.pi / 180) / 2
             self.vx -= self.acc * math.cos(self.angle * math.pi / 180) / 2
 
+        """UPDATE VELOCITY AND POSITION"""
+        v2 = self.vx * self.vx + self.vy * self.vy
+        if v2 > self.velocity * self.velocity:
+            v = math.sqrt(v2)
+            self.vx = self.vx * self.velocity / v
+            self.vy = self.vy * self.velocity / v
+
+        self.fx += self.vx
+        self.fy += self.vy
+
+        self.x = round(self.fx)
+        self.y = round(self.fy)
+
+        self.cx = round(self.x + (
+                    self.width - self.height * abs(math.sin(self.angle * math.pi / 180)) - self.width * abs(math.cos(self.angle * math.pi / 180))) / 2)
+        self.cy = round(self.y + (
+                    self.height - self.width * abs(math.sin(self.angle * math.pi / 180)) - self.height * abs(math.cos(self.angle * math.pi / 180))) / 2)
+
         """FIRE BULLETS and MISSILES"""
         if commands[3] == 1 and len(self.bullet_types) > 0 and self.energy >= self.bullet_types[self.bullet_sel].energy and self.bulletC == 0:  # DOWN
             self.energy -= self.bullet_types[self.bullet_sel].energy
@@ -253,23 +271,23 @@ class Ship(pygame.Rect):
         # if commands[10] != 0:
         #     self.missile_sel = commands[10] - 1
 
-        """DON'T GO OVER SPEED LIMIT"""
-        v2 = self.vx * self.vx + self.vy * self.vy
-        if v2 > self.velocity * self.velocity:
-            v = math.sqrt(v2)
-            self.vx = self.vx * self.velocity / v
-            self.vy = self.vy * self.velocity / v
-
-        self.fx += self.vx
-        self.fy += self.vy
-
-        self.x = round(self.fx)
-        self.y = round(self.fy)
-
-        self.cx = round(self.x + (
-                    self.width - self.height * abs(math.sin(self.angle * math.pi / 180)) - self.width * abs(math.cos(self.angle * math.pi / 180))) / 2)
-        self.cy = round(self.y + (
-                    self.height - self.width * abs(math.sin(self.angle * math.pi / 180)) - self.height * abs(math.cos(self.angle * math.pi / 180))) / 2)
+        # """DON'T GO OVER SPEED LIMIT"""
+        # v2 = self.vx * self.vx + self.vy * self.vy
+        # if v2 > self.velocity * self.velocity:
+        #     v = math.sqrt(v2)
+        #     self.vx = self.vx * self.velocity / v
+        #     self.vy = self.vy * self.velocity / v
+        #
+        # self.fx += self.vx
+        # self.fy += self.vy
+        #
+        # self.x = round(self.fx)
+        # self.y = round(self.fy)
+        #
+        # self.cx = round(self.x + (
+        #             self.width - self.height * abs(math.sin(self.angle * math.pi / 180)) - self.width * abs(math.cos(self.angle * math.pi / 180))) / 2)
+        # self.cy = round(self.y + (
+        #             self.height - self.width * abs(math.sin(self.angle * math.pi / 180)) - self.height * abs(math.cos(self.angle * math.pi / 180))) / 2)
 
         """UPDATE ENERGY, HEALTH, AND VISIBILITY"""
 

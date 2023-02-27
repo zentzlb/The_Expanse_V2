@@ -133,6 +133,10 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
 
     gs.particle_list2 = [p for p in gs.particle_list2 if p.radius > 0]
 
+    for line in gs.lines:
+        line.draw(gs)
+    gs.lines = []
+
 
     if player_ship is not None:
 
@@ -190,9 +194,7 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
         HUD.blit(heat_text, (7, 2 * rr + 5 * hbh / 2 + 2 * bt))  # display energy
 
         if type(player_ship.target) is Ship and player_ship.target.health > 0:
-            # print('targeting')
             MyAngle = TargetingComputer(player_ship)
-            # print([90 - MyAngle * 180 / math.pi, yellow.angle, MyAngle * 180 / math.pi - yellow.angle])
             if abs(90 - MyAngle * 180 / math.pi - player_ship.angle) < player_ship.av:
                 MyColor = GREEN
             else:

@@ -63,6 +63,72 @@ class Bullet(pygame.Rect):
         self.timer -= 1
 
 
+"""BEAM CLASS"""
+
+
+class Beam:
+    def __init__(self, x, y, angle, bullet_type, faction, gs):
+        self.bulltet_type = bullet_type
+        if bullet_type.sound is not None:
+            bullet_type.sound.play()
+        self.x = x
+        self.y = y
+        self.p1 = np.array([x, y])
+        self.p2 = np.array([0, 0])
+        r = rnd.randint(200, 255)
+        g = rnd.randint(0, r)
+        self.color = (r, g, 0)
+        self.angle = angle
+        self.velocity = math.inf
+        self.range = bullet_type.range
+        self.damage = bullet_type.damage
+        self.timer = 1
+        self.faction = faction
+        self.detect_collision(gs)
+
+    def draw(self, gs):
+        self.bulltet_type.draw(self, gs)
+
+    def detect_collision(self, gs):
+        # s = math.sin(self.angle * math.pi / 180)
+        # c = math.cos(self.angle * math.pi / 180)
+        # H = np.array([[c, -s, self.x], [s, c, self.y], [0, 0, 1]])
+        target = None
+        dp2 = np.array([self.range * math.sin(self.angle * math.pi / 180), self.range * math.cos(self.angle * math.pi / 180)])
+        R2 = self.range * self.range
+        root2 = math.sqrt(2)
+        for f in range(len(gs.ships)):
+            if f != self.faction:
+                for ship in gs.ships[f]:
+                    dx = ship.centerx - self.x
+                    dy = ship.centery - self.y
+                    r2 = dx * dx + dy * dy
+                    if r2 < R2:
+                        dr = np.array([dx, dy])
+                        # try:
+                        angle = math.acos(min((np.dot(dp2, dr) / math.sqrt(r2 * R2), 1)))
+                        # except:
+                        #     print(dp2)
+                        #     print(dr)
+                        #     print(r2)
+                        #     print(R2)
+                        #     print()
+                        #     angle = 0
+                        r = math.sqrt(r2)
+                        if r * math.sin(angle) < ship.height / root2:
+                            target = ship
+                            R2 = r2
+                            R = r
+                            dp2 = np.array([R * math.sin(self.angle * math.pi / 180), R * math.cos(self.angle * math.pi / 180)])
+
+        self.p2 = self.p1 + dp2
+        if target is not None:
+            self.bulltet_type.function(self, gs, target)
+
+    # def scoot(self, gs):
+    #     self.timer -= 1
+
+
 """MISSILE CLASS"""
 
 
@@ -155,7 +221,6 @@ class Missile(pygame.Rect):
             elif self.missile_type.drunk:
                 da = 400 * np.cross((math.sin(self.angle * math.pi / 180), math.cos(self.angle * math.pi / 180), 0),
                               (self.target.centerx - self.centerx, self.target.centery - self.centery, 0))[2] / min([((self.target.centerx - self.centerx) ** 2 + (self.target.centery - self.centery) ** 2 + 1), (self.range / 2) ** 2]) + math.sin(self.timer / 10) + 2 * rnd.random() - 1
-                # print(min([((self.target.centerx - self.centerx) ** 2 + (self.target.centery - self.centery) ** 2 + 1), self.range ** 2]))
             else:
                 da = np.cross((math.sin(self.angle * math.pi / 180), math.cos(self.angle * math.pi / 180), 0),
                                       (self.target.centerx - self.centerx, self.target.centery - self.centery, 0))[2]

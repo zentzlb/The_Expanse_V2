@@ -2,8 +2,9 @@ import pygame
 import os
 import numpy as np
 import random as rnd
+import math
 from Explosions import Particle, PAExplosion
-from Weapon_Class import Bullet
+from Weapon_Class import Bullet, Beam
 from pygame.locals import *
 
 pygame.mixer.init()
@@ -31,13 +32,23 @@ def init_spray(ship, gs, faction):
     gs.bullets[faction].append(bullet)
 
 
+def init_beam(ship, gs, faction):
+    if ship.is_ship:
+        pos = ship.center + ship.Qt.dot(ship.ship_type.bullet_pos[ship.bullet_sel])
+    else:
+        pos = ship.center
+    beam = Beam(pos[0], pos[1], ship.angle, ship.bullet_types[ship.bullet_sel], faction, gs)
+    gs.lines.append(beam)
+
+
+
 def draw_bullet(bullet, gs):
     gs.WIN.blit(bullet.image, (bullet.x - gs.x, bullet.y - gs.y))
 
 
 def draw_flame(bullet, gs):
-    scale = (bullet.range / bullet.velocity - bullet.timer) / 20
-    radius1 = 2 + round(scale)
+    scale = (bullet.range / bullet.velocity - bullet.timer) / 10
+    radius1 = 2 + round(scale/2)
     # radius2 = 1 + bullet.timer // 40
     x = bullet.centerx - gs.x
     y = bullet.centery - gs.y
@@ -48,6 +59,13 @@ def draw_flame(bullet, gs):
     surf.set_colorkey((0, 0, 0))
     pygame.draw.circle(surf, color1, (radius1, radius1), radius1)
     gs.WIN.blit(surf, (x - radius1, y - radius1), special_flags=BLEND_RGB_ADD)
+
+
+def draw_beam(beam, gs):
+    shift = np.array([gs.x, gs.y])
+    p1 = beam.p1 - shift
+    p2 = beam.p2 - shift
+    pygame.draw.line(gs.WIN, beam.color, p1, p2, width=1)
 
 
 def cannon(self, gs, dmglist):
@@ -79,6 +97,11 @@ def plasma(self, gs, dmglist):
     gs.explosion_group.add(explosion)
     self.timer = 0
     # gs.bullets[self.faction].remove(self)
+
+
+def heat_laser(self, gs, ship):
+    ship.heat += 1
+    gs.particle_list2.append(Particle(self.p2[0], self.p2[1], 3, rnd.randint(0, 360), 5, self.color, shrink=0.5))
 
 
 def rail(self, gs, dmglist):
@@ -181,4 +204,21 @@ FlameThrower = {'velocity': 10,
                 'init': init_spray,
                 'draw': draw_flame}
 
-BulletNames = [AutoCannon, AutoCannon2, Plasma, Railgun, FlameThrower]
+BeamLaser = {'velocity': math.inf,
+              'damage': 0,
+              'energy': 2,
+              'range': 900,
+              'delay': 1,
+              'targets_missiles': False,
+              'height': 0,
+              'width': 0,
+              'cost': {},
+              'name': "Beam Laser",
+              'image': pygame.Surface((1, 1)),
+              'l_image': pygame.image.load(os.path.join('Assets', 'BeamLaser_Launcher.png')),
+              'sound': None,
+              'function': heat_laser,
+              'init': init_beam,
+              'draw': draw_beam}
+
+BulletNames = [AutoCannon, AutoCannon2, Plasma, Railgun, FlameThrower, BeamLaser]

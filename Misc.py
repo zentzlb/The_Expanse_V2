@@ -32,6 +32,7 @@ class GlobalState:
         self.show_bars = False
         self.particle_list = []  # behind ships
         self.particle_list2 = []  # in front of ships
+        self.lines = []  # lines in front of ship
         self.fonts = fonts
         self.docked = docked
         self.menu = menu
@@ -122,9 +123,6 @@ def assign_util_cost(util):  # in case we want util costs to be formulaic later 
 
 class Dict2Object:
     def __init__(self, dic):
-        # print(dic['name'])
-        # print(dic.keys())
-        # print()
         for key in dic.keys():
             exec(f"self.{key} = dic['{key}']")
         if hasattr(self, 'image'):
@@ -275,21 +273,25 @@ def TargetingComputer(ship):
     pos = ship.Q.transpose().dot(ship.ship_type.bullet_pos[ship.bullet_sel]) - np.array(
         [ship.bullet_types[ship.bullet_sel].width // 2, ship.bullet_types[ship.bullet_sel].height // 2])
 
-    vx = ship.target.vx
-    vy = ship.target.vy
-    xo = ship.target.centerx - pos[0]
-    yo = ship.target.centery - pos[1]
+    if ship.bullet_types[ship.bullet_sel].velocity != math.inf:
+        vx = ship.target.vx
+        vy = ship.target.vy
+        xo = ship.target.centerx - pos[0]
+        yo = ship.target.centery - pos[1]
 
-    a = vx ** 2 + vy ** 2 - ship.bullet_types[ship.bullet_sel].velocity ** 2
-    b = 2 * (vx * (xo - ship.centerx) + vy * (yo - ship.centery))
-    c = (xo - ship.centerx) ** 2 + (yo - ship.centery) ** 2
+        a = vx ** 2 + vy ** 2 - ship.bullet_types[ship.bullet_sel].velocity ** 2
+        b = 2 * (vx * (xo - ship.centerx) + vy * (yo - ship.centery))
+        c = (xo - ship.centerx) ** 2 + (yo - ship.centery) ** 2
 
-    t = (-b - math.sqrt(b ** 2 - 4 * a * c)) / (2 * a)
-    x = xo + vx * t
-    y = yo + vy * t
+        t = (-b - math.sqrt(b ** 2 - 4 * a * c)) / (2 * a)
+        x = xo + vx * t
+        y = yo + vy * t
 
-    dx = x - ship.centerx
-    dy = y - ship.centery
+        dx = x - ship.centerx
+        dy = y - ship.centery
+    else:
+        dx = ship.target.centerx - pos[0] - ship.centerx
+        dy = ship.target.centery - pos[1] - ship.centery
 
     angle2 = math.atan2(dy, dx)
 

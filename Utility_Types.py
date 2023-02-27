@@ -20,8 +20,8 @@ def use_auto_loader(ship, gs, faction):
 
 
 def jump_drive(ship, gs, faction):
-    if ship.energy > ship.height * 2:
-        ship.energy -= ship.height * 2
+    if ship.energy > ship.height * 3:
+        ship.energy -= ship.height * 3
         for i in range(0, 60, 2):
             gs.particle_list.append(
                 Particle(ship.centerx + ship.vx * i, ship.centery + ship.vy * i, 1, rnd.randint(0, 360), 1,
@@ -31,8 +31,8 @@ def jump_drive(ship, gs, faction):
 
 
 def use_jump_drive(ship, gs, faction):
-    if ship.energy > ship.height * 2 and ship.vx * ship.vx + ship.vy * ship.vy > 15:
-        R2 = 40000
+    if ship.energy > ship.height * 3 and ship.vx * ship.vx + ship.vy * ship.vy > 15:
+        R2 = 4 * ship.height * ship.width
         for f in range(len(gs.missiles)):
             if f != faction:
                 for missile in gs.missiles[f]:
