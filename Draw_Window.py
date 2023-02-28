@@ -90,7 +90,7 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
                 gs.WIN.blit(SHIP, (ship.cx - gs.x, ship.cy - gs.y))
 
                 if ship.heat > 0:
-                    opacity = 50 * (ship.heat / ship.ship_type.heat_capacity)
+                    opacity = 40 * (ship.heat / ship.ship_type.heat_capacity)
                     trans_circle(gs.WIN, ship.centerx - gs.x, ship.centery - gs.y, math.sqrt(2) * ship.width // 2, (0, 0, 255, round(opacity)))
                     glow_circle(gs.WIN, ship.centerx - gs.x, ship.centery - gs.y, math.sqrt(2) * ship.width // 2, (0, 0, round(opacity)))
 
@@ -118,11 +118,12 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
                 bullet.draw(gs)
         for missile in gs.missiles[faction]:
             if (missile.x - gs.x < WIDTH and missile.x - gs.x + missile.width > 0) and (missile.y - gs.y < HEIGHT and missile.y - gs.y + missile.height > 0):
-                if missile.angle == 0:
-                    MISSILE = missile.image
-                else:
-                    MISSILE = pygame.transform.rotate(missile.image, missile.angle)
-                gs.WIN.blit(MISSILE, (missile.x - gs.x, missile.y - gs.y))
+                missile.draw(gs)
+                # if missile.angle == 0:
+                #     MISSILE = missile.image
+                # else:
+                #     MISSILE = pygame.transform.rotate(missile.image, missile.angle)
+                # gs.WIN.blit(MISSILE, (missile.x - gs.x, missile.y - gs.y))
 
     gs.explosion_group.draw(gs.WIN)
 

@@ -61,9 +61,9 @@ class Ship(pygame.Rect):
         self.cloaked = False
         self.hidden = False
         self.color = color
-        self.Image = pygame.image.load(os.path.join('Assets', f'{ship_type}_{color}.png'))  # image with no flame
+        # self.Image = pygame.image.load(os.path.join('Assets', f'{ship_type}_{color}.png'))  # image with no flame
         # self.Imagef = pygame.image.load(os.path.join('Assets', f'{ship_type}_{color}_f.png'))  # image with flame
-        self.image = self.Image
+        self.image = pygame.Surface((self.width, self.height))
         # self.imagef = self.Imagef
 
         self.refresh(gs)
@@ -342,11 +342,11 @@ class Ship(pygame.Rect):
         self.width = self.ship_type.width
         self.energy = self.ship_type.energy
         self.health = self.ship_type.health
-        self.Image = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}_{self.color}.png'))
+        self.image = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L1.png'))
         # self.Imagef = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}_{self.color}_f.png'))
 
-        self.image = self.Image.copy()
         # self.imagef = self.Imagef.copy()
+
 
         for i in range(len(self.bullet_types)):
             x = self.width // 2 + self.ship_type.bullet_pos[i][0] - self.bullet_types[i].l_image.get_width() // 2
@@ -354,13 +354,17 @@ class Ship(pygame.Rect):
             self.image.blit(self.bullet_types[i].l_image, (x, y))
             # self.imagef.blit(self.bullet_types[i].l_image, (x, y))
 
+        L1 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L1.png'))
+        self.image.blit(L1, (0, 0))
+
         for i in range(len(self.missile_types)):
             x = self.width // 2 + self.ship_type.missile_pos[i][0]-self.missile_types[i].image.get_width() // 2
             y = self.height // 2 + self.ship_type.missile_pos[i][1]-self.missile_types[i].image.get_height() // 2
             self.image.blit(self.missile_types[i].image, (x, y))
             # self.imagef.blit(self.missile_types[i].image, (x, y))
 
-        self.image.blit(self.Image, (0, 0))
+        L2 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L2.png'))
+        self.image.blit(L2, (0, 0))
         # self.imagef.blit(self.Imagef, (0, 0))
 
         self.image.convert_alpha()

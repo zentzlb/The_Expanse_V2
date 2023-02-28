@@ -108,7 +108,7 @@ def NPControl(ship, gs, faction):
         commands[2] = round(math.sin(time.time()))
 
         """SHOOT"""
-        if abs(angle2 * 180 / math.pi) < 1.5 * ship.av and ship.energy >= 30 and ship.bullet_types[bs].range * ship.bullet_types[bs].range > dx * dx + dy * dy:  # SHOOT BULLET
+        if abs(angle2 * 180 / math.pi) < 1.5 * ship.av and (ship.energy >= 50 or ship.target.heat > 0.8 * ship.target.ship_type.heat_capacity) and ship.bullet_types[bs].range * ship.bullet_types[bs].range > dx * dx + dy * dy:  # SHOOT BULLET
             commands[3] = 1
 
         if len(ship.missile_types) > 0 and ship.energy >= ship.missile_types[ms].energy and ship.missile_types[ms].range > math.sqrt(dx * dx + dy * dy):
@@ -506,15 +506,13 @@ def find_bullet(ship):
 
         pos = ship.Qt.dot(ship.ship_type.bullet_pos[bs]) - np.array([ship.bullet_types[bs].width // 2, ship.bullet_types[bs].height // 2])
 
-        if ship.bullet_types[ship.bullet_sel].velocity != math.inf:
+        if ship.bullet_types[bs].velocity != math.inf:
 
             vx = ship.target.vx
             vy = ship.target.vy
             xo = ship.target.centerx - pos[0]
             yo = ship.target.centery - pos[1]
             bullet_velocity = ship.bullet_types[bs].velocity
-
-
 
             a = vx * vx + vy * vy - bullet_velocity * bullet_velocity
             b = 2 * (vx * (xo - ship.centerx) + vy * (yo - ship.centery))

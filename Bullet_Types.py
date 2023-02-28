@@ -3,7 +3,7 @@ import os
 import numpy as np
 import random as rnd
 import math
-from Explosions import Particle, PAExplosion
+from Explosions import Particle, PAExplosion, glow_circle, trans_circle
 from Weapon_Class import Bullet, Beam
 from pygame.locals import *
 
@@ -41,7 +41,6 @@ def init_beam(ship, gs, faction):
     gs.lines.append(beam)
 
 
-
 def draw_bullet(bullet, gs):
     gs.WIN.blit(bullet.image, (bullet.x - gs.x, bullet.y - gs.y))
 
@@ -66,19 +65,22 @@ def draw_beam(beam, gs):
     p1 = beam.p1 - shift
     p2 = beam.p2 - shift
     pygame.draw.line(gs.WIN, beam.color, p1, p2, width=1)
+    glow_circle(gs.WIN, p2[0], p2[1], rnd.randint(5, 10), (150, 50, 0, 50))
+    glow_circle(gs.WIN, p1[0], p1[1], rnd.randint(3, 5), (150, 50, 0, 50))
 
 
 def cannon(self, gs, dmglist):
     for i in dmglist:
-        # try:
-        #     bonus = gs.targets[self.faction][i].sop // 5
-        # except:
-        #     bonus = 0
-
         self.targets[i].health -= self.damage  # + bonus
         self.targets[i].heat += self.damage
     self.timer = 0
-    # gs.bullets[self.faction].remove(self)
+
+
+def heat_cannon(self, gs, dmglist):
+    for i in dmglist:
+        self.targets[i].health -= self.damage  # + bonus
+        self.targets[i].heat += 2 * self.damage
+    self.timer = 0
 
 
 def flame(self, gs, dmglist):
@@ -101,7 +103,7 @@ def plasma(self, gs, dmglist):
 
 def heat_laser(self, gs, ship):
     ship.heat += 1
-    gs.particle_list2.append(Particle(self.p2[0], self.p2[1], 3, rnd.randint(0, 360), 5, self.color, shrink=0.5))
+    gs.particle_list2.append(Particle(self.p2[0], self.p2[1], 5, rnd.randint(0, 360), 3, self.color, shrink=0.5))
 
 
 def rail(self, gs, dmglist):
@@ -121,7 +123,7 @@ pygame.draw.circle(flame_image, (255, 0, 0, 150), (3, 3), 1)
 
 AutoCannon = {'velocity': 17,
               'damage': 4,
-              'energy': 14,
+              'energy': 13,
               'range': 3000,
               'delay': 12,
               'targets_missiles': True,
@@ -150,6 +152,23 @@ AutoCannon2 = {'velocity': 15,
                'l_image': pygame.image.load(os.path.join('Assets', 'AutoCannonAP_Launcher.png')),
                'sound': pygame.mixer.Sound(os.path.join('Assets', 'AutoCannon_launch.mp3')),
                'function': cannon,
+               'init': init_bullet,
+               'draw': draw_bullet}
+
+AutoCannon3 = {'velocity': 15,
+               'damage': 4,
+               'energy': 15,
+               'range': 2500,
+               'delay': 12,
+               'targets_missiles': True,
+               'height': 10,
+               'width': 10,
+               'cost': {},
+               'name': "IN AutoCannon",
+               'image': pygame.image.load(os.path.join('Assets', 'bulletIN.png')),
+               'l_image': pygame.image.load(os.path.join('Assets', 'AutoCannonIN_Launcher.png')),
+               'sound': pygame.mixer.Sound(os.path.join('Assets', 'AutoCannon_launch.mp3')),
+               'function': heat_cannon,
                'init': init_bullet,
                'draw': draw_bullet}
 
@@ -206,7 +225,7 @@ FlameThrower = {'velocity': 10,
 
 BeamLaser = {'velocity': math.inf,
               'damage': 0,
-              'energy': 2,
+              'energy': 1,
               'range': 900,
               'delay': 1,
               'targets_missiles': False,
@@ -221,4 +240,4 @@ BeamLaser = {'velocity': math.inf,
               'init': init_beam,
               'draw': draw_beam}
 
-BulletNames = [AutoCannon, AutoCannon2, Plasma, Railgun, FlameThrower, BeamLaser]
+BulletNames = [AutoCannon, AutoCannon2, AutoCannon3, Plasma, Railgun, FlameThrower, BeamLaser]

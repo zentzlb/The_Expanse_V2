@@ -42,6 +42,37 @@ def emp_explosion(self, gs, dmgList):
     ExplosionDamage(self.exp_damage, self.centerx, self.centery, self.er, self.targets, gs)
 
 
+def HeatOrb(self, gs, dmgList):
+    for i in dmgList:
+        self.targets[i].health -= self.damage
+        self.targets[i].heat += 2 * self.damage
+
+
+def photon_explosion(self, gs, dmgList):
+    for i in dmgList:
+        self.targets[i].health -= self.damage
+        self.targets[i].heat += self.damage
+    for i in range(100):
+        gs.particle_list2.append(Particle(self.centerx, self.centery, -rnd.randint(1, self.er // 20),
+                                          rnd.randint(0, 360), 10,
+                                          (200, 200, 255), shrink=0.5))
+    ExplosionDamage(self.exp_damage, self.centerx, self.centery, self.er, self.targets, gs)
+
+
+def draw_missile(missile, gs):
+    image = pygame.transform.rotate(missile.image, missile.angle)
+    gs.WIN.blit(image, (missile.x - gs.x, missile.y - gs.y))
+
+
+def draw_circ(missile, gs):
+    gs.WIN.blit(missile.image, (missile.x - gs.x, missile.y - gs.y))
+
+
+def draw_orb(missile, gs):
+    image = pygame.transform.rotate(missile.image, rnd.randint(0, 360))
+    gs.WIN.blit(image, (missile.x - gs.x, missile.y - gs.y))
+
+
 Seeker = {'velocity': 10.5,
           'av': 0.75,
           'damage': 10,
@@ -61,7 +92,8 @@ Seeker = {'velocity': 10.5,
           'name': "Seeker",
           'image': pygame.image.load(os.path.join('Assets', 'smallmissile1.png')),
           'sound': pygame.mixer.Sound('Assets//missile_launch.mp3'),
-          'explosion': explosion}
+          'explosion': explosion,
+          'draw': draw_missile}
 
 EMPMissile = {'velocity': 8.5,
               'av': 0.5,
@@ -82,7 +114,8 @@ EMPMissile = {'velocity': 8.5,
               'name': "EMP Missile",
               'image': pygame.image.load(os.path.join('Assets', 'torpedo.png')),
               'sound': pygame.mixer.Sound('Assets//missile_launch.mp3'),
-              'explosion': emp_explosion}
+              'explosion': emp_explosion,
+              'draw': draw_missile}
 
 SwarmMissile = {'velocity': 9,
                 'av': 2.5,
@@ -103,7 +136,8 @@ SwarmMissile = {'velocity': 9,
                 'name': "Swarm Missile",
                 'image': pygame.image.load(os.path.join('Assets', 'swarm_missile.png')),
                 'sound': pygame.mixer.Sound('Assets//missile_launch.mp3'),
-                'explosion': explosion}
+                'explosion': explosion,
+                'draw': draw_missile}
 
 SmartMissile = {'velocity': 11,
                 'av': 0.5,
@@ -124,6 +158,51 @@ SmartMissile = {'velocity': 11,
                 'name': "Smart Missile",
                 'image': pygame.image.load(os.path.join('Assets', 'smartmissile.png')),
                 'sound': pygame.mixer.Sound('Assets//missile_launch.mp3'),
-                'explosion': explosion}
+                'explosion': explosion,
+                'draw': draw_missile}
 
-MissileNames = [Seeker, EMPMissile, SwarmMissile, SmartMissile]
+IonOrb = {'velocity': 9,
+          'av': 2,
+          'damage': 20,
+          'exp_damage': 0,
+          'exp_radius': 0,
+          'energy': 180,
+          'range': 4000,
+          'health': 3,
+          'delay': 180,
+          'height': 10,
+          'width': 10,
+          'drunk': False,
+          'smart': False,
+          'par_num': 0,
+          'par_rnd': 0,
+          'cost': {},
+          'name': "Ion Orb",
+          'image': pygame.image.load(os.path.join('Assets', 'Ion_Orb.png')),
+          'sound': pygame.mixer.Sound('Assets//missile_launch.mp3'),
+          'explosion': HeatOrb,
+          'draw': draw_orb}
+
+PhotonTorpedo = {'velocity': 8,
+                 'av': 2.5,
+                 'damage': 20,
+                 'exp_damage': 10,
+                 'exp_radius': 50,
+                 'energy': 200,
+                 'range': 4000,
+                 'health': 3,
+                 'delay': 180,
+                 'height': 10,
+                 'width': 10,
+                 'drunk': False,
+                 'smart': False,
+                 'par_num': 0,
+                 'par_rnd': 0,
+                 'cost': {},
+                 'name': "Photon Torpedo",
+                 'image': pygame.image.load(os.path.join('Assets', 'photon_torpedo.png')),
+                 'sound': pygame.mixer.Sound('Assets//missile_launch.mp3'),
+                 'explosion': photon_explosion,
+                 'draw': draw_circ}
+
+MissileNames = [Seeker, EMPMissile, SwarmMissile, SmartMissile, IonOrb, PhotonTorpedo]

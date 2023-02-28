@@ -88,6 +88,19 @@ def use_overload_reactor(ship, gs, faction):
         return 0
 
 
+def heat_sink(ship, gs, faction):
+    if ship.heat < ship.ship_type.heat_capacity and ship.energy >= 1:
+        ship.heat -= 0.2
+        ship.energy -= 1
+
+
+def use_heat_sink(ship, gs, faction):
+    if ship.heat > ship.ship_type.heat_cap * 0.8 or (ship.energy < ship.ship_type.energy * 0.9 and ship.heat > 0):
+        return 1
+    else:
+        return 0
+
+
 class Spark(pygame.Rect):
     def __init__(self, x, y, angle):
         super().__init__(x, y, 10, 10)
@@ -165,4 +178,12 @@ Chaff = {'function': chaff,
          'cost': {},
          'name': "Chaff"}
 
-UtilityNames = [AutoLoader, JumpDrive, Cloak, Reactor]
+HeatSink = {'function': heat_sink,
+         'logic': use_heat_sink,
+         'energy': '1',
+         'delay': 1,
+         'description': 'This ship is fast',
+         'cost': {},
+         'name': "Heat Sink"}
+
+UtilityNames = [AutoLoader, JumpDrive, Cloak, Reactor, HeatSink]

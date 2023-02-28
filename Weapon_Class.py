@@ -105,15 +105,7 @@ class Beam:
                     r2 = dx * dx + dy * dy
                     if r2 < R2:
                         dr = np.array([dx, dy])
-                        # try:
                         angle = math.acos(min((np.dot(dp2, dr) / math.sqrt(r2 * R2), 1)))
-                        # except:
-                        #     print(dp2)
-                        #     print(dr)
-                        #     print(r2)
-                        #     print(R2)
-                        #     print()
-                        #     angle = 0
                         r = math.sqrt(r2)
                         if r * math.sin(angle) < ship.height / root2:
                             target = ship
@@ -172,6 +164,10 @@ class Missile(pygame.Rect):
                     r2 = dx * dx + dy * dy
                     if r2 < R2:
                         self.targets.append(ship)
+
+    def draw(self, gs):
+        self.missile_type.draw(self, gs)
+
 
     def scoot(self, gs):
 

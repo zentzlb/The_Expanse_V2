@@ -1,6 +1,6 @@
 x) make pdc turrets target missiles
 o) allow coordination between NPCs
-o) allow NPCs to switch weapons, use utility slot
+x) allow NPCs to switch weapons, use utility slot
 x) make custom draw function for bullets
 o) make bullets inertial
 o) fix issues related to docking

@@ -80,17 +80,17 @@ def main():
     """SPAWN IN SPECIFIED SHIPS"""
     if PCS == 'y':
 
-        yellow = Ship(PlayerControl2, TurretControl, 90000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Heavy Fighter', MyGS, is_player=True)
+        yellow = Ship(PlayerControl2, TurretControl, 90000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Fighter', MyGS, is_player=True)
 
         # yellow.add_bullet(MyGS, 'Beam Laser')
         # yellow.add_bullet(MyGS, 'Flame Thrower')
-        yellow.add_bullet(MyGS, 'AP AutoCannon')
+        yellow.add_bullet(MyGS, 'IN AutoCannon')
         yellow.add_bullet(MyGS, 'Plasma')
-        yellow.add_missile(MyGS, 'Swarm Missile')
+        yellow.add_missile(MyGS, 'Photon Torpedo')
         yellow.add_missile(MyGS, 'EMP Missile')
         yellow.add_missile(MyGS, 'Smart Missile')
         yellow.add_util(MyGS, 'Reactor')
-        # yellow.add_util(MyGS, 'Jump Drive')
+        yellow.add_util(MyGS, 'Heat Sink')
         # yellow.add_mine(MyGS, 'Black Hole')
         yellow.add_mine(MyGS, 'Proximity Mine')
         MyGS.ships[0].append(yellow)
