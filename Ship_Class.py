@@ -7,7 +7,7 @@ import os
 from Weapon_Class import Bullet, Missile, Mine
 from Misc import StationTypes, assign_ore, CargoClass, RequestUndock
 from Menus import StationMenu, AsteroidMenu
-from Explosions import Particle
+from Explosions import Particle, glow_circle, trans_circle
 
 
 class Ship(pygame.Rect):
@@ -64,9 +64,13 @@ class Ship(pygame.Rect):
         # self.Image = pygame.image.load(os.path.join('Assets', f'{ship_type}_{color}.png'))  # image with no flame
         # self.Imagef = pygame.image.load(os.path.join('Assets', f'{ship_type}_{color}_f.png'))  # image with flame
         self.image = pygame.Surface((self.width, self.height))
+        self.image_cloacked = self.image
         # self.imagef = self.Imagef
 
         self.refresh(gs)
+
+    def draw(self, gs):
+        pass
 
     def add_bullet(self, gs, key):
         if len(self.bullet_types) < self.ship_type.primary:
@@ -99,6 +103,57 @@ class Ship(pygame.Rect):
                 self.hidden = True
             else:
                 self.hidden = False
+
+    def refresh(self, gs):
+        self.height = self.ship_type.height
+        self.width = self.ship_type.width
+        self.energy = self.ship_type.energy
+        self.health = self.ship_type.health
+        # self.image = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L1.png'))
+        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        # for r in range(self.width//2):
+        #     trans_circle(self.image, self.width//2, self.height//2, r, (100, 200, 255, 10))
+        self.image_cloacked = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        # self.Imagef = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}_{self.color}_f.png'))
+
+        # self.imagef = self.Imagef.copy()
+
+        for i in range(len(self.bullet_types)):
+            x = self.width // 2 + self.ship_type.bullet_pos[i][0] - self.bullet_types[i].l_image.get_width() // 2
+            y = self.height // 2 + self.ship_type.bullet_pos[i][1] - self.bullet_types[i].l_image.get_height() // 2
+            self.image.blit(self.bullet_types[i].l_image, (x, y))
+
+        L1 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L1.png'))
+        self.image.blit(L1, (0, 0))
+
+        for i in range(len(self.missile_types)):
+            x = self.width // 2 + self.ship_type.missile_pos[i][0]-self.missile_types[i].image.get_width() // 2
+            y = self.height // 2 + self.ship_type.missile_pos[i][1]-self.missile_types[i].image.get_height() // 2
+            self.image.blit(self.missile_types[i].image, (x, y))
+
+        L2 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L2.png'))
+        self.image.blit(L2, (0, 0))
+        # pygame.draw.circle(self.image, (10, 10, 10, 1), (self.width//2, self.height//2), 10)
+
+        # for w in range(self.width):
+        #     for h in range(self.height):
+        #         color = self.image.get_at((w, h))
+        #         if color[3] > 150:
+        #             print('found')
+        #             self.image.set_at((w, h), (0, 0, 0, 0))
+
+        self.image.convert_alpha()
+
+
+        Turrets = []
+        # for turret in self.ship_type.turrets:
+        #     Turrets.append(Turret(self.x, self.y, self. self.angle, turret, self.turret_control_module, is_player=False))
+        # self.turrets = Turrets
+
+        for i in range(len(self.ship_type.turrets)):
+            Turrets.append(Turret(self.x, self.y, self.ship_type.turret_pos[i], self.angle, self.ship_type.turrets[i], self.turret_control_module, gs, self))
+
+        self.turrets = Turrets
 
     def scoot(self, gs, faction):
 
@@ -337,50 +392,50 @@ class Ship(pygame.Rect):
             gs.cx = self.centerx
             gs.cy = self.centery
 
-    def refresh(self, gs):
-        self.height = self.ship_type.height
-        self.width = self.ship_type.width
-        self.energy = self.ship_type.energy
-        self.health = self.ship_type.health
-        self.image = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L1.png'))
-        # self.Imagef = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}_{self.color}_f.png'))
-
-        # self.imagef = self.Imagef.copy()
-
-
-        for i in range(len(self.bullet_types)):
-            x = self.width // 2 + self.ship_type.bullet_pos[i][0] - self.bullet_types[i].l_image.get_width() // 2
-            y = self.height // 2 + self.ship_type.bullet_pos[i][1] - self.bullet_types[i].l_image.get_height() // 2
-            self.image.blit(self.bullet_types[i].l_image, (x, y))
-            # self.imagef.blit(self.bullet_types[i].l_image, (x, y))
-
-        L1 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L1.png'))
-        self.image.blit(L1, (0, 0))
-
-        for i in range(len(self.missile_types)):
-            x = self.width // 2 + self.ship_type.missile_pos[i][0]-self.missile_types[i].image.get_width() // 2
-            y = self.height // 2 + self.ship_type.missile_pos[i][1]-self.missile_types[i].image.get_height() // 2
-            self.image.blit(self.missile_types[i].image, (x, y))
-            # self.imagef.blit(self.missile_types[i].image, (x, y))
-
-        L2 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L2.png'))
-        self.image.blit(L2, (0, 0))
-        # self.imagef.blit(self.Imagef, (0, 0))
-
-        self.image.convert_alpha()
-        # self.imagef.convert_alpha()
-        # self.image.set_alpha(100)
-
-
-        Turrets = []
-        # for turret in self.ship_type.turrets:
-        #     Turrets.append(Turret(self.x, self.y, self. self.angle, turret, self.turret_control_module, is_player=False))
-        # self.turrets = Turrets
-
-        for i in range(len(self.ship_type.turrets)):
-            Turrets.append(Turret(self.x, self.y, self.ship_type.turret_pos[i], self.angle, self.ship_type.turrets[i], self.turret_control_module, gs, self))
-
-        self.turrets = Turrets
+    # def refresh(self, gs):
+    #     self.height = self.ship_type.height
+    #     self.width = self.ship_type.width
+    #     self.energy = self.ship_type.energy
+    #     self.health = self.ship_type.health
+    #     self.image = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L1.png'))
+    #     # self.Imagef = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}_{self.color}_f.png'))
+    #
+    #     # self.imagef = self.Imagef.copy()
+    #
+    #
+    #     for i in range(len(self.bullet_types)):
+    #         x = self.width // 2 + self.ship_type.bullet_pos[i][0] - self.bullet_types[i].l_image.get_width() // 2
+    #         y = self.height // 2 + self.ship_type.bullet_pos[i][1] - self.bullet_types[i].l_image.get_height() // 2
+    #         self.image.blit(self.bullet_types[i].l_image, (x, y))
+    #         # self.imagef.blit(self.bullet_types[i].l_image, (x, y))
+    #
+    #     L1 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L1.png'))
+    #     self.image.blit(L1, (0, 0))
+    #
+    #     for i in range(len(self.missile_types)):
+    #         x = self.width // 2 + self.ship_type.missile_pos[i][0]-self.missile_types[i].image.get_width() // 2
+    #         y = self.height // 2 + self.ship_type.missile_pos[i][1]-self.missile_types[i].image.get_height() // 2
+    #         self.image.blit(self.missile_types[i].image, (x, y))
+    #         # self.imagef.blit(self.missile_types[i].image, (x, y))
+    #
+    #     L2 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L2.png'))
+    #     self.image.blit(L2, (0, 0))
+    #     # self.imagef.blit(self.Imagef, (0, 0))
+    #
+    #     self.image.convert_alpha()
+    #     # self.imagef.convert_alpha()
+    #     # self.image.set_alpha(100)
+    #
+    #
+    #     Turrets = []
+    #     # for turret in self.ship_type.turrets:
+    #     #     Turrets.append(Turret(self.x, self.y, self. self.angle, turret, self.turret_control_module, is_player=False))
+    #     # self.turrets = Turrets
+    #
+    #     for i in range(len(self.ship_type.turrets)):
+    #         Turrets.append(Turret(self.x, self.y, self.ship_type.turret_pos[i], self.angle, self.ship_type.turrets[i], self.turret_control_module, gs, self))
+    #
+    #     self.turrets = Turrets
 
     # def Hide(self):  # method to turn ship invisible
     #     self.is_visible = False

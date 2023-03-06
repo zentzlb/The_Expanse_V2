@@ -249,6 +249,7 @@ class Missile(pygame.Rect):
             # gs.missiles[self.faction].remove(self)
         self.timer -= 1
 
+
 class Mine(pygame.Rect):
     def __init__(self, x, y, angle, height, width, mine_type, target, faction):
         if mine_type.sound is not None:

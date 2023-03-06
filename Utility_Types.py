@@ -68,7 +68,8 @@ def null(ship, gs, faction):
 
 def cloak(ship, gs, faction):
     if ship.cloaked:
-        pass
+        ship.cloaked = False
+        ship.image.set_alpha(255)
     elif ship.energy > 100:
         ship.cloaked = True
         ship.image.set_alpha(100)
@@ -157,7 +158,7 @@ JumpDrive = {'function': jump_drive,
 Cloak = {'function': cloak,
          'logic': null,
          'energy': '0.5',
-         'delay': 1,
+         'delay': 60,
          'description': 'This ship is fast',
          'cost': {},
          'name': "Cloak"}

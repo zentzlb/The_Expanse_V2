@@ -65,7 +65,7 @@ class GlobalState:
         self.DebrisTypes = make_dict(Debris)
         self.explosion_group = pygame.sprite.Group()  # initialize explosion group
         self.SPACE = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space2.png')),
-                                       (width, height)).convert_alpha()  # background image
+                                       (width, height)).convert()  # background image
         self.dust = []
         self.dust_images = [pygame.image.load(os.path.join('Assets', 'dust4.png')).convert_alpha(), pygame.image.load(os.path.join('Assets', 'dust5.png')).convert_alpha(), pygame.image.load(os.path.join('Assets', 'dust6.png')).convert_alpha()]
         for i in range(250):
@@ -270,25 +270,28 @@ def FindMineable(ship, target_list):
 
 
 def TargetingComputer(ship):
-    pos = ship.Q.transpose().dot(ship.ship_type.bullet_pos[ship.bullet_sel]) - np.array(
+    pos = ship.Qt.dot(ship.ship_type.bullet_pos[ship.bullet_sel]) - np.array(
         [ship.bullet_types[ship.bullet_sel].width // 2, ship.bullet_types[ship.bullet_sel].height // 2])
 
     if ship.bullet_types[ship.bullet_sel].velocity != math.inf:
         vx = ship.target.vx
         vy = ship.target.vy
-        xo = ship.target.centerx - pos[0]
-        yo = ship.target.centery - pos[1]
+        xo = ship.target.centerx
+        yo = ship.target.centery
+        X = ship.centerx + pos[0]
+        Y = ship.centery + pos[1]
+        bullet_velocity = ship.bullet_types[ship.bullet_sel].velocity
 
-        a = vx ** 2 + vy ** 2 - ship.bullet_types[ship.bullet_sel].velocity ** 2
-        b = 2 * (vx * (xo - ship.centerx) + vy * (yo - ship.centery))
-        c = (xo - ship.centerx) ** 2 + (yo - ship.centery) ** 2
+        a = vx * vx + vy * vy - bullet_velocity * bullet_velocity
+        b = 2 * (vx * (xo - X) + vy * (yo - Y))
+        c = (xo - X) ** 2 + (yo - Y) ** 2
 
         t = (-b - math.sqrt(b ** 2 - 4 * a * c)) / (2 * a)
         x = xo + vx * t
         y = yo + vy * t
 
-        dx = x - ship.centerx
-        dy = y - ship.centery
+        dx = x - X
+        dy = y - Y
     else:
         dx = ship.target.centerx - pos[0] - ship.centerx
         dy = ship.target.centery - pos[1] - ship.centery

@@ -2,7 +2,7 @@ import os
 import pygame
 import random as rnd
 import math
-from Explosions import Particle, ExplosionDamage
+from Explosions import Particle, ExplosionDamage, trans_circle, glow_circle, PhotonExplosion, PAExplosion, OrbExplosion
 
 pygame.mixer.init()
 
@@ -46,16 +46,16 @@ def HeatOrb(self, gs, dmgList):
     for i in dmgList:
         self.targets[i].health -= self.damage
         self.targets[i].heat += 2 * self.damage
+    explosion = OrbExplosion(self.centerx, self.centery, gs)
+    gs.particle_list2.append(explosion)
 
 
 def photon_explosion(self, gs, dmgList):
     for i in dmgList:
         self.targets[i].health -= self.damage
         self.targets[i].heat += self.damage
-    for i in range(100):
-        gs.particle_list2.append(Particle(self.centerx, self.centery, -rnd.randint(1, self.er // 20),
-                                          rnd.randint(0, 360), 10,
-                                          (200, 200, 255), shrink=0.5))
+        explosion = PhotonExplosion(self.centerx, self.centery, gs)
+        gs.particle_list2.append(explosion)
     ExplosionDamage(self.exp_damage, self.centerx, self.centery, self.er, self.targets, gs)
 
 
@@ -65,12 +65,23 @@ def draw_missile(missile, gs):
 
 
 def draw_circ(missile, gs):
-    gs.WIN.blit(missile.image, (missile.x - gs.x, missile.y - gs.y))
+    x1 = missile.x - gs.x
+    y1 = missile.y - gs.y
+    x2 = x1 + missile.width // 2
+    y2 = y1 + missile.height // 2
+    gs.WIN.blit(missile.image, (x1, y1))
+    glow_circle(gs.WIN, x2, y2, 10, (50, 50, 100))
+    glow_circle(gs.WIN, x2, y2, rnd.randint(10, 15), (50, 50, 100))
 
 
 def draw_orb(missile, gs):
+    x1 = missile.x - gs.x
+    y1 = missile.y - gs.y
+    x2 = x1 + missile.width // 2
+    y2 = y1 + missile.height // 2
     image = pygame.transform.rotate(missile.image, rnd.randint(0, 360))
-    gs.WIN.blit(image, (missile.x - gs.x, missile.y - gs.y))
+    gs.WIN.blit(image, (x1, y1))
+    glow_circle(gs.WIN, x2, y2, rnd.randint(6, 10), (100, 80, 10))
 
 
 Seeker = {'velocity': 10.5,

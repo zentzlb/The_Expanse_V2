@@ -3,7 +3,7 @@ import os
 import numpy as np
 import random as rnd
 import math
-from Explosions import Particle, PAExplosion, glow_circle, trans_circle
+from Explosions import Particle, PAExplosion, glow_circle, trans_circle, PlasmaExplosion
 from Weapon_Class import Bullet, Beam
 from pygame.locals import *
 
@@ -12,7 +12,7 @@ pygame.mixer.init()
 
 def init_bullet(ship, gs, faction):
     if ship.is_ship:
-        pos = ship.center + ship.Q.transpose().dot(ship.ship_type.bullet_pos[ship.bullet_sel]) - np.array(
+        pos = ship.center + ship.Qt.dot(ship.ship_type.bullet_pos[ship.bullet_sel]) - np.array(
             [ship.bullet_types[ship.bullet_sel].width // 2, ship.bullet_types[ship.bullet_sel].height // 2])
     else:
         pos = ship.center - np.array([ship.bullet_types[ship.bullet_sel].width // 2, ship.bullet_types[ship.bullet_sel].height // 2])
@@ -23,7 +23,7 @@ def init_bullet(ship, gs, faction):
 
 def init_spray(ship, gs, faction):
     if ship.is_ship:
-        pos = ship.center + ship.Q.transpose().dot(ship.ship_type.bullet_pos[ship.bullet_sel]) - np.array(
+        pos = ship.center + ship.Qt.dot(ship.ship_type.bullet_pos[ship.bullet_sel]) - np.array(
             [ship.bullet_types[ship.bullet_sel].width // 2, ship.bullet_types[ship.bullet_sel].height // 2])
     else:
         pos = ship.center - np.array([ship.bullet_types[ship.bullet_sel].width // 2, ship.bullet_types[ship.bullet_sel].height // 2])
@@ -46,7 +46,7 @@ def draw_bullet(bullet, gs):
 
 
 def draw_flame(bullet, gs):
-    scale = (bullet.range / bullet.velocity - bullet.timer) / 10
+    scale = (bullet.range / bullet.velocity - bullet.timer) / 20
     radius1 = 2 + round(scale/2)
     # radius2 = 1 + bullet.timer // 40
     x = bullet.centerx - gs.x
@@ -85,8 +85,8 @@ def heat_cannon(self, gs, dmglist):
 
 def flame(self, gs, dmglist):
     for i in dmglist:
-        self.targets[i].health -= self.damage  # + bonus
-        self.targets[i].heat += 2 * self.damage
+        # self.targets[i].health -= self.damage  # + bonus
+        self.targets[i].heat += 2
     self.timer = 0
     # gs.bullets[self.faction].remove(self)
 
@@ -95,8 +95,10 @@ def plasma(self, gs, dmglist):
     for i in dmglist:
         self.targets[i].health -= self.damage
         self.targets[i].heat += self.damage
-    explosion = PAExplosion(self.centerx, self.centery, gs)
-    gs.explosion_group.add(explosion)
+    # explosion = PAExplosion(self.centerx, self.centery, gs)
+    # gs.explosion_group.add(explosion)
+    explosion = PlasmaExplosion(self.centerx, self.centery, gs)
+    gs.particle_list2.append(explosion)
     self.timer = 0
     # gs.bullets[self.faction].remove(self)
 
@@ -123,7 +125,7 @@ pygame.draw.circle(flame_image, (255, 0, 0, 150), (3, 3), 1)
 
 AutoCannon = {'velocity': 17,
               'damage': 4,
-              'energy': 13,
+              'energy': 12,
               'range': 3000,
               'delay': 12,
               'targets_missiles': True,
@@ -157,7 +159,7 @@ AutoCannon2 = {'velocity': 15,
 
 AutoCannon3 = {'velocity': 15,
                'damage': 4,
-               'energy': 15,
+               'energy': 11,
                'range': 2500,
                'delay': 12,
                'targets_missiles': True,
@@ -207,7 +209,7 @@ Railgun = {'velocity': 30,
            'draw': draw_bullet}
 
 FlameThrower = {'velocity': 10,
-                'damage': 1,
+                'damage': 0,
                 'energy': 1.5,
                 'range': 600,
                 'delay': 1,

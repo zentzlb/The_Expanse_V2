@@ -1,6 +1,7 @@
 import pygame
 import math
 import random as rnd
+import os
 from pygame.locals import *
 
 """SHIP EXPLOSION"""
@@ -158,7 +159,65 @@ class PAExplosion(pygame.sprite.Sprite):
         if self.index >= len(self.images) - 1 and self.counter >= explosion_speed:
             self.kill()
 
+
+class PhotonExplosion:
+    def __init__(self, x, y, gs):
+        self.x = x
+        self.y = y
+        self.gs = gs
+        self.timer = 60
+        self.radius = 60
+
+    def scoot(self):
+        self.timer -= 1
+        if self.timer < 1:
+            self.radius = 0
+
+    def draw(self, gs):
+        for r in range(self.timer):
+            glow_circle(gs.WIN, self.x - self.gs.x, self.y - self.gs.y, r, (4, 4, 5))
+
+
+class OrbExplosion:
+    def __init__(self, x, y, gs):
+        self.x = x
+        self.y = y
+        self.gs = gs
+        self.timer = 90
+        self.radius = 90
+
+    def scoot(self):
+        self.timer -= 1
+        if self.timer < 1:
+            self.radius = 0
+
+    def draw(self, gs):
+        for r in range(self.timer // 2):
+            glow_circle(gs.WIN, self.x - self.gs.x, self.y - self.gs.y, r, (5, 4, 1))
+
+
+class PlasmaExplosion:
+    def __init__(self, x, y, gs):
+        self.x = x
+        self.y = y
+        self.gs = gs
+        self.timer = 50
+        self.radius = 50
+
+    def scoot(self):
+        self.timer -= 1
+        if self.timer < 1:
+            self.radius = 0
+
+    def draw(self, gs):
+        # save images ahead of time
+        for r in range(self.timer):
+            glow_circle(gs.WIN, self.x - self.gs.x, self.y - self.gs.y, r, (4, 0, 5))
+
+
+
 """EXPLOSION DAMAGE CALCULATION"""
+
 
 def ExplosionDamage(max_damage, xo, yo, exp, target_list, gs):
     for target in target_list:
