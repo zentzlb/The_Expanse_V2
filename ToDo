@@ -1,7 +1,14 @@
 x) make pdc turrets target missiles
-o) allow coordination between NPCs
 x) allow NPCs to switch weapons, use utility slot
 x) make custom draw function for bullets
-o) make bullets inertial
+x) make bullets inertial
+o) allow coordination between NPCs
 o) fix issues related to docking
-o) all bullets, missiles, stations, ships in same lists- not faction separated
+o) housekeeping + all bullets, missiles, stations, ships in same lists- not faction separated
+o) settings menu
+
+o) flashbang grenade
+x) gravity repulsor
+o) jammer
+o) drones
+

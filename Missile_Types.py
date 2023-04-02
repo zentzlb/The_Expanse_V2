@@ -45,8 +45,11 @@ def emp_explosion(self, gs, dmgList):
 def HeatOrb(self, gs, dmgList):
     for i in dmgList:
         self.targets[i].health -= self.damage
-        self.targets[i].heat += 2 * self.damage
-    explosion = OrbExplosion(self.centerx, self.centery, gs)
+        self.targets[i].heat += 4 * self.damage
+    if len(dmgList) > 0:
+        explosion = OrbExplosion(self.centerx, self.centery, gs, self.targets[dmgList[0]])
+    else:
+        explosion = OrbExplosion(self.centerx, self.centery, gs)
     gs.particle_list2.append(explosion)
 
 
@@ -54,8 +57,14 @@ def photon_explosion(self, gs, dmgList):
     for i in dmgList:
         self.targets[i].health -= self.damage
         self.targets[i].heat += self.damage
-        explosion = PhotonExplosion(self.centerx, self.centery, gs)
-        gs.particle_list2.append(explosion)
+        dx = self.targets[i].centerx - self.centerx
+        dy = self.targets[i].centery - self.centery
+        r = math.sqrt(dx * dx + dy * dy)
+        self.targets[i].vx += (dx * 50) / (r + 1)
+        self.targets[i].vy += (dy * 50) / (r + 1)
+        self.targets[i].angle += self.targets[i].av * rnd.randint(-30, 30)
+    explosion = PhotonExplosion(self.centerx, self.centery, gs)
+    gs.particle_list2.append(explosion)
     ExplosionDamage(self.exp_damage, self.centerx, self.centery, self.er, self.targets, gs)
 
 
@@ -84,15 +93,15 @@ def draw_orb(missile, gs):
     glow_circle(gs.WIN, x2, y2, rnd.randint(6, 10), (100, 80, 10))
 
 
-Seeker = {'velocity': 10.5,
-          'av': 0.75,
+Seeker = {'velocity': 5.25,  # adj
+          'av': 0.4,  # adj
           'damage': 10,
           'exp_damage': 20,
           'exp_radius': 100,
           'energy': 200,
           'range': 8000,
           'health': 3,
-          'delay': 180,
+          'delay': 400,  # adj
           'height': 12,
           'width': 12,
           'drunk': False,
@@ -106,15 +115,15 @@ Seeker = {'velocity': 10.5,
           'explosion': explosion,
           'draw': draw_missile}
 
-EMPMissile = {'velocity': 8.5,
-              'av': 0.5,
+EMPMissile = {'velocity': 4.25,  # adj
+              'av': 0.25,  # adj
               'damage': 10,
               'exp_damage': 85,
               'exp_radius': 200,
               'energy': 250,
-              'range': 3500,
-              'health': 8,
-              'delay': 250,
+              'range': 3000,
+              'health': 10,
+              'delay': 500,  # adj
               'height': 15,
               'width': 15,
               'drunk': False,
@@ -128,15 +137,15 @@ EMPMissile = {'velocity': 8.5,
               'explosion': emp_explosion,
               'draw': draw_missile}
 
-SwarmMissile = {'velocity': 9,
-                'av': 2.5,
+SwarmMissile = {'velocity': 4.5,  # adj
+                'av': 1.25,  # adj
                 'damage': 15,
                 'exp_damage': 10,
                 'exp_radius': 50,
                 'energy': 180,
                 'range': 4500,
                 'health': 4,
-                'delay': 90,
+                'delay': 180,  # adj
                 'height': 10,
                 'width': 10,
                 'drunk': True,
@@ -150,15 +159,15 @@ SwarmMissile = {'velocity': 9,
                 'explosion': explosion,
                 'draw': draw_missile}
 
-SmartMissile = {'velocity': 11,
-                'av': 0.5,
+SmartMissile = {'velocity': 5.5,
+                'av': 0.3,  # adj
                 'damage': 10,
                 'exp_damage': 15,
                 'exp_radius': 80,
                 'energy': 220,
                 'range': 15000,
                 'health': 3,
-                'delay': 240,
+                'delay': 480,  # adj
                 'height': 12,
                 'width': 12,
                 'drunk': False,
@@ -172,15 +181,15 @@ SmartMissile = {'velocity': 11,
                 'explosion': explosion,
                 'draw': draw_missile}
 
-IonOrb = {'velocity': 9,
-          'av': 2,
+IonOrb = {'velocity': 4.5,  # adj
+          'av': 1,  # adj
           'damage': 20,
           'exp_damage': 0,
           'exp_radius': 0,
           'energy': 180,
           'range': 4000,
           'health': 3,
-          'delay': 180,
+          'delay': 360,  # adj
           'height': 10,
           'width': 10,
           'drunk': False,
@@ -194,15 +203,15 @@ IonOrb = {'velocity': 9,
           'explosion': HeatOrb,
           'draw': draw_orb}
 
-PhotonTorpedo = {'velocity': 8,
-                 'av': 2.5,
+PhotonTorpedo = {'velocity': 4,  # adj
+                 'av': 1.2,  # adj
                  'damage': 20,
-                 'exp_damage': 10,
+                 'exp_damage': 5,
                  'exp_radius': 50,
-                 'energy': 200,
-                 'range': 4000,
+                 'energy': 180,
+                 'range': 3250,
                  'health': 3,
-                 'delay': 180,
+                 'delay': 360,  # adj
                  'height': 10,
                  'width': 10,
                  'drunk': False,

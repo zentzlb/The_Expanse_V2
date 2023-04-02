@@ -12,6 +12,17 @@ from Missile_Types import MissileNames
 from Mine_Types import MineNames
 from Utility_Types import UtilityNames
 from Debris_Types import Debris
+from Factions import FactionList
+from Explosions import trans_circle, glow_circle, glow_ring
+
+
+class BackgroundParticle:
+    def __init__(self, x, y, image):
+        self.x = x
+        self.y = y
+        self.image = image
+        self.height = image.get_height()
+        self.width = image.get_width()
 
 
 class GlobalState:
@@ -42,10 +53,15 @@ class GlobalState:
         self.mining = pygame.mixer.Channel(2)
         self.radio = {}
         self.WIN = pygame.display.set_mode((width, height), pygame.SCALED | pygame.FULLSCREEN)  # create window
+        self.images = {}
+        self.misc_info = {'command prompt': False, 'command text': '', 'command history': []}
         # self.WIN.set_alpha(255)
         # self.WIN2 = pygame.Surface((width, height), pygame.SRCALPHA)  # create transparent surface
         # self.HUD = pygame.Surface((width, height), pygame.SRCALPHA)  # create HUD surface
+        self.Factions = make_dict(FactionList)
+        self.faction_names = list(self.Factions.keys())
         self.ShipTypes = make_dict(ShipNames)
+        self.ship_names = list(self.ShipTypes.keys())
         for Type in list(self.ShipTypes):
             self.ShipTypes[Type].cost = assign_ship_cost(self.ShipTypes[Type])
         self.StationTypes = make_dict(StationNames)
@@ -67,14 +83,23 @@ class GlobalState:
         self.SPACE = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space2.png')),
                                        (width, height)).convert()  # background image
         self.dust = []
+        self.field = []
         self.dust_images = [pygame.image.load(os.path.join('Assets', 'dust4.png')).convert_alpha(), pygame.image.load(os.path.join('Assets', 'dust5.png')).convert_alpha(), pygame.image.load(os.path.join('Assets', 'dust6.png')).convert_alpha()]
-        for i in range(250):
-            self.dust.append((rnd.randint(0, 6000), rnd.randint(0, 6000), rnd.randint(0, 2)))
+        # self.field_images = [pygame.image.load(os.path.join('Assets', 'asteroid80nl.png')).convert_alpha()]
+
         # self.DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')),
         #                               (6000, 6000)).convert_alpha()  # foreground image
         self.FIELD = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'middle_ground.png')),
                                        (6000, 6000)).convert_alpha()  # middle ground image
+        self.make_faction_ships()
         self.update()
+        self.load_images('Assets')
+        for i in range(250):
+            self.dust.append((rnd.randint(0, 6000), rnd.randint(0, 6000), rnd.randint(0, len(self.dust_images)-1)))
+        for i in range(50):
+            self.field.append(BackgroundParticle(rnd.randint(0, 24000), rnd.randint(0, 24000), self.images['Asteroids'][rnd.randint(0, len(self.images['Asteroids'])-1)]))
+
+    # def add_faction(self, ):
 
     def update(self):
         self.targets = []
@@ -87,6 +112,48 @@ class GlobalState:
     def play_mining(self, volume=1):
         if not self.mining.get_busy():
             self.mining.play(self.mining_sound)
+
+    def load_images(self, rootdir):
+        # rootdir = 'Assets'
+        Dirs = []
+        for subdir, dirs, files in os.walk(rootdir):
+            if len(dirs) != 0:
+                Dirs.extend(dirs)
+        for Dir in Dirs:
+            directory = os.path.join(rootdir, Dir)
+            image_list = []
+            for file in os.listdir(directory):
+                path = os.path.join(directory, file)
+                image = pygame.image.load(path)
+                image.convert_alpha()
+                image_list.append(image)
+            self.images[Dir] = image_list
+            # return image_list
+
+    def make_faction_ships(self):
+        print('generating ship images...')
+        for name in self.faction_names:
+            faction = self.Factions[name]
+            for ship in self.ship_names:
+                L1 = pygame.image.load(os.path.join('Assets', f'{ship}', 'L1.png'))
+                L2 = pygame.image.load(os.path.join('Assets', f'{ship}', 'L2.png'))
+                for w in range(L1.get_width()):
+                    for h in range(L1.get_height()):
+                        color1 = L1.get_at((w, h))
+                        color2 = L2.get_at((w, h))
+                        if color1 == (18, 52, 86, 255):
+                            L1.set_at((w, h), faction.color)
+                        if color2 == (18, 52, 86, 255):
+                            L2.set_at((w, h), faction.color)
+
+                for emblem in self.ShipTypes[ship].emblem_pos:
+                    L2.blit(faction.image, emblem)
+                faction.ship_images[ship] = {'L1': L1, 'L2': L2}
+        print('done')
+
+
+
+
 
 
 def make_dict(List):
@@ -274,31 +341,65 @@ def TargetingComputer(ship):
         [ship.bullet_types[ship.bullet_sel].width // 2, ship.bullet_types[ship.bullet_sel].height // 2])
 
     if ship.bullet_types[ship.bullet_sel].velocity != math.inf:
-        vx = ship.target.vx
-        vy = ship.target.vy
-        xo = ship.target.centerx
-        yo = ship.target.centery
-        X = ship.centerx + pos[0]
-        Y = ship.centery + pos[1]
+
+        vx = ship.target.vx - ship.vx
+        vy = ship.target.vy - ship.vy
+        xo = ship.target.centerx - ship.centerx - pos[0]
+        yo = ship.target.centery - ship.centery - pos[1]
         bullet_velocity = ship.bullet_types[ship.bullet_sel].velocity
-
         a = vx * vx + vy * vy - bullet_velocity * bullet_velocity
-        b = 2 * (vx * (xo - X) + vy * (yo - Y))
-        c = (xo - X) ** 2 + (yo - Y) ** 2
+        b = 2 * (vx * xo + vy * yo)
+        c = xo * xo + yo * yo
 
-        t = (-b - math.sqrt(b ** 2 - 4 * a * c)) / (2 * a)
-        x = xo + vx * t
-        y = yo + vy * t
+        if a < 0:
+            t = (-b - math.sqrt(b * b - 4 * a * c)) / (2 * a)
+        elif a > 0 and b * b - 4 * a * c > 0:
+            t1 = (-b + math.sqrt(b * b - 4 * a * c)) / (2 * a)
+            t2 = (-b - math.sqrt(b * b - 4 * a * c)) / (2 * a)
+            t_list = [t1, t2, math.inf]
+            val = min([t for t in t_list if t > 0])
+            if val != math.inf:
+                t = val
+            else:
+                t = -1
+        elif b != 0:
+            t = -c / b
+        else:
+            t = -1
 
-        dx = x - X
-        dy = y - Y
+        if t > 0:
+            # if t > 10000:
+            #     print(f'time= {t}')
+            #     print(f'vx= {vx}')
+            #     print(f'vy= {vy}')
+            #     print(f'xo= {xo}')
+            #     print(f'yo= {yo}')
+            #     print(f'a= {a}')
+            #     print(f'b= {b}')
+            #     print(f'c= {c}')
+            #     print()
+
+            x = xo + vx * t
+            y = yo + vy * t
+            r = math.sqrt(x * x + y * y)
+        else:
+            x = math.inf
+            y = math.inf
+            r = math.inf
+
     else:
-        dx = ship.target.centerx - pos[0] - ship.centerx
-        dy = ship.target.centery - pos[1] - ship.centery
+        x = ship.target.centerx - pos[0] - ship.centerx
+        y = ship.target.centery - pos[1] - ship.centery
+        r = math.sqrt(x * x + y * y)
 
-    angle2 = math.atan2(dy, dx)
+    if r < ship.bullet_types[ship.bullet_sel].range:
+        angle2 = math.atan2(y, x)
+        in_rng = True
+    else:
+        angle2 = math.atan2(ship.target.centery - ship.centery, ship.target.centerx - ship.centerx)
+        in_rng = False
 
-    return angle2
+    return angle2, in_rng, r
 
 
 def MoveScreen(gs):

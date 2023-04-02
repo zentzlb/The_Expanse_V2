@@ -7,6 +7,7 @@ import time
 from Misc import FindNearest, FindMineable
 from Ship_Class import Ship, Station, Asteroid
 
+
 class Point:
     def __init__(self, x, y):
         self.x = x
@@ -23,7 +24,6 @@ def Null(ship, global_state, faction):
 
 
 def NPControl(ship, gs, faction):
-
     commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     if ship.health < ship.ship_type.health // 10:
@@ -79,19 +79,13 @@ def NPControl(ship, gs, faction):
 
     elif type(ship.target) is Ship:
 
-        bs, dx, dy, r1 = find_bullet(ship)
+        bs, dx, dy, r1, angle2, in_range = find_bullet(ship)
         ms, r2 = find_missile(ship)
-        us, use = use_util(ship, gs, faction)
+        us, use = use_util(ship, gs, commands, faction)
 
-        V = np.array([[dx], [dy]])
-        V_prime = ship.Q.dot(V)
-        angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
-        # print(bs)
         commands[10] = bs + 1
         commands[11] = ms + 1
         commands[13] = us + 1
-
-        # print(angle2)
 
         if angle2 > ship.av * math.pi / 360:  # LEFT
             commands[0] = 1
@@ -99,28 +93,28 @@ def NPControl(ship, gs, faction):
             commands[0] = -1
 
         """GO FORWARD"""
-        if angle2 * 180 / math.pi < 50:
+        if (abs(angle2 * 180 / math.pi) < 80 and ship.bullet_types[bs].range < 5*r1) or ship.bullet_types[bs].delay > 100:
             commands[1] = 1
         else:
             commands[1] = -1
 
         """NO LATERAL ACCELERATION"""
-        commands[2] = 0#round(math.sin(time.time()))
-        """SHOOT abs(angle2) < 0.5 and math.sqrt(dx * dx + dy * dy) * math.sin(angle2) < ship.target.height / 4 abs(angle2 * 180 / math.pi) < 0.5 * ship.av"""
-        # print(angle2)
-        # print(math.sqrt(dx * dx + dy * dy) * math.sin(angle2))
-        # print()
-        if abs(angle2) < 0.7 and abs(r1 * math.sin(angle2)) < ship.target.height / 2 and (ship.energy >= 50 or ship.target.heat > 0.8 * ship.target.ship_type.heat_capacity) and ship.bullet_types[bs].range > r1:  # SHOOT BULLET
+        commands[2] = 0  # round(math.sin(time.time()))
+
+        if in_range and abs(angle2) < 0.7 and abs(r1 * math.sin(angle2)) < ship.target.height / 2 and (ship.energy >= 50 or ship.target.heat > 0.8 * ship.target.ship_type.heat_capacity) and ship.bullet_types[bs].range > r1:  # SHOOT BULLET
             commands[3] = 1
 
-        if len(ship.missile_types) > 0 and ship.energy >= ship.missile_types[ms].energy and ship.missile_types[ms].range > r2:
+        if len(ship.missile_types) > 0 and ship.energy >= ship.missile_types[ms].energy and ship.missile_types[
+            ms].range > r2:
             commands[4] = 1
 
         """UTIL"""
         commands[6] = use
 
         """BOOST"""
-        if ship.health < 20 and ((ship.energy > ship.bullet_types[bs].energy and ship.boost) or ship.energy > ship.bullet_types[bs].energy + 30):
+        if ship.health < 20 and (
+                (ship.energy > ship.bullet_types[bs].energy and ship.boost) or ship.energy > ship.bullet_types[
+            bs].energy + 30):
             commands[7] = 1
 
     elif type(ship.target) is Point:
@@ -144,15 +138,14 @@ def NPControl(ship, gs, faction):
     return commands
 
 
-
 """NPC MINER LOGIC"""
 
 
 def NPControl2(ship, global_state, faction):
-
     commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    if (ship.cargo.cargo_total >= ship.ship_type.cargo_cap or ship.health < 0.8 * ship.ship_type.health):  # type(ship.target) is not Station and
+    if (
+            ship.cargo.cargo_total >= ship.ship_type.cargo_cap or ship.health < 0.8 * ship.ship_type.health):  # type(ship.target) is not Station and
         ship.target = FindNearest(ship, global_state.stations[faction])
     elif type(ship.target) is not Asteroid and ship.cargo.cargo_total < ship.ship_type.cargo_cap:
         ship.target = FindMineable(ship, global_state.asteroids)
@@ -176,8 +169,6 @@ def NPControl2(ship, global_state, faction):
         V = np.array([[dx], [dy]])
         V_prime = ship.Q.dot(V)
         angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
-
-
 
         # print(angle2)
 
@@ -232,9 +223,8 @@ def NPControl2(ship, global_state, faction):
 
 
 def TurretControl(turret, gs, faction):
-
     commands = [0, 0, 0]
-    
+
     if turret.counter == 30:
         turret.targets = []
         R2 = 9 * turret.range * turret.range
@@ -255,37 +245,69 @@ def TurretControl(turret, gs, faction):
                     if r2 < R2:
                         turret.targets.append(ship)
         turret.counter = 0
-    
+
     if turret.target is None or turret.target.health <= 0 or turret.counter == 10:
         turret.target = FindNearest(turret, turret.targets)
 
-    turret.counter += 1
+    turret.counter += rnd.randint(0, 1)
 
     if turret.target is not None:
-        vx = turret.target.vx
-        vy = turret.target.vy
-        xo = turret.target.centerx
-        yo = turret.target.centery
+        # vx = turret.target.vx - turret.vx
+        # vy = turret.target.vy - turret.vy
+        # xo = turret.target.centerx
+        # yo = turret.target.centery
+        # bullet_velocity = turret.bullet_types[turret.bullet_sel].velocity
+        #
+        # a = vx * vx + vy * vy - bullet_velocity * bullet_velocity
+        # if a < 0:
+        #     b = 2 * (vx * (xo - turret.centerx) + vy * (yo - turret.centery))
+        #     c = (xo - turret.centerx) ** 2 + (yo - turret.centery) ** 2
+        #
+        #     t = (-b - math.sqrt(b ** 2 - 4 * a * c)) / (2 * a)
+
+        vx = turret.target.vx - turret.vx
+        vy = turret.target.vy - turret.vy
+        xo = turret.target.centerx - turret.centerx
+        yo = turret.target.centery - turret.centery
         bullet_velocity = turret.bullet_types[turret.bullet_sel].velocity
 
-        a = vx ** 2 + vy ** 2 - bullet_velocity ** 2
-        b = 2 * (vx * (xo - turret.centerx) + vy * (yo - turret.centery))
-        c = (xo - turret.centerx) ** 2 + (yo - turret.centery) ** 2
+        a = vx * vx + vy * vy - bullet_velocity * bullet_velocity
+        b = 2 * (vx * xo + vy * yo)
+        c = xo * xo + yo * yo
 
-        t = (-b - math.sqrt(b ** 2 - 4 * a * c)) / (2 * a)
-        x = xo + vx * t
-        y = yo + vy * t
+        if a < 0:
+            t = (-b - math.sqrt(b * b - 4 * a * c)) / (2 * a)
+        elif a > 0 and b * b - 4 * a * c > 0:
+            t1 = (-b + math.sqrt(b * b - 4 * a * c)) / (2 * a)
+            t2 = (-b - math.sqrt(b * b - 4 * a * c)) / (2 * a)
+            t_list = [t1, t2, math.inf]
+            val = min([t for t in t_list if t > 0])
+            if val != math.inf:
+                t = val
+            else:
+                t = -1
+        elif b != 0:
+            t = -c / b
+        else:
+            t = -1
 
-        dx = x - turret.centerx
-        dy = y - turret.centery
+        if t > 0:
+            x = xo + vx * t
+            y = yo + vy * t
 
-        cos = math.cos(turret.angle * math.pi / 180)
-        sin = math.sin(turret.angle * math.pi / 180)
+            cos = math.cos(turret.angle * math.pi / 180)
+            sin = math.sin(turret.angle * math.pi / 180)
 
-        Q = np.array([[cos, -sin], [sin, cos]])
-        V = np.array([[dx], [dy]])
-        V_prime = Q.dot(V)
-        angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
+            Q = np.array([[cos, -sin], [sin, cos]])
+            V = np.array([x, y])
+            V_prime = Q.dot(V)
+            angle2 = math.atan2(V_prime[0], V_prime[1])
+            r = math.sqrt(x * x + y * y)
+
+        else:
+            angle2 = math.atan2(turret.target.centerx - turret.centerx, turret.target.centery - turret.centery)
+            r = math.inf
+
 
         if angle2 > turret.av * math.pi / 360:  # LEFT
             commands[0] = 1
@@ -293,10 +315,13 @@ def TurretControl(turret, gs, faction):
             commands[0] = -1
 
         """SHOOT"""
-        if abs(angle2 * 180 / math.pi) < turret.av and turret.energy >= 30 and turret.bullet_types[turret.bullet_sel].range * turret.bullet_types[turret.bullet_sel].range > dx * dx + dy * dy:  # SHOOT BULLET
+        if abs(angle2) < 0.7 and abs(r * math.sin(angle2)) < turret.target.height / 2 and turret.bullet_types[
+            turret.bullet_sel].range > r:  # SHOOT BULLET
             commands[1] = 1
 
-        if len(turret.missile_types) > 0 and (turret.energy >= turret.missile_types[turret.missile_sel].energy and turret.missile_types[turret.missile_sel].range > math.sqrt(dx ** 2 + dy ** 2)):
+        if len(turret.missile_types) > 0 and (
+                turret.energy >= turret.missile_types[turret.missile_sel].energy and turret.missile_types[
+            turret.missile_sel].range > r):
             commands[2] = 1
 
     else:
@@ -314,10 +339,6 @@ def TurretControl(turret, gs, faction):
         elif angle2 < -turret.av * math.pi / 360:  # RIGHT
             commands[0] = -1
 
-
-
-
-
     return commands
 
 
@@ -325,7 +346,6 @@ def TurretControl(turret, gs, faction):
 
 
 def PlayerControl1(ship, global_state, faction):
-
     keys_pressed = pygame.key.get_pressed()
     commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -339,7 +359,6 @@ def PlayerControl1(ship, global_state, faction):
         ship.target = FindMineable(ship, global_state.asteroids)
     elif keys_pressed[pygame.K_SEMICOLON]:  # REMOVE TARGET LOCK
         ship.target = None
-
 
     """MOVEMENT"""
     if keys_pressed[pygame.K_q]:  # LEFT
@@ -398,90 +417,89 @@ def PlayerControl1(ship, global_state, faction):
 
 def PlayerControl2(ship, global_state, faction):
 
-    keys_pressed = pygame.key.get_pressed()
-    mouse_pressed = pygame.mouse.get_pressed()
     commands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    if not global_state.misc_info['command prompt']:
+        keys_pressed = pygame.key.get_pressed()
+        mouse_pressed = pygame.mouse.get_pressed()
 
+        if keys_pressed[pygame.K_l]:  # LOCK ONTO THE NEAREST TARGET
+            target_list = []
+            for i in range(len(global_state.ships)):
+                if i != faction:
+                    target_list.extend(global_state.ships[i])
+            ship.target = FindNearest(ship, target_list)
+        elif keys_pressed[pygame.K_o]:
+            ship.target = FindMineable(ship, global_state.asteroids)
+        elif keys_pressed[pygame.K_SEMICOLON]:  # REMOVE TARGET LOCK
+            ship.target = None
 
-    if keys_pressed[pygame.K_l]:  # LOCK ONTO THE NEAREST TARGET
-        target_list = []
-        for i in range(len(global_state.ships)):
-            if i != faction:
-                target_list.extend(global_state.ships[i])
-        ship.target = FindNearest(ship, target_list)
-    elif keys_pressed[pygame.K_o]:
-        ship.target = FindMineable(ship, global_state.asteroids)
-    elif keys_pressed[pygame.K_SEMICOLON]:  # REMOVE TARGET LOCK
-        ship.target = None
+        """MOVEMENT"""
 
+        xy = pygame.mouse.get_pos()
 
-    """MOVEMENT"""
+        dx = xy[0] - global_state.width // 2
+        dy = xy[1] - global_state.height // 2
 
-    xy = pygame.mouse.get_pos()
+        cos = math.cos(ship.angle * math.pi / 180)
+        sin = math.sin(ship.angle * math.pi / 180)
 
-    dx = xy[0] - global_state.width // 2
-    dy = xy[1] - global_state.height // 2
+        Q = np.array([[cos, -sin], [sin, cos]])
+        V = np.array([[dx], [dy]])
+        V_prime = Q.dot(V)
+        angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
 
-    cos = math.cos(ship.angle * math.pi / 180)
-    sin = math.sin(ship.angle * math.pi / 180)
+        # print(angle2)
 
-    Q = np.array([[cos, -sin], [sin, cos]])
-    V = np.array([[dx], [dy]])
-    V_prime = Q.dot(V)
-    angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
+        if angle2 > ship.av * math.pi / 360:  # LEFT
+            commands[0] = 1
+        elif angle2 < -ship.av * math.pi / 360:  # RIGHT
+            commands[0] = -1
 
-    # print(angle2)
+        if keys_pressed[pygame.K_w]:  # UP
+            commands[1] = 1
+        elif keys_pressed[pygame.K_s]:  # DOWN
+            commands[1] = -1
 
-    if angle2 > ship.av * math.pi / 360:  # LEFT
-        commands[0] = 1
-    elif angle2 < -ship.av * math.pi / 360:  # RIGHT
-        commands[0] = -1
+        if keys_pressed[pygame.K_a]:  # LEFT
+            commands[2] = 1
+        elif keys_pressed[pygame.K_d]:  # RIGHT
+            commands[2] = -1
 
-    if keys_pressed[pygame.K_w]:  # UP
-        commands[1] = 1
-    elif keys_pressed[pygame.K_s]:  # DOWN
-        commands[1] = -1
+        if mouse_pressed[0]:  # fire bullet
+            commands[3] = 1
 
-    if keys_pressed[pygame.K_a]:  # LEFT
-        commands[2] = 1
-    elif keys_pressed[pygame.K_d]:  # RIGHT
-        commands[2] = -1
+        if mouse_pressed[2]:  # fire missile
+            commands[4] = 1
 
-    if mouse_pressed[0]:  # fire bullet
-        commands[3] = 1
+        if keys_pressed[pygame.K_SPACE]:  # fire mine
+            commands[5] = 1
 
-    if mouse_pressed[2]:  # fire missile
-        commands[4] = 1
+        if mouse_pressed[1]:  # utility
+            commands[6] = 1
 
-    if keys_pressed[pygame.K_SPACE]:  # fire mine
-        commands[5] = 1
+        if keys_pressed[pygame.K_LSHIFT]:  # boost
+            commands[7] = 1
 
-    if mouse_pressed[1]:  # utility
-        commands[6] = 1
+        if keys_pressed[pygame.K_u]:  # dock
+            commands[8] = 1
 
-    if keys_pressed[pygame.K_LSHIFT]:  # boost
-        commands[7] = 1
+        if keys_pressed[pygame.K_h]:  # mine
+            commands[9] = 1
 
-    if keys_pressed[pygame.K_u]:  # dock
-        commands[8] = 1
-
-    if keys_pressed[pygame.K_h]:  # mine
-        commands[9] = 1
-
-    for i in range(1, 10):
-        if eval(f'keys_pressed[pygame.K_{i}]'):
-            if i <= len(ship.bullet_types):
-                commands[10] = i
-                # print(f"command 10: {commands[10]}")
-            elif i <= len(ship.bullet_types) + len(ship.missile_types):
-                commands[11] = i - len(ship.bullet_types)
-                # print(f"command 11: {commands[11]}")
-            elif i <= len(ship.bullet_types) + len(ship.missile_types) + len(ship.mine_types):
-                commands[12] = i - len(ship.bullet_types) - len(ship.missile_types)
-                # print(f"command 12: {commands[12]}")
-            elif i <= len(ship.bullet_types) + len(ship.missile_types) + len(ship.mine_types) + len(ship.util_types):
-                commands[13] = i - len(ship.bullet_types) - len(ship.missile_types) - len(ship.mine_types)
-                # print(f"command 13: {commands[13]}")
+        for i in range(1, 10):
+            if eval(f'keys_pressed[pygame.K_{i}]'):
+                if i <= len(ship.bullet_types):
+                    commands[10] = i
+                    # print(f"command 10: {commands[10]}")
+                elif i <= len(ship.bullet_types) + len(ship.missile_types):
+                    commands[11] = i - len(ship.bullet_types)
+                    # print(f"command 11: {commands[11]}")
+                elif i <= len(ship.bullet_types) + len(ship.missile_types) + len(ship.mine_types):
+                    commands[12] = i - len(ship.bullet_types) - len(ship.missile_types)
+                    # print(f"command 12: {commands[12]}")
+                elif i <= len(ship.bullet_types) + len(ship.missile_types) + len(ship.mine_types) + len(ship.util_types):
+                    commands[13] = i - len(ship.bullet_types) - len(ship.missile_types) - len(ship.mine_types)
+                    # print(f"command 13: {commands[13]}")
 
     return commands
 
@@ -502,53 +520,75 @@ def PlayerControl2(ship, global_state, faction):
 def find_bullet(ship):
     ind = -1
     rng = math.inf
-    DX = 0
-    DY = 0
+    R = math.inf
+    X = math.inf
+    Y = math.inf
     for bs in range(len(ship.bullet_types)):
 
-        pos = ship.Qt.dot(ship.ship_type.bullet_pos[bs]) - np.array([ship.bullet_types[bs].width // 2, ship.bullet_types[bs].height // 2])
+        pos = ship.Qt.dot(ship.ship_type.bullet_pos[bs]) - np.array(
+            [ship.bullet_types[bs].width // 2, ship.bullet_types[bs].height // 2])
 
         if ship.bullet_types[bs].velocity != math.inf:
 
-            vx = ship.target.vx
-            vy = ship.target.vy
-            xo = ship.target.centerx
-            yo = ship.target.centery
-            X = ship.centerx + pos[0]
-            Y = ship.centery + pos[1]
+            vx = ship.target.vx - ship.vx
+            vy = ship.target.vy - ship.vy
+            xo = ship.target.centerx - ship.centerx - pos[0]
+            yo = ship.target.centery - ship.centery - pos[1]
             bullet_velocity = ship.bullet_types[bs].velocity
-
             a = vx * vx + vy * vy - bullet_velocity * bullet_velocity
-            b = 2 * (vx * (xo - X) + vy * (yo - Y))
-            c = (xo - X) ** 2 + (yo - Y) ** 2
+            b = 2 * (vx * xo + vy * yo)
+            c = xo * xo + yo * yo
 
-            t = (-b - math.sqrt(b * b - 4 * a * c)) / (2 * a)
+            if a < 0:
+                t = (-b - math.sqrt(b * b - 4 * a * c)) / (2 * a)
+            elif a > 0 and b * b - 4 * a * c > 0:
+                t1 = (-b + math.sqrt(b * b - 4 * a * c)) / (2 * a)
+                t2 = (-b - math.sqrt(b * b - 4 * a * c)) / (2 * a)
+                t_list = [t1, t2, math.inf]
+                val = min([t for t in t_list if t > 0])
+                if val != math.inf:
+                    t = val
+                else:
+                    t = -1
+            elif b != 0:
+                t = -c / b
+            else:
+                t = -1
 
-            x = xo + vx * t
-            y = yo + vy * t
-
-            dx = x - X
-            dy = y - Y
-
-            r = math.sqrt(dx * dx + dy * dy)
+            if t > 0:
+                x = xo + vx * t
+                y = yo + vy * t
+                r = math.sqrt(x * x + y * y)
+            else:
+                x = math.inf
+                y = math.inf
+                r = math.inf
 
         else:
-            dx = ship.target.centerx - pos[0] - ship.centerx
-            dy = ship.target.centery - pos[1] - ship.centery
-            r = math.sqrt(dx * dx + dy * dy)
+            x = ship.target.centerx - pos[0] - ship.centerx
+            y = ship.target.centery - pos[1] - ship.centery
+            r = math.sqrt(x * x + y * y)
 
         if rng > ship.bullet_types[bs].range > r or ind == -1 or (r > rng and ship.bullet_types[bs].range > rng):
             rng = ship.bullet_types[bs].range
             ind = bs
-            DX = dx
-            DY = dy
+            X = x
+            Y = y
             R = r
 
-    return ind, DX, DY, r
+    if R != math.inf:
+        V = np.array([[X], [Y]])
+        V_prime = ship.Q.dot(V)
+        angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
+        in_range = True
+    else:
+        angle2 = math.atan2(ship.target.centerx - ship.centerx, ship.target.centery - ship.centery)
+        in_range = False
+
+    return ind, X, Y, R, angle2, in_range
 
 
 def find_missile(ship):
-
     ind = -1
     rng = math.inf
     dx = ship.target.centerx - ship.centerx
@@ -562,9 +602,9 @@ def find_missile(ship):
     return ind, r
 
 
-def use_util(ship, gs, faction):
+def use_util(ship, gs, commands, faction):
     for us in range(len(ship.util_types)):
-        use = ship.util_types[us].logic(ship, gs, faction)
+        use = ship.util_types[us].logic(ship, gs, commands, faction)
         if use == 1:
             return us, 1
     return 0, 0

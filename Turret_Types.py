@@ -2,7 +2,7 @@ import os
 import pygame
 
 PDC = {'velocity': 5,
-       'av': 1,
+       'av': 0.5,  # adj
        'energy': 800,
        'health': 125,
        'height': 20,
@@ -16,7 +16,7 @@ PDC = {'velocity': 5,
        'image': pygame.image.load(os.path.join('Assets', f'PDC.png'))}
 
 RailTurret = {'velocity': 5,
-              'av': 0.5,
+              'av': 0.25,  # adj
               'energy': 1200,
               'health': 200,
               'height': 29,

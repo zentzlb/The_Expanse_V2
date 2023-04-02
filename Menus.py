@@ -575,11 +575,16 @@ class CargoMenu:
             elif self.selected == 1:
                 if self.ship.cargo.cargo_total == 0:
                     gs.menu = PopupMenu(self, "Error: You can't unload 0 cargo.")
-                for i in range(len(self.ship.cargo)):
-                    ores = list(self.ship.cargo)
-                    gs.docked.cargo[ores[i]] += self.ship.cargo[ores[i]]
-                    self.ship.cargo.cargo_total -= self.ship.cargo[ores[i]]
-                    del self.ship.cargo[ores[i]]
+
+                for key in self.ship.cargo:
+                    gs.docked.cargo[key] += self.ship.cargo[key]
+                    self.ship.cargo[key] = 0
+                    self.ship.cargo.cargo_total = 0
+                # for i in range(len(self.ship.cargo)):
+                #     ores = list(self.ship.cargo)
+                #     gs.docked.cargo[ores[i]] += self.ship.cargo[ores[i]]
+                #     self.ship.cargo.cargo_total -= self.ship.cargo[ores[i]]
+                #     del self.ship.cargo[ores[i]]
 
         self.keys_pressed = keys_pressed
         self.draw_button("Ship Cargo: ", gs.fonts[0], (255, 255, 255), hud, top_left[0], top_left[1])

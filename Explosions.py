@@ -174,26 +174,45 @@ class PhotonExplosion:
             self.radius = 0
 
     def draw(self, gs):
-        for r in range(self.timer):
-            glow_circle(gs.WIN, self.x - self.gs.x, self.y - self.gs.y, r, (4, 4, 5))
+        image = gs.images['PhotonExplosion'][self.timer]
+        x = self.x - gs.x - image.get_width() // 2
+        y = self.y - gs.y - image.get_height() // 2
+        gs.WIN.blit(image, (x, y), special_flags=BLEND_RGB_ADD)
+        # for r in range(self.timer):
+        #     glow_circle(gs.WIN, self.x - self.gs.x, self.y - self.gs.y, r, (4, 4, 5))
 
 
 class OrbExplosion:
-    def __init__(self, x, y, gs):
+    def __init__(self, x, y, gs, ship=None):
+        self.ship = ship
         self.x = x
         self.y = y
         self.gs = gs
-        self.timer = 90
-        self.radius = 90
+        self.timer = 10
+        self.radius = 60
+        self.expanding = True
 
     def scoot(self):
-        self.timer -= 1
+        if self.ship is not None:
+            self.x = self.ship.centerx
+            self.y = self.ship.centery
+        if self.expanding:
+            if self.timer < self.radius:
+                self.timer += 1
+            else:
+                self.expanding = False
+        else:
+            self.timer -= 1
         if self.timer < 1:
             self.radius = 0
 
     def draw(self, gs):
-        for r in range(self.timer // 2):
-            glow_circle(gs.WIN, self.x - self.gs.x, self.y - self.gs.y, r, (5, 4, 1))
+        image = gs.images['OrbExplosion'][self.timer]
+        x = self.x - gs.x - image.get_width() // 2
+        y = self.y - gs.y - image.get_height() // 2
+        gs.WIN.blit(image, (x, y), special_flags=BLEND_RGB_ADD)
+        # for r in range(self.timer // 2):
+        #     glow_circle(gs.WIN, self.x - self.gs.x, self.y - self.gs.y, r, (5, 4, 1))
 
 
 class PlasmaExplosion:
@@ -204,6 +223,7 @@ class PlasmaExplosion:
         self.timer = 50
         self.radius = 50
 
+
     def scoot(self):
         self.timer -= 1
         if self.timer < 1:
@@ -213,6 +233,7 @@ class PlasmaExplosion:
         # save images ahead of time
         for r in range(self.timer):
             glow_circle(gs.WIN, self.x - self.gs.x, self.y - self.gs.y, r, (4, 0, 5))
+
 
 
 
@@ -310,3 +331,12 @@ def glow_circle(display, x, y, radius, color):
     surf.set_colorkey((0, 0, 0))
     pygame.draw.circle(surf, color, (radius, radius), radius)
     display.blit(surf, (x - radius, y - radius), special_flags=BLEND_RGB_ADD)
+
+
+def glow_ring(display, x, y, radius, color, width):
+    surf = pygame.Surface((radius * 2, radius * 2))
+    surf.set_colorkey((0, 0, 0))
+    pygame.draw.circle(surf, color, (radius, radius), radius, width=width)
+    display.blit(surf, (x - radius, y - radius), special_flags=BLEND_RGB_ADD)
+
+

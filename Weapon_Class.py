@@ -8,8 +8,9 @@ from Explosions import Particle, ExplosionDamage
 
 """BULLET CLASS"""
 
+
 class Bullet(pygame.Rect):
-    def __init__(self, x, y, angle, bullet_type, faction, gs):
+    def __init__(self, x, y, ship, angle, bullet_type, faction, gs):
         self.bullet_type = bullet_type
         if bullet_type.sound is not None:
             bullet_type.sound.play()
@@ -22,8 +23,11 @@ class Bullet(pygame.Rect):
         self.timer = self.range / self.velocity
         self.fx = x
         self.fy = y
+        self.vx = self.velocity * math.sin(self.angle * math.pi / 180) + ship.vx
+        self.vy = self.velocity * math.cos(self.angle * math.pi / 180) + ship.vy
         self.image = pygame.transform.rotate(bullet_type.image, angle)
         self.faction = faction
+        self.ship = ship
         self.build_target_list(gs)
 
     def draw(self, gs):
@@ -42,14 +46,14 @@ class Bullet(pygame.Rect):
                             self.targets.append(missile)
                 for ship in gs.ships[faction]:
                     dx = self.centerx - ship.centerx
-                    dy = self.centerx - ship.centerx
+                    dy = self.centery - ship.centery
                     r2 = dx * dx + dy * dy
                     if r2 < 9 * R2:
                         self.targets.append(ship)
 
     def scoot(self, gs):
-        self.fx += self.velocity * math.sin(self.angle * math.pi / 180)
-        self.fy += self.velocity * math.cos(self.angle * math.pi / 180)
+        self.fx += self.vx
+        self.fy += self.vy
 
         self.x = round(self.fx)
         self.y = round(self.fy)
@@ -67,7 +71,7 @@ class Bullet(pygame.Rect):
 
 
 class Beam:
-    def __init__(self, x, y, angle, bullet_type, faction, gs):
+    def __init__(self, x, y, angle, bullet_type, faction, gs, overcharged=False):
         self.bulltet_type = bullet_type
         if bullet_type.sound is not None:
             bullet_type.sound.play()
@@ -75,9 +79,16 @@ class Beam:
         self.y = y
         self.p1 = np.array([x, y])
         self.p2 = np.array([0, 0])
-        r = rnd.randint(200, 255)
-        g = rnd.randint(0, r)
-        self.color = (r, g, 0)
+        self.overcharged = overcharged
+        if overcharged:
+            r = rnd.randint(200, 255)
+            g = rnd.randint(0, r)
+            b = 0
+        else:
+            r = rnd.randint(200, 255)
+            g = rnd.randint(0, r)
+            b = 0
+        self.color = (r, g, b)
         self.angle = angle
         self.velocity = math.inf
         self.range = bullet_type.range
@@ -120,7 +131,6 @@ class Beam:
     # def scoot(self, gs):
     #     self.timer -= 1
 
-
 """MISSILE CLASS"""
 
 
@@ -144,7 +154,7 @@ class Missile(pygame.Rect):
         self.heat = 0
         self.er = missile_type.exp_radius
         self.timer = self.range / self.velocity
-        self.arm = self.range / self.velocity - 60
+        self.arm = self.range / self.velocity - 120
         self.target = target
         self.is_visible = True
         # self.emp = missile_type.emp
@@ -174,8 +184,9 @@ class Missile(pygame.Rect):
         for i in range(self.missile_type.par_num):
             R = 255
             G = rnd.randint(0, 255)
-            gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.randint(3, 5), self.angle + rnd.randint(-self.missile_type.par_rnd, self.missile_type.par_rnd), 3, (R, G, 0), glow=(R//2, G//2, 0), shrink=0.5))
-            gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.randint(2, 3), self.angle + rnd.randint(-self.missile_type.par_rnd+5, self.missile_type.par_rnd+5), 5, (80, 80, 80), shrink=0.9))
+            if rnd.random() > 0.5:
+                gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.random()-2, self.angle + rnd.randint(-self.missile_type.par_rnd, self.missile_type.par_rnd), 3, (R, G, 0), glow=(R//2, G//2, 0), shrink=0.85))  # adj
+                gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.random(), self.angle + rnd.randint(-self.missile_type.par_rnd+5, self.missile_type.par_rnd+5), 4, (80, 80, 80), shrink=0.97))  # adj
 
         if self.target is None or self.target.health <= 0:
             self.target = FindNearest(self, self.targets)
@@ -195,7 +206,7 @@ class Missile(pygame.Rect):
                 yo = self.target.centery
                 velocity = self.velocity
 
-                a = vx ** 2 + vy ** 2 - velocity ** 2
+                a = vx * vx + vy * vy - velocity * velocity
                 b = 2 * (vx * (xo - self.centerx) + vy * (yo - self.centery))
                 c = (xo - self.centerx) ** 2 + (yo - self.centery) ** 2
 

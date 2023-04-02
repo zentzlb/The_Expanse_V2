@@ -8,6 +8,8 @@ from Misc import TargetingComputer
 from Menus import StationMenu
 from Ship_Class import Ship, Asteroid
 from Explosions import trans_circle, glow_circle
+from Control_Functions import Point
+from Text_Commands import unpack_str
 
 
 def draw_window(gs, fps, HEIGHT, WIDTH):
@@ -16,7 +18,7 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
 
     player_ship = None
     # gs.WIN2.fill((0, 0, 0, 0))
-    # gs.WIN.fill((0, 0, 0))
+    gs.WIN.fill((10, 10, 20))
     rr = 100  # radar radius
     hbh = 30  # health bar height
     bt = 3
@@ -32,16 +34,22 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
     BLUE = (75, 75, 255)  # blue
     SILVER = (200, 200, 255)  # silver
 
-    gs.WIN.blit(gs.SPACE, (0, 0))  # draw background
+    # gs.WIN.blit(gs.SPACE, (0, 0))  # draw background
 
     # gs.WIN.blit(gs.DUST, (-2000 - gs.x % 2000, -2000 - gs.y % 2000))  # draw foreground
 
-    gs.WIN.blit(gs.FIELD, (-2000 - (gs.x / 5) % 2000, -2000 - (gs.y / 5) % 2000))  # draw foreground
+    # gs.WIN.blit(gs.FIELD, (-2000 - (gs.x / 5) % 2000, -2000 - (gs.y / 5) % 2000))  # draw foreground
 
     for dust in gs.dust:
         x = (dust[0] - gs.x) % 6000 - 1000
         y = (dust[1] - gs.y) % 6000 - 1000
         gs.WIN.blit(gs.dust_images[dust[2]], (x, y))
+
+    for roid in gs.field:
+        x = (roid.x - gs.x) / 4 % 6000 - 1000
+        y = (roid.y - gs.y) / 4 % 6000 - 1000
+        if x < WIDTH and x + roid.width > 0 and y < HEIGHT and y + roid.height > 0:
+            gs.WIN.blit(roid.image, (x, y))
 
     if keys_pressed[pygame.K_PERIOD]:
         gs.show_bars = True
@@ -141,15 +149,16 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
 
     if player_ship is not None:
         draw_hud(gs, player_ship, keys_pressed, fps)
-
-
+        draw_textbox(gs, player_ship, keys_pressed, fps)
     elif gs.menu is not None:
         gs.menu.draw_menu(gs.WIN, gs)
+
 
     # gs.WIN.blit(gs.WIN2, (0, 0))
     # gs.WIN.blit(gs.WIN, (0, 0))
 
     pygame.display.update()  # scoot window
+
 
 
 def draw_hud(gs, player_ship, keys_pressed, fps):
@@ -218,20 +227,28 @@ def draw_hud(gs, player_ship, keys_pressed, fps):
     HUD.blit(heat_text, (7, 2 * rr + 5 * hbh / 2 + 2 * bt))  # display energy
 
     if type(player_ship.target) is Ship and player_ship.target.health > 0:
-        MyAngle = TargetingComputer(player_ship)
+        MyAngle, in_rng, r = TargetingComputer(player_ship)
         # print(MyAngle)
-        angle = -((player_ship.angle%360) * math.pi / 180 - math.pi/2)
-        if abs(MyAngle-angle) > math.pi:
+        angle = -((player_ship.angle % 360) * math.pi / 180 - math.pi/2)
+        if MyAngle-angle > math.pi:
             angle += 2 * math.pi
+        elif MyAngle - angle < -math.pi:
+            MyAngle += 2 * math.pi
         # print(angle)
         # da = (ship_angle-MyAngle) % (math.pi / 2)
         # print(da)
         # print()
         # angle = da + MyAngle
-        if abs(MyAngle - angle) < player_ship.av * math.pi / 180:
-            MyColor = (0, 255, 0, 100)
+        angle2 = MyAngle - angle
+        if not in_rng:
+            MyColor1 = (255, 0, 0, 50)
+            MyColor2 = (255, 0, 0, 15)
+        elif abs(angle2) < 0.7 and abs(r * math.sin(angle2)) < player_ship.target.height / 2:#abs(MyAngle - angle) < player_ship.av * math.pi / 180:
+            MyColor1 = (0, 255, 0, 100)
+            MyColor2 = (0, 255, 0, 15)
         else:
-            MyColor = (255, 255, 255, 50)
+            MyColor1 = (255, 255, 255, 50)
+            MyColor2 = (255, 255, 255, 15)
 
         # make surface
 
@@ -248,17 +265,18 @@ def draw_hud(gs, player_ship, keys_pressed, fps):
         xo = width // 2
         yo = height // 2
 
-        pygame.draw.arc(TC, (200, 200, 200, 10), TC.get_rect(), min((-angle, -MyAngle)), max((-angle, -MyAngle)), width=10)
+        angles = (-angle, -MyAngle)
+        pygame.draw.arc(TC, MyColor2, TC.get_rect(), min(angles), max(angles), width=10)
         x1 = round(xo + l1 * math.cos(MyAngle))
         y1 = round(yo + l1 * math.sin(MyAngle))
         x2 = round(xo + l2 * math.cos(MyAngle))
         y2 = round(yo + l2 * math.sin(MyAngle))
-        pygame.draw.line(TC, MyColor, (x1, y1), (x2, y2), bt)
+        pygame.draw.line(TC, MyColor1, (x1, y1), (x2, y2), bt)
         x1 = round(xo + l1 * math.cos(angle))
         y1 = round(yo + l1 * math.sin(angle))
         x2 = round(xo + l2 * math.cos(angle))
         y2 = round(yo + l2 * math.sin(angle))
-        pygame.draw.line(TC, MyColor, (x1, y1), (x2, y2), bt)
+        pygame.draw.line(TC, MyColor1, (x1, y1), (x2, y2), bt)
         gs.WIN.blit(TC, (gs.width//2-xo, gs.height//2-yo))
 
 
@@ -280,9 +298,10 @@ def draw_hud(gs, player_ship, keys_pressed, fps):
         HUD.blit(SHIP,
                  (center[0] - player_ship.target.width // 2 + adjust_x,
                   center[1] - player_ship.target.height // 2 + adjust_y))
-        cos = math.cos(player_ship.target.angle * math.pi / 180)
-        sin = math.sin(player_ship.target.angle * math.pi / 180)
-        Q = np.array([[cos, sin], [-sin, cos]])
+        # cos = math.cos(player_ship.target.angle * math.pi / 180)
+        # sin = math.sin(player_ship.target.angle * math.pi / 180)
+        # Q = np.array([[cos, sin], [-sin, cos]])
+        Q = player_ship.target.Qt
         for turret in player_ship.target.turrets:
             target_turret = pygame.transform.rotate(turret.image, turret.angle)
             adjust_turret_x = (turret.width - turret.height * abs(
@@ -411,11 +430,22 @@ def draw_hud(gs, player_ship, keys_pressed, fps):
 
     c = rr2 / (math.log((rng ** 2) / (1000 + rng) + 1) ** 2)
 
+    if player_ship.target is not None and type(player_ship.target) is not Point:
+        dx = player_ship.target.centerx - gs.cx
+        dy = player_ship.target.centery - gs.cy
+        d = math.sqrt(dx * dx + dy * dy)
+        r = c * math.log((d * d) / (1000 + d) + 1) ** 2
+        if r < rr2:
+            angle = math.atan2(dy, dx)
+            X = rr + r * math.cos(angle) + 3
+            Y = rr + r * math.sin(angle) + 3
+            pygame.draw.circle(HUD, (255, 255, 0), (X, Y), 5)
+
     for roid in gs.asteroids:
         dx = roid.centerx - gs.cx
         dy = roid.centery - gs.cy
-        d = math.sqrt(dx ** 2 + dy ** 2)
-        r = c * math.log((d ** 2) / (1000 + d) + 1) ** 2
+        d = math.sqrt(dx * dx + dy * dy)
+        r = c * math.log((d * d) / (1000 + d) + 1) ** 2
         if r < rr2:
             angle = math.atan2(dy, dx)
             X = rr + r * math.cos(angle) + 3
@@ -424,15 +454,15 @@ def draw_hud(gs, player_ship, keys_pressed, fps):
 
     for faction in range(len(gs.ships)):
         if faction == 0:
-            MyColor = YELLOW
+            MyColor = GREEN
         else:
             MyColor = RED
         for ship in gs.ships[faction]:
             if ship.is_visible:  # only show uncloaked ships on radar
                 dx = ship.centerx - gs.cx
                 dy = ship.centery - gs.cy
-                d = math.sqrt(dx ** 2 + dy ** 2)
-                r = c * math.log((d ** 2) / (1000 + d) + 1) ** 2
+                d = math.sqrt(dx * dx + dy * dy)
+                r = c * math.log((d * d) / (1000 + d) + 1) ** 2
                 if r < rr2:
                     angle = math.atan2(dy, dx)
                     X = rr + r * math.cos(angle) + 3
@@ -442,8 +472,8 @@ def draw_hud(gs, player_ship, keys_pressed, fps):
         for station in gs.stations[faction]:
             dx = station.centerx - gs.cx
             dy = station.centery - gs.cy
-            d = math.sqrt(dx ** 2 + dy ** 2)
-            r = c * math.log((d ** 2) / (1000 + d) + 1) ** 2
+            d = math.sqrt(dx * dx + dy * dy)
+            r = c * math.log((d * d) / (1000 + d) + 1) ** 2
             if r < rr2:
                 angle = math.atan2(dy, dx)
                 X = rr + r * math.cos(angle) + 3
@@ -455,8 +485,8 @@ def draw_hud(gs, player_ship, keys_pressed, fps):
         for missile in gs.missiles[faction]:
             dx = missile.centerx - gs.cx
             dy = missile.centery - gs.cy
-            d = math.sqrt(dx ** 2 + dy ** 2)
-            r = c * math.log((d ** 2) / (1000 + d) + 1) ** 2
+            d = math.sqrt(dx * dx + dy * dy)
+            r = c * math.log((d * d) / (1000 + d) + 1) ** 2
             if r < rr2:
                 angle = math.atan2(dy, dx)
                 X = rr + r * math.cos(angle) + 3
@@ -464,3 +494,44 @@ def draw_hud(gs, player_ship, keys_pressed, fps):
                 pygame.draw.circle(HUD, MyColor, (X, Y), 1)
 
     gs.WIN.blit(HUD, (0, 0))
+
+def draw_textbox(gs, player_ship, keys_pressed, fps):
+
+    if keys_pressed[pygame.K_ESCAPE]:
+        gs.misc_info['command prompt'] = False
+        gs.misc_info['command text'] = ''
+
+    if gs.misc_info['command prompt']:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    gs.misc_info['command text'] = gs.misc_info['command text'][:-1]
+                elif event.key == pygame.K_RETURN:
+                    if len(gs.misc_info['command text']) > 0:
+                        gs.misc_info['command history'].append(gs.misc_info['command text'])
+                        if len(gs.misc_info['command history']) > 30:
+                            gs.misc_info['command history'] = gs.misc_info['command history'][-30:]
+                        unpack_str(gs.misc_info['command text'], gs, player_ship)
+                    gs.misc_info['command text'] = ''
+                elif event.unicode.isprintable() and len(gs.misc_info['command text']) < 40:
+                    gs.misc_info['command text'] += event.unicode
+
+        text = gs.misc_info['command text']
+        text_surface = gs.fonts[2].render(text, True, (255, 255, 255))
+        tw = text_surface.get_width()
+        th = text_surface.get_height()
+        sw = 300
+        sh = th * (len(gs.misc_info['command history'])+1) + 10
+        surf = pygame.Surface((sw, sh))
+        for i in range(len(gs.misc_info['command history'])):
+            txt = gs.misc_info['command history'][i]
+            txt_surface = gs.fonts[2].render(txt, True, (255, 255, 255))
+            surf.blit(txt_surface, (5, 5+i*th))
+        surf.blit(text_surface, (5, sh-th-5))
+        surf.set_alpha(100)
+        gs.WIN.blit(surf, (gs.width-sw, gs.height-sh))
+    else:
+        pygame.event.clear()
+
+    if keys_pressed[pygame.K_TAB]:
+        gs.misc_info['command prompt'] = True

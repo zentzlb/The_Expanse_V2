@@ -11,7 +11,7 @@ from Explosions import Particle, glow_circle, trans_circle
 
 
 class Ship(pygame.Rect):
-    def __init__(self, control_module, turret_control_module, x, y, angle, color, ship_type, gs, is_player=False):
+    def __init__(self, control_module, turret_control_module, x, y, angle, color, ship_type, gs, faction_name, is_player=False):
         # ShipType = ShipTypes(ship_type, color)
         ShipType = gs.ShipTypes[ship_type]
         Turrets = []
@@ -61,6 +61,9 @@ class Ship(pygame.Rect):
         self.cloaked = False
         self.hidden = False
         self.color = color
+        self.faction_name = faction_name
+        self.faction = gs.Factions[faction_name]
+        self.info = {}
         # self.Image = pygame.image.load(os.path.join('Assets', f'{ship_type}_{color}.png'))  # image with no flame
         # self.Imagef = pygame.image.load(os.path.join('Assets', f'{ship_type}_{color}_f.png'))  # image with flame
         self.image = pygame.Surface((self.width, self.height))
@@ -113,26 +116,41 @@ class Ship(pygame.Rect):
         self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         # for r in range(self.width//2):
         #     trans_circle(self.image, self.width//2, self.height//2, r, (100, 200, 255, 10))
-        self.image_cloacked = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        self.image_cloaked = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         # self.Imagef = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}_{self.color}_f.png'))
 
         # self.imagef = self.Imagef.copy()
+
+        # L1 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L1.png'))
+        L1 = self.faction.ship_images[self.ship_type.name]['L1']
+        L2 = self.faction.ship_images[self.ship_type.name]['L2']
+        self.image.blit(L1, (0, 0))
 
         for i in range(len(self.bullet_types)):
             x = self.width // 2 + self.ship_type.bullet_pos[i][0] - self.bullet_types[i].l_image.get_width() // 2
             y = self.height // 2 + self.ship_type.bullet_pos[i][1] - self.bullet_types[i].l_image.get_height() // 2
             self.image.blit(self.bullet_types[i].l_image, (x, y))
 
-        L1 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L1.png'))
-        self.image.blit(L1, (0, 0))
-
         for i in range(len(self.missile_types)):
             x = self.width // 2 + self.ship_type.missile_pos[i][0]-self.missile_types[i].image.get_width() // 2
             y = self.height // 2 + self.ship_type.missile_pos[i][1]-self.missile_types[i].image.get_height() // 2
             self.image.blit(self.missile_types[i].image, (x, y))
 
-        L2 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L2.png'))
+        # L2 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L2.png'))
         self.image.blit(L2, (0, 0))
+        # for w in range(self.width):
+        #     for h in range(self.height):
+        #         color = self.image.get_at((w, h))
+        #         print(color)
+        #         if color == (18, 52, 86, 255):
+        #             print('found')
+        #             self.image.set_at((w, h), self.faction.color)
+        # for emblem in self.ship_type.emblem_pos:
+        #     self.image.blit(self.faction.image, emblem)
+
+        # palette = self.image.get_palette()
+        # palette[0] = (255, 0, 0, 0)
+        # self.image.set_palette(palette)
         # pygame.draw.circle(self.image, (10, 10, 10, 1), (self.width//2, self.height//2), 10)
 
         # for w in range(self.width):
@@ -188,10 +206,12 @@ class Ship(pygame.Rect):
             self.vx += self.acc * math.sin(self.angle * math.pi / 180)
             self.vy += self.acc * math.cos(self.angle * math.pi / 180)
             self.forward = True
+            thrustx = -sin * self.height // 3
+            thrusty = -cos * self.height // 3
             R = 255
             G = rnd.randint(0, 255)
             gs.particle_list.append(
-                Particle(self.centerx, self.centery, -rnd.randint(10, 12), self.angle + rnd.randint(-15, 15), 3,
+                Particle(self.centerx + thrustx, self.centery + thrusty, -rnd.randint(10, 12), self.angle + rnd.randint(-15, 15), 3,
                          (R, G, 0), shrink=0.5, vx=self.vx, vy=self.vy, glow=(R//2, G//2, 0)))
         elif commands[1] == -1:  # DOWN
             self.vx -= self.acc * math.sin(self.angle * math.pi / 180) / 3
@@ -202,6 +222,10 @@ class Ship(pygame.Rect):
         elif commands[2] == -1:  # RIGHT
             self.vy += self.acc * math.sin(self.angle * math.pi / 180) / 2
             self.vx -= self.acc * math.cos(self.angle * math.pi / 180) / 2
+
+        if commands[6] == 1 and self.utilC == 0 and len(self.util_types) > 0:
+            self.util_types[self.util_sel].function(self, gs, commands, faction)
+            self.utilC += self.util_types[self.util_sel].delay
 
         """UPDATE VELOCITY AND POSITION"""
         v2 = self.vx * self.vx + self.vy * self.vy
@@ -252,20 +276,19 @@ class Ship(pygame.Rect):
             mine = Mine(self.centerx, self.centery, self.angle, self.mine_types[self.mine_sel].height, self.mine_types[self.mine_sel].width, self.mine_types[self.mine_sel], self.target, faction)
             gs.missiles[faction].append(mine)
 
-        if commands[6] == 1 and self.utilC == 0 and len(self.util_types) > 0:
-            self.util_types[self.util_sel].function(self, gs, faction)
-            self.utilC += self.util_types[self.util_sel].delay
+        # if commands[6] == 1 and self.utilC == 0 and len(self.util_types) > 0:
+        #     self.util_types[self.util_sel].function(self, gs, faction)
+        #     self.utilC += self.util_types[self.util_sel].delay
 
-        if commands[7] == 1 and self.energy > 0.75:  # boost
+        if commands[7] == 1 and commands[1] == 1 and self.energy > 0.3:  # boost
             self.boost = True
             self.velocity = self.ship_type.velocity * 1.25
             self.acc = self.ship_type.acc * 1.25
             self.av = self.ship_type.av * 1.25
-            self.energy -= 0.75
-            for i in range(3):
-                R = 255
-                G = rnd.randint(0, 255)
-                gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.randint(round(2 * self.velocity), 3 * round(self.velocity)), self.angle + rnd.randint(-15, 15), 3, (R, G, 0), vx=self.vx, vy=self.vy, glow=(R // 2, G // 2, 0), shrink=0.7))
+            self.energy -= 0.3
+            R = 255
+            G = rnd.randint(0, 255)
+            gs.particle_list.append(Particle(self.centerx+thrustx, self.centery+thrusty, -rnd.randint(round(2 * self.velocity), 3 * round(self.velocity)), self.angle + rnd.randint(-15, 15), 3, (R, G, 0), vx=self.vx, vy=self.vy, glow=(R // 2, G // 2, 0), shrink=0.7))
         else:
             self.boost = False
             self.velocity = self.ship_type.velocity
@@ -354,19 +377,21 @@ class Ship(pygame.Rect):
         self.determine_visibility()
 
         if not self.cloaked:
-            heat_loss = 0.02 + self.heat * self.ship_type.heat_venting
+            heat_loss = 0.01 + self.heat * self.ship_type.heat_venting  # adj
             if self.heat > heat_loss:
                 self.heat -= heat_loss
                 if self.heat > self.ship_type.heat_capacity:
-                    self.health -= round(self.heat - self.ship_type.heat_capacity, 1)
+                    self.health -= round(self.heat - self.ship_type.heat_capacity, 3)
                     self.heat = self.ship_type.heat_capacity
             else:
                 self.heat = 0
 
             if self.energy < self.ship_type.energy and not self.cloaked:
-                self.energy += 0.5
+                self.energy += 0.25  # adj
             if self.health < self.ship_type.health and self.heat == 0:
-                self.health += 0.05
+                self.health += 0.025  # adj
+                if self.health > self.ship_type.health:
+                    self.health = self.ship_type.health
         if self.bulletC > 0:
             self.bulletC -= 1
         if self.missileC > 0:
@@ -392,56 +417,6 @@ class Ship(pygame.Rect):
             gs.cx = self.centerx
             gs.cy = self.centery
 
-    # def refresh(self, gs):
-    #     self.height = self.ship_type.height
-    #     self.width = self.ship_type.width
-    #     self.energy = self.ship_type.energy
-    #     self.health = self.ship_type.health
-    #     self.image = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L1.png'))
-    #     # self.Imagef = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}_{self.color}_f.png'))
-    #
-    #     # self.imagef = self.Imagef.copy()
-    #
-    #
-    #     for i in range(len(self.bullet_types)):
-    #         x = self.width // 2 + self.ship_type.bullet_pos[i][0] - self.bullet_types[i].l_image.get_width() // 2
-    #         y = self.height // 2 + self.ship_type.bullet_pos[i][1] - self.bullet_types[i].l_image.get_height() // 2
-    #         self.image.blit(self.bullet_types[i].l_image, (x, y))
-    #         # self.imagef.blit(self.bullet_types[i].l_image, (x, y))
-    #
-    #     L1 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L1.png'))
-    #     self.image.blit(L1, (0, 0))
-    #
-    #     for i in range(len(self.missile_types)):
-    #         x = self.width // 2 + self.ship_type.missile_pos[i][0]-self.missile_types[i].image.get_width() // 2
-    #         y = self.height // 2 + self.ship_type.missile_pos[i][1]-self.missile_types[i].image.get_height() // 2
-    #         self.image.blit(self.missile_types[i].image, (x, y))
-    #         # self.imagef.blit(self.missile_types[i].image, (x, y))
-    #
-    #     L2 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L2.png'))
-    #     self.image.blit(L2, (0, 0))
-    #     # self.imagef.blit(self.Imagef, (0, 0))
-    #
-    #     self.image.convert_alpha()
-    #     # self.imagef.convert_alpha()
-    #     # self.image.set_alpha(100)
-    #
-    #
-    #     Turrets = []
-    #     # for turret in self.ship_type.turrets:
-    #     #     Turrets.append(Turret(self.x, self.y, self. self.angle, turret, self.turret_control_module, is_player=False))
-    #     # self.turrets = Turrets
-    #
-    #     for i in range(len(self.ship_type.turrets)):
-    #         Turrets.append(Turret(self.x, self.y, self.ship_type.turret_pos[i], self.angle, self.ship_type.turrets[i], self.turret_control_module, gs, self))
-    #
-    #     self.turrets = Turrets
-
-    # def Hide(self):  # method to turn ship invisible
-    #     self.is_visible = False
-    #
-    # def Unhide(self):  # method to turn ship visible
-    #     self.is_visible = True
 
 
 """TURRET CLASS"""
@@ -486,6 +461,9 @@ class Turret(pygame.Rect):
 
     def scoot(self, gs, faction):
 
+        self.vx = self.ship.vx
+        self.vy = self.ship.vy
+
         commands = self.control_module(self, gs, faction)
 
         """MOVEMENT- ROTATION"""
@@ -508,9 +486,9 @@ class Turret(pygame.Rect):
             missile = Missile(self.x + self.width // 2, self.y + self.height // 2 - 2, self.angle, 2, 10, self.missile_types[self.missile_sel], self.target, faction, gs)
             gs.missiles[faction].append(missile)
         if self.energy < self.Energy:
-            self.energy += 0.25
+            self.energy += 0.1  # adj
         if self.health < self.Health:
-            self.health += 0.005
+            self.health += 0.0025  # adj
         if self.bulletC > 0:
             self.bulletC -= 1
         if self.missileC > 0:
@@ -530,7 +508,7 @@ class Turret(pygame.Rect):
 
 
 class Station(pygame.Rect):
-    def __init__(self, x, y, station_type, control_module, color, gs):
+    def __init__(self, x, y, station_type, control_module, color, gs, faction_name):
         StationType = gs.StationTypes[station_type]
         Turrets = []
         for i in range(len(StationType.turrets)):
@@ -542,6 +520,8 @@ class Station(pygame.Rect):
         self.fy = y
         self.cx = x
         self.cy = y
+        self.vx = 0
+        self.vy = 0
         self.Health = StationType.health
         self.health = self.Health
         self.Energy = StationType.energy
@@ -558,6 +538,8 @@ class Station(pygame.Rect):
         # self.primary = ['HV', 'PA', 'railgun']
         # self.secondary = ['HE', 'torpedo', 'swarm missile', 'smart']
         self.color = color
+        self.faction_name = faction_name
+        self.faction = gs.Factions[faction_name]
         self.turret_control = control_module
         self.pilots = []
         self.ship_build = None
@@ -578,7 +560,7 @@ class Station(pygame.Rect):
         if funds:
             for ore in ship.cost.keys():
                 self.cargo[ore] -= ship.cost[ore]
-            new_ship = Ship(cm, self.turret_control, self.centerx, self.centery, 0, self.color, key, gs)
+            new_ship = Ship(cm, self.turret_control, self.centerx, self.centery, 0, self.color, key, gs, self.faction_name)
             return new_ship
         else:
             return None
@@ -597,10 +579,26 @@ class Station(pygame.Rect):
             else:
                 cm = global_state.pilots[0]
             ship = self.buy_ship(self.ship_build, global_state, cm)
-            i = rnd.randint(0, len(global_state.BulletTypes) - 1)
-            j = rnd.randint(0, len(global_state.MissileTypes) - 1)
-            ship.add_bullet(global_state, list(global_state.BulletTypes.keys())[i])
-            ship.add_missile(global_state, list(global_state.MissileTypes.keys())[j])
+
+            if ship.ship_type.primary > 2:
+                i = rnd.randint(0, len(global_state.BulletTypes) - 1)
+                for n in range(ship.ship_type.primary):
+                    ship.add_bullet(global_state, list(global_state.BulletTypes.keys())[i])
+                ship.add_util(global_state, 'Weapon Synchronizer')
+            else:
+                for n in range(ship.ship_type.primary):
+                    i = rnd.randint(0, len(global_state.BulletTypes) - 1)
+                    ship.add_bullet(global_state, list(global_state.BulletTypes.keys())[i])
+                if ship.bullet_types.count(ship.bullet_types[0]) > 1:
+                    ship.add_util(global_state, 'Weapon Synchronizer')
+
+            for n in range(ship.ship_type.secondary):
+                j = rnd.randint(0, len(global_state.MissileTypes) - 1)
+                ship.add_missile(global_state, list(global_state.MissileTypes.keys())[j])
+
+            for n in range(ship.ship_type.utility):
+                k = rnd.randint(0, len(global_state.UtilTypes) - 1)
+                ship.add_util(global_state, list(global_state.UtilTypes.keys())[k])
             self.docked_ships.append(ship)
             self.ship_build = None
 
@@ -662,11 +660,21 @@ class Asteroid(pygame.Rect):
 
     def mine(self, ship):
         if ship.cargo.cargo_total < ship.ship_type.cargo_cap:
-            r = rnd.randint(0, len(self.ore_types)-1)
-            if self.ore[self.ore_types[r]] > 0:
-                self.ore[self.ore_types[r]] -= 1
-                ship.cargo[self.ore_types[r]] += 1
-                ship.cargo.cargo_total = sum(ship.cargo.values())
+            if 'ore' in ship.info:
+                ore_type = ship.info['ore']
+                if ore_type in self.ore:
+                    self.ore[ore_type] -= 1
+                    ship.cargo[ore_type] += 1
+                    ship.cargo.cargo_total = sum(ship.cargo.values())
+            else:
+                r = rnd.randint(0, len(self.ore_types)-1)
+                if self.ore[self.ore_types[r]] > 0:
+                    self.ore[self.ore_types[r]] -= 1
+                    ship.cargo[self.ore_types[r]] += 1
+                    ship.cargo.cargo_total = sum(ship.cargo.values())
+
+
+
 
 
     # def scoot(self, bullet_list, missile_list, target_list, ally_list, global_state):

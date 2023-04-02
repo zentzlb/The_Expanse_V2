@@ -27,6 +27,7 @@ nR = 500  # number of asteroids
 # while nA is not int and (nA < 0 or nA > 5):
 #     nA = int(input('Number of Allies:'))
 #
+
 # """NUMBER OF ENEMIES"""
 # while nE is not int and (nE < 0 or nE > 5):
 #     nE = int(input('Number of Enemies:'))
@@ -53,7 +54,7 @@ YELLOW = (255, 255, 0)  # YELLOW
 # DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')), (6000, 6000)).convert(HUD)  # foreground image
 # FIELD = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'middle_ground.png')), (6000, 6000)).convert(HUD)  # middle ground image
 
-FPS = 60  # define frame rate
+FPS = 120  # define frame rate
 
 # YELLOW_HIT = pygame.USEREVENT + 1
 # RED_HIT = pygame.USEREVENT + 2
@@ -80,42 +81,55 @@ def main():
     """SPAWN IN SPECIFIED SHIPS"""
     if PCS == 'y':
 
-        yellow = Ship(PlayerControl2, TurretControl, 94000+rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Uboat', MyGS, is_player=True)
+        yellow = Ship(PlayerControl2, TurretControl, 0, 0, 0, 'yellow', 'Harfute', MyGS, 'Rebel Alliance', is_player=True)
 
-        # yellow.add_bullet(MyGS, 'Beam Laser')
-        # yellow.add_bullet(MyGS, 'Flame Thrower')
-        # yellow.add_bullet(MyGS, 'IN AutoCannon')
+        # yellow.add_bullet(MyGS, 'Railgun')
+        # yellow.add_bullet(MyGS, 'Plasma')
+        yellow.add_bullet(MyGS, 'IN AutoCannon')
+        yellow.add_bullet(MyGS, 'IN AutoCannon')
+        yellow.add_bullet(MyGS, 'IN AutoCannon')
         yellow.add_bullet(MyGS, 'Flame Thrower')
-        yellow.add_missile(MyGS, 'Ion Orb')
-        yellow.add_missile(MyGS, 'EMP Missile')
         yellow.add_missile(MyGS, 'Smart Missile')
-        yellow.add_util(MyGS, 'Reactor')
+        yellow.add_missile(MyGS, 'Swarm Missile')
+        yellow.add_missile(MyGS, 'EMP Missile')
+        yellow.add_missile(MyGS, 'Photon Torpedo')
+        yellow.add_util(MyGS, 'Weapon Synchronizer')
+        # yellow.add_util(MyGS, 'Jump Drive')
         yellow.add_util(MyGS, 'Jump Drive')
-        yellow.add_util(MyGS, 'Cloak')
+        yellow.add_util(MyGS, 'Auto Loader')
+        yellow.add_util(MyGS, 'Reactor')
+        # yellow.add_util(MyGS, 'Gravity Repulsor')
         # yellow.add_mine(MyGS, 'Black Hole')
         yellow.add_mine(MyGS, 'Proximity Mine')
         MyGS.ships[0].append(yellow)
 
 
-    yellow = Station(rnd.randint(2000, 5000), rnd.randint(2000, 5000), 'Partrid', TurretControl, 'yellow', MyGS)
+    yellow = Station(rnd.randint(2000, 5000), rnd.randint(2000, 5000), 'Partrid', TurretControl, 'yellow', MyGS, 'Rebel Alliance')
     MyGS.stations[0].append(yellow)
 
     for i in range(nA):
         # yellow = Ship(NPControl2, TurretControl, rnd.randint(0, 200), rnd.randint(0, 1000), rnd.randint(0, 359), 'yellow', 'Frigate', 'HV', 'HE')
         # MyGS.ships[0].append(yellow)
-        yellow = Ship(NPControl2, TurretControl, rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Frigate', MyGS)
+        yellow = Ship(NPControl2, TurretControl, rnd.randint(2000, 5000), rnd.randint(2000, 5000), 0, 'yellow', 'Harfute', MyGS, 'Rebel Alliance')
         yellow.add_bullet(MyGS, 'Plasma')
         yellow.add_missile(MyGS, 'EMP Missile')
         MyGS.ships[0].append(yellow)
 
     for i in range(nE):
 
-        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Fighter', MyGS)
-        red.add_bullet(MyGS, 'AP AutoCannon')
+        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Corpus 9', MyGS, 'Rebel Alliance')
+        # red.add_bullet(MyGS, 'Railgun')
+        # red.add_bullet(MyGS, 'Railgun')
+        # red.add_bullet(MyGS, 'Railgun')
+        # red.add_bullet(MyGS, 'IN AutoCannon')
+        # red.add_bullet(MyGS, 'IN AutoCannon')
+        # red.add_bullet(MyGS, 'IN AutoCannon')
+        red.add_bullet(MyGS, 'Beam Laser')
         red.add_bullet(MyGS, 'Plasma')
         # red.add_missile(MyGS, 'Photon Torpedo')
-        # red.add_util(MyGS, 'Jump Drive')
+        red.add_util(MyGS, 'Jump Drive')
         red.add_util(MyGS, 'Reactor')
+        red.add_util(MyGS, 'Heat Sink')
         MyGS.ships[1].append(red)
 
         # red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size - 2000, MyGS.size - 1000), rnd.randint(2000, 5000),
@@ -124,14 +138,13 @@ def main():
         # red.add_missile(MyGS, 'Smart Missile')
         # MyGS.ships[1].append(red)
 
-        # red = Ship(NPControl2, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(MyGS.size-2000, MyGS.size-1000), 0, 'red', 'Frigate', MyGS)
-        # red.add_bullet(MyGS, 'Plasma')
-        # red.add_missile(MyGS, 'EMP Missile')
-        # MyGS.ships[1].append(red)
+        red = Ship(NPControl2, TurretControl, rnd.randint(MyGS.size-5000, MyGS.size-2000), rnd.randint(MyGS.size-5000, MyGS.size-2000), 0, 'red', 'Harfute', MyGS, 'Terminus Corporation')
+        red.add_bullet(MyGS, 'Plasma')
+        red.add_missile(MyGS, 'EMP Missile')
+        MyGS.ships[1].append(red)
 
-        red = Station(rnd.randint(MyGS.size-5000, MyGS.size-2000), rnd.randint(MyGS.size-5000, MyGS.size-2000), 'Partrid', TurretControl, 'red', MyGS)
-        # red.image.convert(HUD)
-        MyGS.stations[1].append(red)
+    red = Station(rnd.randint(MyGS.size-5000, MyGS.size-2000), rnd.randint(MyGS.size-5000, MyGS.size-2000), 'Partrid', TurretControl, 'red', MyGS, 'Terminus Corporation')
+    MyGS.stations[1].append(red)
 
     for i in range(nR):
         roid = Asteroid(rnd.randint(1000, MyGS.size-1000), rnd.randint(1000, MyGS.size-1000), rnd.randint(0, 359), rnd.randint(0, 100))
@@ -175,10 +188,10 @@ def main():
         if PCS == 'n':
             MoveScreen(MyGS)
 
-        for event in pygame.event.get():  # look for events
-            if event.type == pygame.QUIT:  # check to see if user quit game
-                run = False
-                print('game over!')
+        for event in pygame.event.get(eventtype=pygame.QUIT):  # look for events
+            # if event.type == pygame.QUIT:  # check to see if user quit game
+            run = False
+            print('game over!')
 
         # """Station Function"""
         # for faction in range(len(MyGS.stations)):
