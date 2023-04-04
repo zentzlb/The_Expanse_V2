@@ -42,14 +42,14 @@ def use_jump_drive(ship, gs, commands, faction):
                     dy = ship.centery - missile.centery
                     r2 = dx * dx + dy * dy
                     if r2 < R2:
-                        print('jumped missile')
+                        # print('jumped missile')
                         return 1
                 for bullet in gs.bullets[f]:
                     dx = ship.centerx - bullet.centerx
                     dy = ship.centery - bullet.centery
                     r2 = dx * dx + dy * dy
                     if r2 < R2:
-                        print('jumped bullet')
+                        # print('jumped bullet')
                         return 1
     return 0
 

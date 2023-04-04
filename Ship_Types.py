@@ -119,7 +119,7 @@ Sprinter = {'velocity': 3.5,  # adj
             'name': "Pelomir"}
 
 Frigate = {'velocity': 2,  # adj
-           'acc': 0.05,  # adj
+           'acc': 0.02,  # adj
            'av': 0.25,
            'energy': 500,
            'health': 400,

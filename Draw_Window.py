@@ -9,7 +9,7 @@ from Menus import StationMenu
 from Ship_Class import Ship, Asteroid
 from Explosions import trans_circle, glow_circle
 from Control_Functions import Point
-from Text_Commands import unpack_str
+from Text_Commands import unpack_str, complete_str
 
 
 def draw_window(gs, fps, HEIGHT, WIDTH):
@@ -513,6 +513,9 @@ def draw_textbox(gs, player_ship, keys_pressed, fps):
                             gs.misc_info['command history'] = gs.misc_info['command history'][-30:]
                         unpack_str(gs.misc_info['command text'], gs, player_ship)
                     gs.misc_info['command text'] = ''
+                elif event.key == pygame.K_TAB:
+                    if len(gs.misc_info['command text']) > 0:
+                        complete_str(gs.misc_info['command text'], gs, player_ship)
                 elif event.unicode.isprintable() and len(gs.misc_info['command text']) < 40:
                     gs.misc_info['command text'] += event.unicode
 
@@ -525,7 +528,7 @@ def draw_textbox(gs, player_ship, keys_pressed, fps):
         surf = pygame.Surface((sw, sh))
         for i in range(len(gs.misc_info['command history'])):
             txt = gs.misc_info['command history'][i]
-            txt_surface = gs.fonts[2].render(txt, True, (255, 255, 255))
+            txt_surface = gs.fonts[2].render(txt, True, (200, 200, 200))
             surf.blit(txt_surface, (5, 5+i*th))
         surf.blit(text_surface, (5, sh-th-5))
         surf.set_alpha(100)
