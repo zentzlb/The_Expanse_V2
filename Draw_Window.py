@@ -58,7 +58,8 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
     t1 = time.time()
     for roid in gs.asteroids:
         if (roid.x - gs.x < WIDTH and roid.x - gs.x + roid.width > 0) and (roid.y - gs.y < HEIGHT and roid.y - gs.y + roid.height > 0):
-            gs.WIN.blit(roid.image, (roid.cx - gs.x, roid.cy - gs.y))
+            roid.draw(gs)
+            # gs.WIN.blit(roid.image, (roid.centerx - gs.x, roid.centery - gs.y))
 
     # for i in range(len(gs.particle_list) - 1, -1, -1):
     #     p = gs.particle_list[i]
@@ -84,28 +85,20 @@ def draw_window(gs, fps, HEIGHT, WIDTH):
 
         for station in gs.stations[faction]:
             if (station.x - gs.x < WIDTH and station.x - gs.x + station.width > 0) and (station.y - gs.y < HEIGHT and station.y - gs.y + station.height > 0):
-                gs.WIN.blit(station.image, (station.cx - gs.x, station.cy - gs.y))
-                for turret in station.turrets:
-                    TURRET = pygame.transform.rotate(turret.image, turret.angle)
-                    gs.WIN.blit(TURRET, (turret.cx - gs.x, turret.cy - gs.y))
+                station.draw(gs)
+                # gs.WIN.blit(station.image, (station.centerx - gs.x, station.centery - gs.y))
+                # for turret in station.turrets:
+                #     TURRET = pygame.transform.rotate(turret.image, turret.angle)
+                #     gs.WIN.blit(TURRET, (turret.cx - gs.x, turret.cy - gs.y))
 
         for ship in gs.ships[faction]:
             if ship.health > 0 and (ship.x - gs.x < WIDTH and ship.x - gs.x + ship.width > 0) and (ship.y - gs.y < HEIGHT and ship.y - gs.y + ship.height > 0):
-                # if ship.forward:
-                #     SHIP = pygame.transform.rotate(ship.imagef, ship.angle)  # display with thrusters active
-                # else:
-
-                SHIP = pygame.transform.rotate(ship.image, ship.angle)  # display without thrusters
-                gs.WIN.blit(SHIP, (ship.cx - gs.x, ship.cy - gs.y))
+                ship.draw(gs.WIN, ship.centerx - gs.x, ship.centery - gs.y)
 
                 if ship.heat > 0 and not ship.cloaked:
                     opacity = 50 * (ship.heat / ship.ship_type.heat_capacity)
                     # trans_circle(gs.WIN, ship.centerx - gs.x, ship.centery - gs.y, math.sqrt(2) * ship.width // 2, (0, 0, 255, round(opacity)))
                     glow_circle(gs.WIN, ship.centerx - gs.x, ship.centery - gs.y, math.sqrt(2) * ship.width // 2, (0, 0, round(opacity)))
-
-                for turret in ship.turrets:
-                    TURRET = pygame.transform.rotate(turret.image, turret.angle)
-                    gs.WIN.blit(TURRET, (turret.cx - gs.x, turret.cy - gs.y))
 
                 if not ship.is_player and gs.show_bars:  # ship is not player controlled
                     """HEALTH BAR"""
@@ -282,8 +275,8 @@ def draw_hud(gs, player_ship, keys_pressed, fps):
 
         """DRAW TARGET"""
 
-        dx = player_ship.target.cx - player_ship.cx
-        dy = player_ship.target.cy - player_ship.cy
+        dx = player_ship.target.centerx - player_ship.centerx
+        dy = player_ship.target.centery - player_ship.centery
 
         # target_rect = pygame.Rect(box_tl[0] + 2, box_tl[1] + 2, box_tr[0] - box_tl[0] - 3, box_bl[1] - box_tl[1] - 3)
         pygame.draw.rect(HUD, (255, 0, 0, 15), rect1)

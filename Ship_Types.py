@@ -20,7 +20,7 @@ Fighter = {'velocity': 3.3,  # adj
            'secondary': 1,
            'mine': 0,
            'utility': 1,
-           'cargo_cap': 50,
+           'cargo_cap': 20,
            'cost': {},
            'name': "Corpus 9"}
 
@@ -44,7 +44,7 @@ Uboat = {'velocity': 3.2,  # adj
          'secondary': 0,
          'mine': 0,
          'utility': 3,
-         'cargo_cap': 50,
+         'cargo_cap': 30,
          'cost': {},
          'name': "Sarhakum"}
 
@@ -68,7 +68,7 @@ HeavyFighter = {'velocity': 3,  # adj
                 'secondary': 1,
                 'mine': 0,
                 'utility': 2,
-                'cargo_cap': 50,
+                'cargo_cap': 30,
                 'cost': {},
                 'name': "Rakreem"}
 
@@ -91,7 +91,7 @@ Ghost = {'velocity': 3,  # adj
          'secondary': 2,
          'mine': 0,
          'utility': 3,
-         'cargo_cap': 20,
+         'cargo_cap': 40,
          'cost': {},
          'name': "Velinture"}
 
@@ -137,7 +137,7 @@ Frigate = {'velocity': 2,  # adj
            'secondary': 0,
            'mine': 1,
            'utility': 2,
-           'cargo_cap': 1000,
+           'cargo_cap': 500,
            'cost': {},
            'name': "Harfute"}
 
@@ -160,7 +160,7 @@ Destroyer = {'velocity': 1.75,  # adj
              'secondary': 2,
              'mine': 1,
              'utility': 3,
-             'cargo_cap': 300,
+             'cargo_cap': 100,
              'cost': {},
              'name': "Audigote"}
 
@@ -176,14 +176,14 @@ Pafonteer = {'velocity': 3.3,  # adj
              'range': 40000,
              'turrets': [],
              'turret_pos': [],
-             'bullet_pos': [np.array([-12, 19])],
+             'bullet_pos': [np.array([-12, 15])],
              'missile_pos': [],
              'emblem_pos': [(3, 11)],
              'primary': 1,
              'secondary': 0,
              'mine': 0,
              'utility': 1,
-             'cargo_cap': 450,
+             'cargo_cap': 150,
              'cost': {},
              'name': "Pafonteer"}
 
@@ -207,7 +207,7 @@ Ontulus = {'velocity': 3.25,  # adj
            'secondary': 1,
            'mine': 1,
            'utility': 2,
-           'cargo_cap': 50,
+           'cargo_cap': 20,
            'cost': {},
            'name': "Ontulus"}
 
@@ -231,7 +231,7 @@ Garvantex = {'velocity': 2.5,  # adj
            'secondary': 0,
            'mine': 0,
            'utility': 1,
-           'cargo_cap': 50,
+           'cargo_cap': 30,
            'cost': {},
            'name': "Garvantex"}
 

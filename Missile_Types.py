@@ -70,12 +70,14 @@ def photon_explosion(self, gs, dmgList):
 
 def draw_missile(missile, gs):
     image = pygame.transform.rotate(missile.image, missile.angle)
-    gs.WIN.blit(image, (missile.x - gs.x, missile.y - gs.y))
+    x = missile.centerx - gs.x - image.get_width() // 2
+    y = missile.centery - gs.y - image.get_height() // 2
+    gs.WIN.blit(image, (x, y))
 
 
 def draw_circ(missile, gs):
-    x1 = missile.x - gs.x
-    y1 = missile.y - gs.y
+    x1 = missile.centerx - gs.x
+    y1 = missile.centery - gs.y
     x2 = x1 + missile.width // 2
     y2 = y1 + missile.height // 2
     gs.WIN.blit(missile.image, (x1, y1))

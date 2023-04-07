@@ -46,7 +46,9 @@ def init_beam(ship, gs, faction):
 
 def draw_bullet(bullet, gs):
     # gs.WIN.blit(gs.images['wave'][50], (bullet.x - gs.x, bullet.y - gs.y), special_flags=BLEND_RGB_ADD)
-    gs.WIN.blit(bullet.image, (bullet.x - gs.x, bullet.y - gs.y))
+    x = bullet.centerx - gs.x - bullet.image.get_width() // 2
+    y = bullet.centery - gs.y - bullet.image.get_height() // 2
+    gs.WIN.blit(bullet.image, (x, y))
 
 def draw_flame(bullet, gs):
     scale = (bullet.range / bullet.velocity - bullet.timer) / 40

@@ -20,3 +20,5 @@ RebelAlliance = {'color': (255, 0, 0),  # adj
                  'channel': {}}
 
 FactionList = [TerminusCorp, SpacePirates, RebelAlliance]
+
+

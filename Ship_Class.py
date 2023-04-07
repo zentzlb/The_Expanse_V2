@@ -28,8 +28,8 @@ class Ship(pygame.Rect):
         self.acc = ShipType.acc
         self.fx = x
         self.fy = y
-        self.cx = x
-        self.cy = y
+        # self.cx = x
+        # self.cy = y
         self.health = ShipType.health
         self.heat = 0
         # self.Energy = ShipType.energy
@@ -72,9 +72,6 @@ class Ship(pygame.Rect):
 
         self.refresh(gs)
 
-    def draw(self, gs):
-        pass
-
     def add_bullet(self, gs, key):
         if len(self.bullet_types) < self.ship_type.primary:
             self.bullet_types.append(gs.BulletTypes[key])
@@ -107,6 +104,30 @@ class Ship(pygame.Rect):
             else:
                 self.hidden = False
 
+    def draw(self, surf, xo, yo):
+        if len(self.turrets) == 0:
+            SHIP = pygame.transform.rotate(self.image, self.angle)
+            # x = self.centerx - gs.x - SHIP.get_width() // 2
+            # y = self.centery - gs.y - SHIP.get_height() // 2
+            x = xo - SHIP.get_width() // 2
+            y = yo - SHIP.get_height() // 2
+            surf.blit(SHIP, (x, y))
+        else:
+            SHIP = self.image.copy()
+            for turret in self.turrets:
+                TURRET = pygame.transform.rotate(turret.image, turret.angle-self.angle)
+                x = self.width // 2 + turret.pos[0] - TURRET.get_width() // 2
+                y = self.height // 2 + turret.pos[1] - TURRET.get_height() // 2
+                SHIP.blit(TURRET, (x, y))
+
+            SHIP = pygame.transform.rotate(SHIP, self.angle)
+
+            # x = self.centerx - gs.x - SHIP.get_width() // 2
+            # y = self.centery - gs.y - SHIP.get_height() // 2
+            x = xo - SHIP.get_width() // 2
+            y = yo - SHIP.get_height() // 2
+            surf.blit(SHIP, (x, y))
+
     def refresh(self, gs):
         self.height = self.ship_type.height
         self.width = self.ship_type.width
@@ -117,11 +138,7 @@ class Ship(pygame.Rect):
         # for r in range(self.width//2):
         #     trans_circle(self.image, self.width//2, self.height//2, r, (100, 200, 255, 10))
         self.image_cloaked = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        # self.Imagef = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}_{self.color}_f.png'))
 
-        # self.imagef = self.Imagef.copy()
-
-        # L1 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L1.png'))
         L1 = self.faction.ship_images[self.ship_type.name]['L1']
         L2 = self.faction.ship_images[self.ship_type.name]['L2']
         self.image.blit(L1, (0, 0))
@@ -136,37 +153,10 @@ class Ship(pygame.Rect):
             y = self.height // 2 + self.ship_type.missile_pos[i][1]-self.missile_types[i].image.get_height() // 2
             self.image.blit(self.missile_types[i].image, (x, y))
 
-        # L2 = pygame.image.load(os.path.join('Assets', f'{self.ship_type.name}', 'L2.png'))
         self.image.blit(L2, (0, 0))
-        # for w in range(self.width):
-        #     for h in range(self.height):
-        #         color = self.image.get_at((w, h))
-        #         print(color)
-        #         if color == (18, 52, 86, 255):
-        #             print('found')
-        #             self.image.set_at((w, h), self.faction.color)
-        # for emblem in self.ship_type.emblem_pos:
-        #     self.image.blit(self.faction.image, emblem)
-
-        # palette = self.image.get_palette()
-        # palette[0] = (255, 0, 0, 0)
-        # self.image.set_palette(palette)
-        # pygame.draw.circle(self.image, (10, 10, 10, 1), (self.width//2, self.height//2), 10)
-
-        # for w in range(self.width):
-        #     for h in range(self.height):
-        #         color = self.image.get_at((w, h))
-        #         if color[3] > 150:
-        #             print('found')
-        #             self.image.set_at((w, h), (0, 0, 0, 0))
-
         self.image.convert_alpha()
 
-
         Turrets = []
-        # for turret in self.ship_type.turrets:
-        #     Turrets.append(Turret(self.x, self.y, self. self.angle, turret, self.turret_control_module, is_player=False))
-        # self.turrets = Turrets
 
         for i in range(len(self.ship_type.turrets)):
             Turrets.append(Turret(self.x, self.y, self.ship_type.turret_pos[i], self.angle, self.ship_type.turrets[i], self.turret_control_module, gs, self))
@@ -240,10 +230,10 @@ class Ship(pygame.Rect):
         self.x = round(self.fx)
         self.y = round(self.fy)
 
-        self.cx = round(self.x + (
-                    self.width - self.height * abs(math.sin(self.angle * math.pi / 180)) - self.width * abs(math.cos(self.angle * math.pi / 180))) / 2)
-        self.cy = round(self.y + (
-                    self.height - self.width * abs(math.sin(self.angle * math.pi / 180)) - self.height * abs(math.cos(self.angle * math.pi / 180))) / 2)
+        # self.cx = round(self.x + (
+        #             self.width - self.height * abs(math.sin(self.angle * math.pi / 180)) - self.width * abs(math.cos(self.angle * math.pi / 180))) / 2)
+        # self.cy = round(self.y + (
+        #             self.height - self.width * abs(math.sin(self.angle * math.pi / 180)) - self.height * abs(math.cos(self.angle * math.pi / 180))) / 2)
 
         """FIRE BULLETS and MISSILES"""
         if commands[3] == 1 and len(self.bullet_types) > 0 and self.energy >= self.bullet_types[self.bullet_sel].energy and self.bulletC == 0:  # DOWN
@@ -262,7 +252,7 @@ class Ship(pygame.Rect):
             self.energy -= self.missile_types[self.missile_sel].energy
             self.missileC = self.missile_types[self.missile_sel].delay
 
-            pos = self.center + self.Q.transpose().dot(self.ship_type.missile_pos[self.missile_sel]) - np.array(
+            pos = self.center + self.Qt.dot(self.ship_type.missile_pos[self.missile_sel]) - np.array(
                 [self.missile_types[self.missile_sel].width // 2, self.missile_types[self.missile_sel].height // 2])
             missile = Missile(pos[0], pos[1], self.angle,
                               self.missile_types[self.missile_sel].height, self.missile_types[self.missile_sel].width,
@@ -401,14 +391,15 @@ class Ship(pygame.Rect):
 
         """UPDATE TURRET"""
         if len(self.turrets) > 0:
-            cos = math.cos(self.angle * math.pi / 180)
-            sin = math.sin(self.angle * math.pi / 180)
-
-            Q = np.array([[cos, sin], [-sin, cos]])
+            # cos = math.cos(self.angle * math.pi / 180)
+            # sin = math.sin(self.angle * math.pi / 180)
+            #
+            # Q = np.array([[cos, sin], [-sin, cos]])
 
             for turret in self.turrets:
-                turret.centerx = self.centerx + Q.dot(turret.pos)[0]
-                turret.centery = self.centery + Q.dot(turret.pos)[1]
+                xy = self.Qt.dot(turret.pos)
+                turret.centerx = self.centerx + xy[0]
+                turret.centery = self.centery + xy[1]
                 turret.scoot(gs, faction)
 
         if self.is_player:
@@ -432,8 +423,8 @@ class Turret(pygame.Rect):
         self.av = TurretType.av
         self.fx = x
         self.fy = y
-        self.cx = x
-        self.cy = y
+        # self.cx = x
+        # self.cy = y
         self.pos = pos
         self.Health = TurretType.health
         self.health = self.Health
@@ -494,8 +485,8 @@ class Turret(pygame.Rect):
         if self.missileC > 0:
             self.missileC -= 1
 
-        self.cx = round(self.x + (self.width - self.height * abs(math.sin(self.angle * math.pi / 180)) - self.width * abs(math.cos(self.angle * math.pi / 180))) / 2)
-        self.cy = round(self.y + (self.height - self.width * abs(math.sin(self.angle * math.pi / 180)) - self.height * abs(math.cos(self.angle * math.pi / 180))) / 2)
+        # self.cx = round(self.x + (self.width - self.height * abs(math.sin(self.angle * math.pi / 180)) - self.width * abs(math.cos(self.angle * math.pi / 180))) / 2)
+        # self.cy = round(self.y + (self.height - self.width * abs(math.sin(self.angle * math.pi / 180)) - self.height * abs(math.cos(self.angle * math.pi / 180))) / 2)
 
         if self.is_player:
             gs.x = self.centerx - gs.width / 2
@@ -518,8 +509,8 @@ class Station(pygame.Rect):
         super().__init__(x, y, StationType.height, StationType.width)
         self.fx = x
         self.fy = y
-        self.cx = x
-        self.cy = y
+        # self.cx = x
+        # self.cy = y
         self.vx = 0
         self.vy = 0
         self.Health = StationType.health
@@ -546,6 +537,17 @@ class Station(pygame.Rect):
         self.ship_cost = None
         self.cargo_types = list(self.cargo)
         self.is_visible = True
+
+    def draw(self, gs):
+        x = self.centerx - gs.x - self.image.get_width() // 2
+        y = self.centery - gs.y - self.image.get_height() // 2
+        gs.WIN.blit(self.image, (x, y))
+        for turret in self.turrets:
+            TURRET = pygame.transform.rotate(turret.image, turret.angle)
+            x = turret.centerx - gs.x - TURRET.get_width() // 2
+            y = turret.centery - gs.y - TURRET.get_height() // 2
+            gs.WIN.blit(TURRET, (x, y))
+
 
     def check_funds(self, item):
         funds = True
@@ -574,7 +576,7 @@ class Station(pygame.Rect):
             i = rnd.randint(0, len(global_state.ShipTypes) - 1)
             self.ship_build = list(global_state.ShipTypes.keys())[i]
         if self.check_funds(global_state.ShipTypes[self.ship_build]):
-            if self.ship_build == 'Frigate':
+            if global_state.ShipTypes[self.ship_build].cargo_cap > 100:
                 cm = global_state.pilots[1]
             else:
                 cm = global_state.pilots[0]
@@ -639,12 +641,12 @@ class Asteroid(pygame.Rect):
         self.angle = angle
         self.is_visible = True
         self.health = math.inf
-        self.cx = round(self.x + (
-                self.width - self.height * abs(math.sin(self.angle * math.pi / 180)) - self.width * abs(
-                    math.cos(self.angle * math.pi / 180))) / 2)
-        self.cy = round(self.y + (
-                self.height - self.width * abs(math.sin(self.angle * math.pi / 180)) - self.height * abs(
-                    math.cos(self.angle * math.pi / 180))) / 2)
+        # self.cx = round(self.x + (
+        #         self.width - self.height * abs(math.sin(self.angle * math.pi / 180)) - self.width * abs(
+        #             math.cos(self.angle * math.pi / 180))) / 2)
+        # self.cy = round(self.y + (
+        #         self.height - self.width * abs(math.sin(self.angle * math.pi / 180)) - self.height * abs(
+        #             math.cos(self.angle * math.pi / 180))) / 2)
         if Type <= 100:
             self.ore = assign_ore('Std')
         self.ore_types = list(self.ore)
@@ -657,6 +659,11 @@ class Asteroid(pygame.Rect):
     def harvest(self, ore_name, quantity):  # method to harvest a specified amount of an ore from an asteroid
         self.ore[ore_name] -= quantity
         return quantity  # returns the number of ore units removed from the asteroid
+
+    def draw(self, gs):
+        x = self.centerx - gs.x - self.image.get_width() // 2
+        y = self.centery - gs.y - self.image.get_height() // 2
+        gs.WIN.blit(self.image, (x, y))
 
     def mine(self, ship):
         if ship.cargo.cargo_total < ship.ship_type.cargo_cap:

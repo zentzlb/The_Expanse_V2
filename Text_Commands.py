@@ -1,6 +1,7 @@
 from Ship_Class import Ship, Station, Asteroid
 from Misc import FindNearest
 
+
 def clear_text(gs, ship, args):
     gs.misc_info['command history'] = []
 
@@ -8,6 +9,12 @@ def clear_text(gs, ship, args):
 def clear_ore(gs, ship, args):
     if 'ore' in ship.info:
         del ship.info['ore']
+
+
+def clear_cargo(gs, ship, args):
+    if args in ship.cargo:
+        del ship.cargo[args]
+    ship.cargo.cargo_total = sum(ship.cargo.values())
 
 
 def set_ore(gs, ship, args):
@@ -138,7 +145,8 @@ target_dict = {'ship': target_ship,
 set_dict = {'ore': set_ore}
 
 clear_dict = {'ore': clear_ore,
-              'text': clear_text}
+              'text': clear_text,
+              'cargo': clear_cargo}
 
 check_dict = {'cargo': check_cargo,
               'target': check_target,

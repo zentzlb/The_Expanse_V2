@@ -178,10 +178,10 @@ def NPControl2(ship, global_state, faction):
             commands[0] = -1
 
         """"""
-        if dx * dx + dy * dy < ship.target.width * ship.target.width // 4:
+        if dx * dx + dy * dy < ship.target.width * ship.target.width // 2:
             # print('close')
             v_prime = ship.Q.dot(np.array([[ship.vx], [ship.vy]]))
-            if v_prime[0] > 0:
+            if v_prime[0] > 0 or abs(angle2 * 180 / math.pi) > 80:
                 commands[1] = -1
             else:
                 commands[1] = 1

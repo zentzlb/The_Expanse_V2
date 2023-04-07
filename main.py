@@ -81,7 +81,7 @@ def main():
     """SPAWN IN SPECIFIED SHIPS"""
     if PCS == 'y':
 
-        yellow = Ship(PlayerControl2, TurretControl, 0, 0, 0, 'yellow', 'Harfute', MyGS, 'Terminus Corporation', is_player=True)
+        yellow = Ship(PlayerControl2, TurretControl, 0, 0, 0, 'yellow', 'Pelomir', MyGS, 'Terminus Corporation', is_player=True)
 
         # yellow.add_bullet(MyGS, 'Railgun')
         # yellow.add_bullet(MyGS, 'Plasma')

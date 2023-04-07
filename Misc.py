@@ -85,6 +85,8 @@ class GlobalState:
         self.dust = []
         self.field = []
         self.dust_images = [pygame.image.load(os.path.join('Assets', 'dust4.png')).convert_alpha(), pygame.image.load(os.path.join('Assets', 'dust5.png')).convert_alpha(), pygame.image.load(os.path.join('Assets', 'dust6.png')).convert_alpha()]
+        for image in self.dust_images:
+            image.set_alpha(100)
         # self.field_images = [pygame.image.load(os.path.join('Assets', 'asteroid80nl.png')).convert_alpha()]
 
         # self.DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')),
@@ -94,7 +96,7 @@ class GlobalState:
         self.make_faction_ships()
         self.update()
         self.load_images('Assets')
-        for i in range(250):
+        for i in range(300):
             self.dust.append((rnd.randint(0, 6000), rnd.randint(0, 6000), rnd.randint(0, len(self.dust_images)-1)))
         for i in range(50):
             self.field.append(BackgroundParticle(rnd.randint(0, 24000), rnd.randint(0, 24000), self.images['Asteroids'][rnd.randint(0, len(self.images['Asteroids'])-1)]))
