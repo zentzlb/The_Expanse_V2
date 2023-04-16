@@ -12,3 +12,9 @@ x) gravity repulsor
 o) jammer
 o) drones
 
+o) asteroid station (asteroid base or station disguised as an asteroid)
+o) save/load functions
+o) NPC and player need to be playing by the same rules with respect to harvesting
+o) player harvesting should take equivalent time to the NPCs
+o) player needs to be able to be attacked while harvesting
+o) player can click the ore type in-game without needing a menu
