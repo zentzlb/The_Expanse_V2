@@ -3,6 +3,110 @@ import os
 from Misc import check_purchase, purchase
 
 
+class Menu:
+
+    def __init__(self, options):
+        self.keys_pressed = pygame.key.get_pressed()
+        self.mouse_pressed = pygame.mouse.get_pressed()
+        self.mouse_pos = pygame.mouse.get_pos()
+        self.counter = 0
+        self.button_rects = []
+        self.option_list = options
+        self.selected = 0
+        self.hover = -1
+        self.ship = None
+        # self.description = description
+
+    def draw_button(self, text, font, color, surface, center_x, center_y):
+        textobj = font.render(text, 1, color)
+        textrect = textobj.get_rect()
+        textrect.topleft = (center_x - (textobj.get_width() // 2), center_y - (textobj.get_height() // 2))
+        surface.blit(textobj, textrect)
+
+    def draw_icon_button(self, menu, text, font, color, surface, center_x, center_y):
+        button = pygame.Surface((280, 190))
+        button_rect = button.get_rect()
+        button_rect.topleft = (center_x - 140, center_y - 95)
+        image = pygame.image.load(os.path.join('Assets', f'{menu}_Icon.png'))
+        button.blit(image, (0, 0))  # draws the icon onto the button surface at the top left of the button
+        text_surface = font.render(text, 1, color)
+        text_rect = text_surface.get_rect()
+        text_rect.topleft = (140 - (text_surface.get_width() // 2), 165 - (text_surface.get_height() // 2))
+        if len(self.button_rects) < len(self.option_list):
+            self.button_rects.append(button_rect)
+        button.blit(text_surface, text_rect)
+        surface.blit(button, button_rect)
+
+    def draw_menu(self, hud, gs):
+        keys_pressed = pygame.key.get_pressed()
+        mouse_pressed = pygame.mouse.get_pressed()
+        edge = 50
+        menuRect = pygame.Rect(edge, edge, gs.width-edge*2, gs.height-edge*2)
+        pygame.draw.rect(hud, (30, 30, 30, 225), menuRect)
+
+        for i in range(len(gs.docked.docked_ships)):
+            if gs.docked.docked_ships[i].is_player:
+                self.ship = gs.docked.docked_ships[i]
+
+        if keys_pressed[pygame.K_ESCAPE] and not self.keys_pressed[pygame.K_ESCAPE]:
+            self.ship.refresh(gs)
+            gs.ships[0].append(self.ship)
+            gs.docked.docked_ships.remove(self.ship)
+            gs.docked = None
+            gs.menu = None
+
+        if mouse_pressed[0] and not self.mouse_pressed[0]:
+            mouse_pos = pygame.mouse.get_pos()
+
+            for i in range(len(self.button_rects)):
+                if self.button_rects[i].collidepoint(mouse_pos):
+                    self.selected = i
+                    if self.selected == 0:
+                        gs.menu = MapMenu()
+                    elif self.selected == 1:
+                        gs.menu = WorkshopMenu()
+                    elif self.selected == 2:
+                        gs.menu = CargoMenu()
+                    elif self.selected == 3:
+                        gs.menu = TavernMenu()
+
+        self.keys_pressed = keys_pressed
+        self.mouse_pressed = mouse_pressed
+
+        self.draw_button("Main Menu", gs.fonts[0], (255, 255, 255), hud, 50 + menuRect.width / 2, 100)
+        self.draw_button("Press Esc to Launch", gs.fonts[0], (255, 255, 255), hud,
+                         50 + menuRect.width / 2, menuRect.height - 50)
+
+        for i in range(len(self.option_list)):
+            color = (255, 255, 255)
+
+            self.draw_icon_button(f'{self.option_list[i]}Menu', self.option_list[i], gs.fonts[0], color, hud,
+                                  50 + (menuRect.width / 2) + ((-1 + (2 * (i % 2))) * 300), 200 + (300 * int(i / 2)))
+
+        mouse_pos = pygame.mouse.get_pos()
+
+        for i in range(len(self.button_rects)):
+            if self.button_rects[i].collidepoint(mouse_pos):
+                hover = i
+                if self.hover == hover:
+                    self.counter += 1
+                    if self.counter >= 15:
+                        if hover == 0:
+                            menu_choice = MapMenu()
+                        elif hover == 1:
+                            menu_choice = WorkshopMenu()
+                        elif hover == 2:
+                            menu_choice = CargoMenu()
+                        elif hover == 3:
+                            menu_choice = TavernMenu()
+                        self.draw_button(menu_choice.description, gs.fonts[0], (255, 255, 255), hud,
+                                         pygame.mouse.get_pos()[0] + 75,
+                                         pygame.mouse.get_pos()[1] + 25)
+                else:
+                    self.counter = 0
+                    self.hover = hover
+
+
 class StationMenu:
 
     def __init__(self):
@@ -70,7 +174,7 @@ class StationMenu:
                 hover = i
                 if self.hover == hover:
                     self.counter += 1
-                    if self.counter >= 15:
+                    if self.counter >= 150:
                         if hover == 0:
                             menu_choice = MapMenu()
                         elif hover == 1:

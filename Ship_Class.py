@@ -196,13 +196,22 @@ class Ship(pygame.Rect):
             self.vx += self.acc * math.sin(self.angle * math.pi / 180)
             self.vy += self.acc * math.cos(self.angle * math.pi / 180)
             self.forward = True
-            thrustx = -sin * self.height // 3
-            thrusty = -cos * self.height // 3
+            # thrustx = -sin * self.height // 3
+            # thrusty = -cos * self.height // 3
+
+            if commands[7] == 1:
+                size = 4
+            else:
+                size = 3
+
             R = 255
             G = rnd.randint(0, 255)
-            gs.particle_list.append(
-                Particle(self.centerx + thrustx, self.centery + thrusty, -rnd.randint(10, 12), self.angle + rnd.randint(-15, 15), 3,
-                         (R, G, 0), shrink=0.5, vx=self.vx, vy=self.vy, glow=(R//2, G//2, 0)))
+
+            for thrust in self.ship_type.thrust_pos:
+                pos = self.center + self.Qt.dot(thrust)
+                gs.particle_list.append(
+                    Particle(pos[0], pos[1], -rnd.randint(10, 12), self.angle + rnd.randint(-15, 15), size,
+                             (R, G, 0), shrink=0.5, vx=self.vx, vy=self.vy, glow=(R//2, G//2, 0)))
         elif commands[1] == -1:  # DOWN
             self.vx -= self.acc * math.sin(self.angle * math.pi / 180) / 3
             self.vy -= self.acc * math.cos(self.angle * math.pi / 180) / 3
@@ -276,9 +285,9 @@ class Ship(pygame.Rect):
             self.acc = self.ship_type.acc * 1.25
             self.av = self.ship_type.av * 1.25
             self.energy -= 0.3
-            R = 255
-            G = rnd.randint(0, 255)
-            gs.particle_list.append(Particle(self.centerx+thrustx, self.centery+thrusty, -rnd.randint(round(2 * self.velocity), 3 * round(self.velocity)), self.angle + rnd.randint(-15, 15), 3, (R, G, 0), vx=self.vx, vy=self.vy, glow=(R // 2, G // 2, 0), shrink=0.7))
+            # R = 255
+            # G = rnd.randint(0, 255)
+            # gs.particle_list.append(Particle(self.centerx+thrustx, self.centery+thrusty, -rnd.randint(round(2 * self.velocity), 3 * round(self.velocity)), self.angle + rnd.randint(-15, 15), 3, (R, G, 0), vx=self.vx, vy=self.vy, glow=(R // 2, G // 2, 0), shrink=0.7))
         else:
             self.boost = False
             self.velocity = self.ship_type.velocity

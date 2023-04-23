@@ -287,6 +287,9 @@ class Mine(pygame.Rect):
         self.mine_type = mine_type
         self.faction = faction
 
+    def draw(self, gs):
+        self.mine_type.draw(self, gs)
+
     def scoot(self, gs):
 
         self.mine_type.function(self, gs)

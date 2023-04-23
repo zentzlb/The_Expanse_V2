@@ -154,8 +154,94 @@ class GlobalState:
         print('done')
 
 
+class LocalState:
+    def __init__(self, size, x, y, height, width, fonts, player, menu=None):
+        self.player = player
+        self.size = size
+        self.x = x
+        self.y = y
+        self.cx = x + width / 2
+        self.cy = y + height / 2
+        self.height = height
+        self.width = width
+        self.show_bars = False
+        self.particle_list = []  # behind ships
+        self.particle_list2 = []  # in front of ships
+        self.lines = []  # lines in front of ship
+        self.fonts = fonts
+        self.menu = menu
+        self.targets = []
+        self.mining_sound = pygame.mixer.Sound(os.path.join('Assets', 'mining.mp3'))
+        self.mining = pygame.mixer.Channel(2)
+        self.WIN = pygame.display.set_mode((width, height), pygame.SCALED | pygame.FULLSCREEN)  # create window
+        self.images = {}
+        self.misc_info = {'command prompt': False, 'command text': '', 'command history': []}
+        self.Factions = make_dict(FactionList)
+        self.faction_names = list(self.Factions.keys())
+        self.ShipTypes = make_dict(ShipNames)
+        self.ship_names = list(self.ShipTypes.keys())
+        self.DebrisTypes = make_dict(Debris)
+        self.explosion_group = pygame.sprite.Group()  # initialize explosion group
+        self.SPACE = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space2.png')),
+                                       (width, height)).convert()  # background image
+        self.dust = []
+        self.field = []
+        self.dust_images = [pygame.image.load(os.path.join('Assets', 'dust4.png')).convert_alpha(), pygame.image.load(os.path.join('Assets', 'dust5.png')).convert_alpha(), pygame.image.load(os.path.join('Assets', 'dust6.png')).convert_alpha()]
+        for image in self.dust_images:
+            image.set_alpha(100)
+        # self.field_images = [pygame.image.load(os.path.join('Assets', 'asteroid80nl.png')).convert_alpha()]
 
+        # self.DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')),
+        #                               (6000, 6000)).convert_alpha()  # foreground image
+        self.FIELD = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'middle_ground.png')),
+                                       (6000, 6000)).convert_alpha()  # middle ground image
+        self.make_faction_ships()
+        self.load_images('Assets')
+        for i in range(300):
+            self.dust.append((rnd.randint(0, 6000), rnd.randint(0, 6000), rnd.randint(0, len(self.dust_images)-1)))
+        for i in range(50):
+            self.field.append(BackgroundParticle(rnd.randint(0, 24000), rnd.randint(0, 24000), self.images['Asteroids'][rnd.randint(0, len(self.images['Asteroids'])-1)]))
 
+    def play_mining(self, volume=1):
+        if not self.mining.get_busy():
+            self.mining.play(self.mining_sound)
+
+    def load_images(self, rootdir):
+        Dirs = []
+        for subdir, dirs, files in os.walk(rootdir):
+            if len(dirs) != 0:
+                Dirs.extend(dirs)
+        for Dir in Dirs:
+            directory = os.path.join(rootdir, Dir)
+            image_list = []
+            for file in os.listdir(directory):
+                path = os.path.join(directory, file)
+                image = pygame.image.load(path)
+                image.convert_alpha()
+                image_list.append(image)
+            self.images[Dir] = image_list
+            # return image_list
+
+    def make_faction_ships(self):
+        print('generating ship images...')
+        for name in self.faction_names:
+            faction = self.Factions[name]
+            for ship in self.ship_names:
+                L1 = pygame.image.load(os.path.join('Assets', f'{ship}', 'L1.png'))
+                L2 = pygame.image.load(os.path.join('Assets', f'{ship}', 'L2.png'))
+                for w in range(L1.get_width()):
+                    for h in range(L1.get_height()):
+                        color1 = L1.get_at((w, h))
+                        color2 = L2.get_at((w, h))
+                        if color1 == (18, 52, 86, 255):
+                            L1.set_at((w, h), faction.color)
+                        if color2 == (18, 52, 86, 255):
+                            L2.set_at((w, h), faction.color)
+
+                for emblem in self.ShipTypes[ship].emblem_pos:
+                    L2.blit(faction.image, emblem)
+                faction.ship_images[ship] = {'L1': L1, 'L2': L2}
+        print('done')
 
 
 def make_dict(List):

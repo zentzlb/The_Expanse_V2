@@ -1,6 +1,6 @@
 import numpy as np
 
-Fighter = {'velocity': 3.3,  # adj
+Fighter = {'velocity': 3.2,  # adj
            'acc': 0.1,  # adj
            'av': 1,  # adj
            'energy': 800,
@@ -11,6 +11,7 @@ Fighter = {'velocity': 3.3,  # adj
            'width': 40,
            'range': 20000,
            'turrets': [],
+           'thrust_pos': [np.array([-55, -42]), np.array([55, -42]), np.array([0, -52])],
            'turret_pos': [],
            'description': 'This ship is fast',
            'bullet_pos': [np.array([-11, 9]), np.array([11, 9])],
@@ -24,6 +25,31 @@ Fighter = {'velocity': 3.3,  # adj
            'cost': {},
            'name': "Corpus 9"}
 
+Nasool = {'velocity': 4,  # adj
+          'acc': 0.15,  # adj
+          'av': 1,  # adj
+          'energy': 800,
+          'health': 125,
+          'heat_capacity': 100,
+          'heat_venting': 0.002,  # adj
+          'height': 42,
+          'width': 42,
+          'range': 25000,
+          'turrets': [],
+          'thrust_pos': [np.array([-55, 42]), np.array([55, 42]), np.array([0, -52])],
+          'turret_pos': [],
+          'description': 'This ship is fast',
+          'bullet_pos': [np.array([0, -7])],
+          'missile_pos': [],
+          'emblem_pos': [],
+          'primary': 1,
+          'secondary': 0,
+          'mine': 1,
+          'utility': 0,
+          'cargo_cap': 40,
+          'cost': {},
+          'name': "Nasool"}
+
 Uboat = {'velocity': 3.2,  # adj
          'acc': 0.15,  # adj
          'av': 1.25,  # adj
@@ -35,6 +61,7 @@ Uboat = {'velocity': 3.2,  # adj
          'width': 40,
          'range': 30000,
          'turrets': [],
+         'thrust_pos': [np.array([0, -15])],
          'turret_pos': [],
          'description': 'This ship is fast',
          'bullet_pos': [np.array([0, 4])],
@@ -59,6 +86,7 @@ HeavyFighter = {'velocity': 3,  # adj
                 'width': 60,
                 'range': 25000,
                 'turrets': [],
+                'thrust_pos': [np.array([-55, 42]), np.array([55, 42]), np.array([0, -52])],
                 'turret_pos': [],
                 'description': 'This ship is fast',
                 'bullet_pos': [np.array([-21, 14]), np.array([21, 14])],
@@ -83,6 +111,7 @@ Ghost = {'velocity': 3,  # adj
          'width': 70,
          'range': 40000,
          'turrets': [],
+         'thrust_pos': [np.array([-55, 42]), np.array([55, 42]), np.array([0, -52])],
          'turret_pos': [],
          'bullet_pos': [np.array([-25, 13]), np.array([25, 13])],
          'missile_pos': [np.array([-15, -27]), np.array([15, -27])],  # , np.array([25, 10])],
@@ -106,6 +135,7 @@ Sprinter = {'velocity': 3.5,  # adj
             'width': 30,
             'range': 15000,
             'turrets': [],
+            'thrust_pos': [np.array([-55, 42]), np.array([55, 42]), np.array([0, -52])],
             'turret_pos': [],
             'bullet_pos': [np.array([8, 2])],
             'missile_pos': [np.array([-8, 2])],
@@ -129,6 +159,7 @@ Frigate = {'velocity': 2,  # adj
            'width': 80,
            'range': 20000,
            'turrets': ['PDC'],
+           'thrust_pos': [np.array([-55, 42]), np.array([55, 42]), np.array([0, -52])],
            'turret_pos': [np.array([0, -5])],
            'bullet_pos': [np.array([0, 16])],
            'missile_pos': [],
@@ -152,6 +183,7 @@ Destroyer = {'velocity': 1.75,  # adj
              'width': 150,
              'range': 50000,
              'turrets': ['Rail', 'PDC', 'PDC'],
+             'thrust_pos': [np.array([-55, 42]), np.array([55, 42]), np.array([0, -52])],
              'turret_pos': [np.array([0, 0]), np.array([0, 41]), np.array([0, -41])],
              'bullet_pos': [np.array([0, 65])],
              'missile_pos': [np.array([-24, 35]), np.array([24, 35])],
@@ -175,6 +207,7 @@ Pafonteer = {'velocity': 3.3,  # adj
              'width': 40,
              'range': 40000,
              'turrets': [],
+             'thrust_pos': [np.array([0, -15])],
              'turret_pos': [],
              'bullet_pos': [np.array([-12, 15])],
              'missile_pos': [],
@@ -187,7 +220,7 @@ Pafonteer = {'velocity': 3.3,  # adj
              'cost': {},
              'name': "Pafonteer"}
 
-Ontulus = {'velocity': 3.25,  # adj
+Ontulus = {'velocity': 3.3,  # adj
            'acc': 0.1,  # adj
            'av': 0.5,  # adj
            'energy': 1500,
@@ -198,6 +231,7 @@ Ontulus = {'velocity': 3.25,  # adj
            'width': 70,
            'range': 30000,
            'turrets': [],
+           'thrust_pos': [np.array([-55, 42]), np.array([55, 42]), np.array([0, -52])],
            'turret_pos': [],
            'description': 'This ship is fast',
            'bullet_pos': [np.array([-22, 18])],
@@ -212,27 +246,125 @@ Ontulus = {'velocity': 3.25,  # adj
            'name': "Ontulus"}
 
 Garvantex = {'velocity': 2.5,  # adj
-           'acc': 0.025,  # adj
-           'av': 0.25,  # adj
-           'energy': 6000,
-           'health': 700,
-           'heat_capacity': 400,
-           'heat_venting': 0.0006,  # adj
-           'height': 90,
-           'width': 90,
-           'range': 35000,
-           'turrets': [],
-           'turret_pos': [],
-           'description': 'This ship is fast',
-           'bullet_pos': [np.array([0, 0]), np.array([-10, 10]), np.array([10, 10])],
-           'missile_pos': [],
-           'emblem_pos': [(31, 31), (49, 31)],
-           'primary': 3,
-           'secondary': 0,
-           'mine': 0,
-           'utility': 1,
-           'cargo_cap': 30,
-           'cost': {},
-           'name': "Garvantex"}
+             'acc': 0.025,  # adj
+             'av': 0.25,  # adj
+             'energy': 6000,
+             'health': 700,
+             'heat_capacity': 400,
+             'heat_venting': 0.0006,  # adj
+             'height': 90,
+             'width': 90,
+             'range': 35000,
+             'turrets': [],
+             'thrust_pos': [np.array([-55, 42]), np.array([55, 42]), np.array([0, -52])],
+             'turret_pos': [],
+             'description': 'This ship is fast',
+             'bullet_pos': [np.array([0, 0]), np.array([-10, 10]), np.array([10, 10])],
+             'missile_pos': [],
+             'emblem_pos': [(31, 31), (49, 31)],
+             'primary': 3,
+             'secondary': 0,
+             'mine': 0,
+             'utility': 1,
+             'cargo_cap': 30,
+             'cost': {},
+             'name': "Garvantex"}
 
-ShipNames = [Fighter, Uboat, HeavyFighter, Ghost, Sprinter, Frigate, Destroyer, Pafonteer, Ontulus, Garvantex]
+Wanderer = {'velocity': 5,  # adj
+            'acc': 0.1,  # adj
+            'av': 0.75,  # adj
+            'energy': 1300,
+            'health': 175,
+            'heat_capacity': 140,
+            'heat_venting': 0.001,  # adj
+            'height': 70,
+            'width': 70,
+            'range': 40000,
+            'turrets': [],
+            'thrust_pos': [np.array([-55, 42]), np.array([55, 42]), np.array([0, -52])],
+            'turret_pos': [],
+            'bullet_pos': [np.array([0, 25])],
+            'missile_pos': [],
+            'emblem_pos': [(30, 22)],
+            'primary': 1,
+            'secondary': 0,
+            'mine': 1,
+            'utility': 2,
+            'cargo_cap': 20,
+            'cost': {},
+            'name': "Zaij's Wanderer"}
+
+Prigozar = {'velocity': 2.2,  # adj
+            'acc': 0.02,  # adj
+            'av': 0.25,  # adj
+            'energy': 3500,
+            'health': 800,
+            'heat_capacity': 450,
+            'heat_venting': 0.0002,  # adj
+            'height': 110,
+            'width': 110,
+            'range': 50000,
+            'turrets': ['PDC', 'PDC'],
+            'thrust_pos': [np.array([-40, -45]), np.array([40, -45]), np.array([0, -43])],
+            'turret_pos': [np.array([0, 18]), np.array([0, -16])],
+            'bullet_pos': [np.array([-31, 45]), np.array([31, 45])],
+            'missile_pos': [np.array([0, 37]), np.array([-33, -12]), np.array([33, -12])],
+            'emblem_pos': [(50, 50)],
+            'primary': 2,
+            'secondary': 3,
+            'mine': 0,
+            'utility': 1,
+            'cargo_cap': 70,
+            'cost': {},
+            'name': "Prigozar"}
+
+Henik = {'velocity': 2,  # adj
+         'acc': 0.05,  # adj
+         'av': 0.75,  # adj
+         'energy': 1800,
+         'health': 300,
+         'heat_capacity': 200,
+         'heat_venting': 0.0008,  # adj
+         'height': 60,
+         'width': 60,
+         'range': 30000,
+         'turrets': ['PDC'],
+         'thrust_pos': [np.array([0, -30])],
+         'turret_pos': [np.array([0, 2])],
+         'bullet_pos': [np.array([-16, 19]), np.array([16, 19])],
+         'missile_pos': [],
+         'emblem_pos': [],
+         'primary': 2,
+         'secondary': 0,
+         'mine': 0,
+         'utility': 1,
+         'cargo_cap': 30,
+         'cost': {},
+         'name': "Henik"}
+
+Thades = {'velocity': 2.7,  # adj
+         'acc': 0.05,  # adj
+         'av': 0.5,  # adj
+         'energy': 1200,
+         'health': 375,
+         'heat_capacity': 250,
+         'heat_venting': 0.0008,  # adj
+         'height': 70,
+         'width': 70,
+         'range': 30000,
+         'turrets': [],
+         'thrust_pos': [np.array([0, -30])],
+         'turret_pos': [],
+         'bullet_pos': [np.array([-11, 11]), np.array([11, 11])],
+         'missile_pos': [np.array([0, 10])],
+         'emblem_pos': [],
+         'primary': 2,
+         'secondary': 1,
+         'mine': 0,
+         'utility': 1,
+         'cargo_cap': 30,
+         'cost': {},
+         'name': "Thades"}
+
+ShipNames = [Fighter, Uboat, HeavyFighter, Ghost, Sprinter, Frigate, Destroyer, Pafonteer, Ontulus, Garvantex, Wanderer,
+             Nasool, Prigozar, Henik, Thades]

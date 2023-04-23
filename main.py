@@ -8,7 +8,7 @@ import random as rnd
 import time
 
 from Draw_Window import draw_window
-from Misc import GlobalState, MoveScreen
+from Misc import GlobalState, LocalState, MoveScreen
 from Weapon_Class import Bullet
 from Ship_Class import Ship, Station, Asteroid
 from Control_Functions import NPControl, NPControl2, TurretControl, PlayerControl1, PlayerControl2, Null
@@ -81,13 +81,13 @@ def main():
     """SPAWN IN SPECIFIED SHIPS"""
     if PCS == 'y':
 
-        yellow = Ship(PlayerControl2, TurretControl, 0, 0, 0, 'yellow', 'Pelomir', MyGS, 'Terminus Corporation', is_player=True)
+        yellow = Ship(PlayerControl2, TurretControl, 9000, 0, 0, 'yellow', "Thades", MyGS, 'Space Pirates', is_player=True)
 
         # yellow.add_bullet(MyGS, 'Railgun')
         # yellow.add_bullet(MyGS, 'Plasma')
         yellow.add_bullet(MyGS, 'IN AutoCannon')
         yellow.add_bullet(MyGS, 'IN AutoCannon')
-        yellow.add_bullet(MyGS, 'IN AutoCannon')
+        # yellow.add_bullet(MyGS, 'IN AutoCannon')
         yellow.add_bullet(MyGS, 'Flame Thrower')
         yellow.add_missile(MyGS, 'Smart Missile')
         yellow.add_missile(MyGS, 'Swarm Missile')
@@ -96,10 +96,10 @@ def main():
         yellow.add_util(MyGS, 'Weapon Synchronizer')
         # yellow.add_util(MyGS, 'Jump Drive')
         yellow.add_util(MyGS, 'Jump Drive')
-        yellow.add_util(MyGS, 'Auto Loader')
+        # yellow.add_util(MyGS, 'Auto Loader')
         yellow.add_util(MyGS, 'Reactor')
         # yellow.add_util(MyGS, 'Gravity Repulsor')
-        # yellow.add_mine(MyGS, 'Black Hole')
+        yellow.add_mine(MyGS, 'Black Hole')
         yellow.add_mine(MyGS, 'Proximity Mine')
         MyGS.ships[0].append(yellow)
 
@@ -117,8 +117,8 @@ def main():
 
     for i in range(nE):
 
-        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Corpus 9', MyGS, 'Rebel Alliance')
-        # red.add_bullet(MyGS, 'Railgun')
+        red = Ship(NPControl, TurretControl, rnd.randint(MyGS.size-2000, MyGS.size-1000), rnd.randint(2000, 5000), 0, 'red', 'Prigozar', MyGS, 'Terminus Corporation')
+        red.add_bullet(MyGS, 'Railgun')
         # red.add_bullet(MyGS, 'Railgun')
         # red.add_bullet(MyGS, 'Railgun')
         # red.add_bullet(MyGS, 'IN AutoCannon')
@@ -126,8 +126,8 @@ def main():
         # red.add_bullet(MyGS, 'IN AutoCannon')
         red.add_bullet(MyGS, 'Beam Laser')
         red.add_bullet(MyGS, 'Plasma')
-        # red.add_missile(MyGS, 'Photon Torpedo')
-        red.add_util(MyGS, 'Jump Drive')
+        red.add_missile(MyGS, 'Photon Torpedo')
+        # red.add_util(MyGS, 'Jump Drive')
         red.add_util(MyGS, 'Reactor')
         red.add_util(MyGS, 'Heat Sink')
         MyGS.ships[1].append(red)

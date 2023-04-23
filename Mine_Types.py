@@ -59,6 +59,9 @@ def black_hole(self, gs):
                     ship.vx = ship.vx * ship.velocity / math.sqrt(ship.vx ** 2 + ship.vy ** 2)
                     ship.vy = ship.vy * ship.velocity / math.sqrt(ship.vx ** 2 + ship.vy ** 2)
 
+    # def draw_black_hole(self, gs):
+
+
     if self.collidelist(gs.targets[self.faction]) != -1:  # mine detonates
         # if self.exptype is not None:
         #     explosion = self.exptype(self.centerx, self.centery, gs)
