@@ -597,7 +597,7 @@ class WepMenu2:
             if has_missile is False:
                 if check_purchase(gs.docked, missile):
                     purchase(gs.docked, missile)
-                    self.ship.missile_type = missile
+                    self.ship.type = missile
                 else:
                     gs.menu = PopupMenu(self, "You don't have enough ore to purchase this item.")
         if keys_pressed[pygame.K_ESCAPE] and not self.keys_pressed[pygame.K_ESCAPE]:
@@ -722,7 +722,7 @@ class UtilMenu:
             if has_missile is False:
                 if check_purchase(gs.docked, missile):
                     purchase(gs.docked, missile)
-                    self.ship.missile_type = missile
+                    self.ship.type = missile
                 else:
                     gs.menu = PopupMenu(self, "You don't have enough ore to purchase this item.")
         if keys_pressed[pygame.K_ESCAPE] and not self.keys_pressed[pygame.K_ESCAPE]:
@@ -848,7 +848,7 @@ class MineMenu:
             if has_missile is False:
                 if check_purchase(gs.docked, missile):
                     purchase(gs.docked, missile)
-                    self.ship.missile_type = missile
+                    self.ship.type = missile
                 else:
                     gs.menu = PopupMenu(self, "You don't have enough ore to purchase this item.")
         if keys_pressed[pygame.K_ESCAPE] and not self.keys_pressed[pygame.K_ESCAPE]:
@@ -965,11 +965,11 @@ class ShipMenu:
                 self.selected = len(self.option_list) - 1
         if keys_pressed[pygame.K_RETURN] and not self.keys_pressed[pygame.K_RETURN]:
             ship = gs.ShipTypes[self.option_list[self.selected]]
-            if self.ship.ship_type.name == ship.name:
+            if self.ship.type.name == ship.name:
                 gs.menu = PopupMenu(self, "You already have that type of ship equipped.")
             elif check_purchase(gs.docked, ship):
                 purchase(gs.docked, ship)
-                self.ship.ship_type = ship
+                self.ship.type = ship
                 self.ship.refresh(gs)
             else:
                 gs.menu = PopupMenu(self, "You don't have enough ore to purchase this item.")
@@ -1308,13 +1308,13 @@ class AsteroidMenu2:
                     ores_index = self.selected // 2
                     if self.asteroid.ore[ores[ores_index]] == 0:
                         gs.menu = PopupMenu(self, "Error: You can't harvest 0 ore.")
-                    elif (self.ship.cargo.cargo_total + self.asteroid.ore[ores[ores_index]]) < self.ship.ship_type.cargo_cap:
+                    elif (self.ship.cargo.cargo_total + self.asteroid.ore[ores[ores_index]]) < self.ship.type.cargo_cap:
                         added_cargo = self.asteroid.harvest_all(ores[ores_index])
                         self.ship.cargo.cargo_total += added_cargo
                         self.ship.cargo[ores[ores_index]] += added_cargo
                         cargos = list(self.ship.cargo)
-                    elif self.ship.cargo.cargo_total < self.ship.ship_type.cargo_cap:
-                        added_cargo = self.ship.ship_type.cargo_cap - self.ship.cargo.cargo_total
+                    elif self.ship.cargo.cargo_total < self.ship.type.cargo_cap:
+                        added_cargo = self.ship.type.cargo_cap - self.ship.cargo.cargo_total
                         self.asteroid.harvest(ores[ores_index], added_cargo)
                         self.ship.cargo.cargo_total += added_cargo
                         self.ship.cargo[ores[ores_index]] += added_cargo
@@ -1325,7 +1325,7 @@ class AsteroidMenu2:
                     ores_index = int(self.selected / 2 - 1)
                     if self.asteroid.ore[ores[ores_index]] < 10:
                         gs.menu = PopupMenu(self, "Error: You can't harvest 10 of this ore.")
-                    elif (self.ship.cargo.cargo_total + 10) <= self.ship.ship_type.cargo_cap:
+                    elif (self.ship.cargo.cargo_total + 10) <= self.ship.type.cargo_cap:
                         self.ship.cargo.cargo_total += 10
                         self.ship.cargo[ores[ores_index]] += self.asteroid.harvest(ores[ores_index], 10)
                         cargos = list(self.ship.cargo)

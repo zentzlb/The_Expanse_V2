@@ -1,5 +1,5 @@
-from Ship_Class import Ship, Station, Asteroid
-from Misc import FindNearest
+from Ship_Class import Ship, Base, Asteroid
+from utils import FindNearest
 
 
 def clear_text(gs, ship, args):
@@ -43,96 +43,97 @@ def target_next(gs, ship, args):
     pass
 
 
-def check_cargo(gs, ship, args):
-    gs.misc_info['command history'].append('_____________________________')
+def check_cargo(ls, ship, args):
+    ls.misc_info['command history'].append('_____________________________')
     for key in ship.cargo.keys():
-        gs.misc_info['command history'].append(f'{key}: {ship.cargo[key]}')
-    if len(gs.misc_info['command history']) > 30:
-        gs.misc_info['command history'] = gs.misc_info['command history'][-30:]
+        ls.misc_info['command history'].append(f'{key}: {ship.cargo[key]}')
+    if len(ls.misc_info['command history']) > 30:
+        ls.misc_info['command history'] = ls.misc_info['command history'][-30:]
 
 
-def check_ore(gs, ship, args):
-    gs.misc_info['command history'].append('_____________________________')
+def check_ore(ls, ship, args):
+    ls.misc_info['command history'].append('_____________________________')
     if 'ore' in ship.info:
-        gs.misc_info['command history'].append(f"ore type: {ship.info['ore']}")
+        ls.misc_info['command history'].append(f"ore type: {ship.info['ore']}")
     else:
-        gs.misc_info['command history'].append('no ore type set')
-    if len(gs.misc_info['command history']) > 30:
-        gs.misc_info['command history'] = gs.misc_info['command history'][-30:]
+        ls.misc_info['command history'].append('no ore type set')
+    if len(ls.misc_info['command history']) > 30:
+        ls.misc_info['command history'] = ls.misc_info['command history'][-30:]
 
 
-def check_target(gs, ship, args):
-    gs.misc_info['command history'].append('_____________________________')
+def check_target(ls, ship, args):
+    ls.misc_info['command history'].append('_____________________________')
     if type(ship.target) is Ship:
         target = ship.target
-        gs.misc_info['command history'].append(f"health: {target.health}")
-        gs.misc_info['command history'].append(f"heat: {target.heat}")
-        gs.misc_info['command history'].append(f"energy: {target.energy}")
+        ls.misc_info['command history'].append(f"health: {target.health}")
+        ls.misc_info['command history'].append(f"heat: {target.heat}")
+        ls.misc_info['command history'].append(f"energy: {target.energy}")
 
-        gs.misc_info['command history'].append(f"")
-        gs.misc_info['command history'].append(f"primary weapons:")
+        ls.misc_info['command history'].append(f"")
+        ls.misc_info['command history'].append(f"primary weapons:")
         for bullet in target.bullet_types:
-            gs.misc_info['command history'].append(f"{bullet.name}")
+            ls.misc_info['command history'].append(f"{bullet.name}")
 
-        gs.misc_info['command history'].append(f"")
-        gs.misc_info['command history'].append(f"secondary weapons:")
+        ls.misc_info['command history'].append(f"")
+        ls.misc_info['command history'].append(f"secondary weapons:")
         for missile in target.missile_types:
-            gs.misc_info['command history'].append(f"{missile.name}")
+            ls.misc_info['command history'].append(f"{missile.name}")
 
-        gs.misc_info['command history'].append(f"")
-        gs.misc_info['command history'].append(f"mines:")
+        ls.misc_info['command history'].append(f"")
+        ls.misc_info['command history'].append(f"mines:")
         for mine in target.mine_types:
-            gs.misc_info['command history'].append(f"{mine.name}")
+            ls.misc_info['command history'].append(f"{mine.name}")
 
-        gs.misc_info['command history'].append(f"")
-        gs.misc_info['command history'].append(f"utilities:")
+        ls.misc_info['command history'].append(f"")
+        ls.misc_info['command history'].append(f"utilities:")
         for util in target.util_types:
-            gs.misc_info['command history'].append(f"{util.name}")
+            ls.misc_info['command history'].append(f"{util.name}")
 
-        gs.misc_info['command history'].append(f"")
-        gs.misc_info['command history'].append(f"turrets:")
+        ls.misc_info['command history'].append(f"")
+        ls.misc_info['command history'].append(f"turrets:")
         for turret in ship.turrets:
-            gs.misc_info['command history'].append(f"{turret.turret_type.name}")
-            gs.misc_info['command history'].append(f"turret energy: {turret.energy}")
+            ls.misc_info['command history'].append(f"{turret.turret_type.name}")
+            ls.misc_info['command history'].append(f"turret energy: {turret.energy}")
 
-        if len(gs.misc_info['command history']) > 30:
-            gs.misc_info['command history'] = gs.misc_info['command history'][-30:]
+        if len(ls.misc_info['command history']) > 30:
+            ls.misc_info['command history'] = ls.misc_info['command history'][-30:]
 
-def check_status(gs, ship, args):
-    gs.misc_info['command history'].append('_____________________________')
+
+def check_status(ls, ship, args):
+    ls.misc_info['command history'].append('_____________________________')
     target = ship
-    gs.misc_info['command history'].append(f"health: {target.health}")
-    gs.misc_info['command history'].append(f"heat: {target.heat}")
-    gs.misc_info['command history'].append(f"energy: {target.energy}")
+    ls.misc_info['command history'].append(f"health: {target.health}")
+    ls.misc_info['command history'].append(f"heat: {target.heat}")
+    ls.misc_info['command history'].append(f"energy: {target.energy}")
 
-    gs.misc_info['command history'].append(f"")
-    gs.misc_info['command history'].append(f"primary weapons:")
+    ls.misc_info['command history'].append(f"")
+    ls.misc_info['command history'].append(f"primary weapons:")
     for bullet in target.bullet_types:
-        gs.misc_info['command history'].append(f"{bullet.name}")
+        ls.misc_info['command history'].append(f"{bullet.name}")
 
-    gs.misc_info['command history'].append(f"")
-    gs.misc_info['command history'].append(f"secondary weapons:")
+    ls.misc_info['command history'].append(f"")
+    ls.misc_info['command history'].append(f"secondary weapons:")
     for missile in target.missile_types:
-        gs.misc_info['command history'].append(f"{missile.name}")
+        ls.misc_info['command history'].append(f"{missile.name}")
 
-    gs.misc_info['command history'].append(f"")
-    gs.misc_info['command history'].append(f"mines:")
+    ls.misc_info['command history'].append(f"")
+    ls.misc_info['command history'].append(f"mines:")
     for mine in target.mine_types:
-        gs.misc_info['command history'].append(f"{mine.name}")
+        ls.misc_info['command history'].append(f"{mine.name}")
 
-    gs.misc_info['command history'].append(f"")
-    gs.misc_info['command history'].append(f"utilities:")
+    ls.misc_info['command history'].append(f"")
+    ls.misc_info['command history'].append(f"utilities:")
     for util in target.util_types:
-        gs.misc_info['command history'].append(f"{util.name}")
+        ls.misc_info['command history'].append(f"{util.name}")
 
-    gs.misc_info['command history'].append(f"")
-    gs.misc_info['command history'].append(f"turrets:")
+    ls.misc_info['command history'].append(f"")
+    ls.misc_info['command history'].append(f"turrets:")
     for turret in ship.turrets:
-        gs.misc_info['command history'].append(f"{turret.turret_type.name}")
-        gs.misc_info['command history'].append(f"turret energy: {turret.energy}")
+        ls.misc_info['command history'].append(f"{turret.turret_type.name}")
+        ls.misc_info['command history'].append(f"turret energy: {turret.energy}")
 
-    if len(gs.misc_info['command history']) > 30:
-        gs.misc_info['command history'] = gs.misc_info['command history'][-30:]
+    if len(ls.misc_info['command history']) > 30:
+        ls.misc_info['command history'] = ls.misc_info['command history'][-30:]
 
 
 
@@ -159,15 +160,15 @@ main_dict = {'set': set_dict,
              'target': target_dict}
 
 
-def list2str(list):
+def list2str(mylist: list):
     string = ''
-    for word in list:
+    for word in mylist:
         string += word
         string += ' '
     return string
 
 
-def unpack_str(string, gs, ship):
+def unpack_str(string: str, gs, ship):
     cmd_list = string.split(' ')
     d = main_dict
     for cmd in cmd_list:
@@ -180,7 +181,7 @@ def unpack_str(string, gs, ship):
                 d = d[cmd]
 
 
-def complete_str(string, gs, ship):
+def complete_str(string: str, ls, ship):
     cmd_list = string.split(' ')
     d = main_dict
     for cmd in cmd_list:
@@ -199,9 +200,9 @@ def complete_str(string, gs, ship):
                 new_list.append(comp_list[0])
                 # print(new_list)
                 new_string = list2str(new_list)
-                gs.misc_info['command text'] = new_string
+                ls.misc_info['command text'] = new_string
             elif len(comp_list) > 1:
-                gs.misc_info['command history'].append('_____________________________')
+                ls.misc_info['command history'].append('_____________________________')
                 for comp in comp_list:
-                    gs.misc_info['command history'].append(comp)
-                gs.misc_info['command history'].append('_____________________________')
+                    ls.misc_info['command history'].append(comp)
+                ls.misc_info['command history'].append('_____________________________')

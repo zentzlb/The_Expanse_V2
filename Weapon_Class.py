@@ -2,331 +2,161 @@ import pygame
 import math
 import numpy as np
 import random as rnd
-import time
-# from Misc import FindNearest
-from Explosions import Particle, ExplosionDamage
+from utils import FindNearest
+from constants import DRAG, ARM
+from Data.Types import (Entity, BulletType, MissileType, Event,
+                        MineType, Shooter, Projectile, Guided, FactionType, Particle, Vessel)
+from typing import TYPE_CHECKING, Self
 
-"""BULLET CLASS"""
+if TYPE_CHECKING:
+    from Ship_Class import Ship
+    from Misc import GlobalState, LocalState
 
 
-class Bullet(pygame.Rect):
-    def __init__(self, x, y, ship, angle, bullet_type, faction, gs):
-        self.bullet_type = bullet_type
+class Bullet(Projectile):
+    def __init__(self, x: float, y: float, ship: Shooter, angle: float, bullet_type: BulletType):
+        self.type = bullet_type
         if bullet_type.sound is not None:
             bullet_type.sound.play()
         super().__init__(x, y, bullet_type.width, bullet_type.height)
         self.angle = angle
-        self.velocity = bullet_type.velocity
-        self.range = bullet_type.range
-        self.damage = bullet_type.damage
-        self.targets = []
-        self.timer = self.range / self.velocity
-        self.fx = x
-        self.fy = y
-        self.vx = self.velocity * math.sin(self.angle * math.pi / 180) + ship.vx
-        self.vy = self.velocity * math.cos(self.angle * math.pi / 180) + ship.vy
-        self.image = pygame.transform.rotate(bullet_type.image, angle)
-        self.faction = faction
-        self.ship = ship
-        self.build_target_list(gs)
-
-    def draw(self, gs):
-        self.bullet_type.draw(self, gs)
-
-    def build_target_list(self, gs):
-        R2 = self.range * self.range
-        for faction in range(len(gs.ships)):
-            if faction != self.faction:
-                if self.bullet_type.targets_missiles:
-                    for missile in gs.missiles[faction]:
-                        dx = self.centerx - missile.centerx
-                        dy = self.centerx - missile.centerx
-                        r2 = dx * dx + dy * dy
-                        if r2 < 9 * R2:
-                            self.targets.append(missile)
-                for ship in gs.ships[faction]:
-                    dx = self.centerx - ship.centerx
-                    dy = self.centery - ship.centery
-                    r2 = dx * dx + dy * dy
-                    if r2 < 9 * R2:
-                        self.targets.append(ship)
-
-    def scoot(self, gs):
-        self.fx += self.vx
-        self.fy += self.vy
-
-        self.x = round(self.fx)
-        self.y = round(self.fy)
-
-        # if self.collidelist(gs.targets[self.faction]) != -1:  # bullet hits red
-        if self.collidelist(self.targets) != -1:
-            dmgList = self.collidelistall(self.targets)
-            self.bullet_type.function(self, gs, dmgList)
-        # elif self.timer > self.range / self.velocity:  # missile runs out of thrust
-        #     gs.bullets[self.faction].remove(self)
-        self.timer -= 1
-
-
-"""BEAM CLASS"""
-
-
-class Beam:
-    def __init__(self, x, y, angle, bullet_type, faction, gs, overcharged=False):
-        self.bulltet_type = bullet_type
-        if bullet_type.sound is not None:
-            bullet_type.sound.play()
-        self.x = x
-        self.y = y
-        self.p1 = np.array([x, y])
-        self.p2 = np.array([0, 0])
-        self.overcharged = overcharged
-        if overcharged:
-            r = rnd.randint(200, 255)
-            g = rnd.randint(0, r)
-            b = 0
-        else:
-            r = rnd.randint(200, 255)
-            g = rnd.randint(0, r)
-            b = 0
-        self.color = (r, g, b)
-        self.angle = angle
-        self.velocity = math.inf
-        self.range = bullet_type.range
-        self.damage = bullet_type.damage
-        self.timer = 1
-        self.faction = faction
-        self.detect_collision(gs)
-
-    def draw(self, gs):
-        self.bulltet_type.draw(self, gs)
-
-    def detect_collision(self, gs):
-        # s = math.sin(self.angle * math.pi / 180)
-        # c = math.cos(self.angle * math.pi / 180)
-        # H = np.array([[c, -s, self.x], [s, c, self.y], [0, 0, 1]])
-        target = None
-        dp2 = np.array([self.range * math.sin(self.angle * math.pi / 180), self.range * math.cos(self.angle * math.pi / 180)])
-        R2 = self.range * self.range
-        root2 = math.sqrt(2)
-        for f in range(len(gs.ships)):
-            if f != self.faction:
-                for ship in gs.ships[f]:
-                    dx = ship.centerx - self.x
-                    dy = ship.centery - self.y
-                    r2 = dx * dx + dy * dy
-                    if r2 < R2:
-                        dr = np.array([dx, dy])
-                        angle = math.acos(min((np.dot(dp2, dr) / math.sqrt(r2 * R2), 1)))
-                        r = math.sqrt(r2)
-                        if r * math.sin(angle) < ship.height / root2:
-                            target = ship
-                            R2 = r2
-                            R = r
-                            dp2 = np.array([R * math.sin(self.angle * math.pi / 180), R * math.cos(self.angle * math.pi / 180)])
-
-        self.p2 = self.p1 + dp2
-        if target is not None:
-            self.bulltet_type.function(self, gs, target)
-
-    # def scoot(self, gs):
-    #     self.timer -= 1
-
-"""MISSILE CLASS"""
-
-
-class Missile(pygame.Rect):
-    def __init__(self, x, y, angle, height, width, missile_type, target, faction, gs):
-        if missile_type.sound is not None:
-            missile_type.sound.play()#.set_volume(0.5)
-        super().__init__(x, y, width, height)
-        self.angle = angle
-        self.velocity = missile_type.velocity
-        self.range = missile_type.range
-        self.damage = missile_type.damage
-        self.exp_damage = missile_type.exp_damage
-        self.av = missile_type.av
-        self.fx = x
-        self.fy = y
-        self.vx = 0
-        self.vy = 0
-        self.health = missile_type.health
-        self.targets = []
+        self.health = 1
         self.heat = 0
-        self.er = missile_type.exp_radius
         self.timer = self.range / self.velocity
-        self.arm = self.range / self.velocity - 120
+        self.vx = self.velocity * math.sin(self.radians) + ship.vx
+        self.vy = self.velocity * math.cos(self.radians) + ship.vy
+        self.image = pygame.transform.rotate(bullet_type.image, angle)
+        self.faction = ship.faction
+        self.ship = ship
+
+    def draw(self, surf: pygame.Surface, x_center: int, y_center: int):
+        self.type.draw(self, surf, x_center, y_center)
+
+    def scoot(self, entity_list: list[Entity]) -> list[Event]:
+        target_list = [entity for entity in entity_list
+                       if self.faction_name != entity.faction_name
+                       and isinstance(entity, self.type.target_types)]
+        self.x += self.vx
+        self.y += self.vy
+        self.timer -= 1
+        if self.timer <= 0:
+            self.health = 0
+        elif dmg_list := self.collidelistall(target_list):
+            return self.type.function(self, target_list, dmg_list)
+        return []
+
+
+class Missile(Guided):
+    def __init__(self, x: float, y: float, ship: Shooter, angle: float,
+                 missile_type: MissileType, target: "Entity", vx: float = 0, vy: float = 0):
+        if missile_type.sound is not None:
+            missile_type.sound.play()  # .set_volume(0.5)
+        super().__init__(x, y, missile_type.width, missile_type.height)
+        self.type = missile_type
+        self.angle = angle
+        self.vx = vx
+        self.vy = vy
+        self.health = missile_type.health
+        self.heat = 0
+        self.timer = self.range / self.velocity
+        self.arm = self.range / self.velocity - ARM
         self.target = target
-        self.is_visible = True
-        # self.emp = missile_type.emp
         self.image = missile_type.image
-        self.missile_type = missile_type
-        self.faction = faction
+        self.faction = ship.faction
+        self.ship = ship
 
-        self.build_target_list(gs)
+    def draw(self, surf: pygame.Surface, x_center: int, y_center: int):
+        self.type.draw(self, surf, x_center, y_center)
 
-    def build_target_list(self, gs):
-        R2 = 9 * self.range * self.range
-        for faction in range(len(gs.ships)):
-            if faction != self.faction:
-                for ship in gs.ships[faction]:
-                    dx = self.centerx - ship.centerx
-                    dy = self.centerx - ship.centerx
-                    r2 = dx * dx + dy * dy
-                    if r2 < R2:
-                        self.targets.append(ship)
+    def scoot(self, entity_list: list[Entity]) -> list[Event]:
 
-    def draw(self, gs):
-        self.missile_type.draw(self, gs)
+        self.vx *= DRAG
+        self.vy *= DRAG
 
+        events = []
 
-    def scoot(self, gs):
-
-        for i in range(self.missile_type.par_num):
-            R = 255
-            G = rnd.randint(0, 255)
-            if rnd.random() > 0.5:
-                gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.random()-2, self.angle + rnd.randint(-self.missile_type.par_rnd, self.missile_type.par_rnd), 3, (R, G, 0), glow=(R//2, G//2, 0), shrink=0.85))  # adj
-                gs.particle_list.append(Particle(self.centerx, self.centery, -rnd.random(), self.angle + rnd.randint(-self.missile_type.par_rnd+5, self.missile_type.par_rnd+5), 4, (80, 80, 80), shrink=0.97))  # adj
+        targets = [ship for ship in entity_list if isinstance(ship, Vessel) and
+                   ship.faction_name != self.faction_name]
 
         if self.target is None or self.target.health <= 0:
-            self.target = FindNearest(self, self.targets)
+            self.target = FindNearest(self, targets)
 
         if self.target is None:
-            # explosion = MissileExplosion(self.centerx, self.centery, gs, self.er)
-            # explosion_group.add(explosion)
-            self.missile_type.explosion(self, gs, [])
+            events += self.type.explosion(self, targets, [])
             self.timer = 0
-            # gs.missiles[self.faction].remove(self)
-
-        else:
-            if self.missile_type.smart:
-                vx = self.target.vx
-                vy = self.target.vy
-                xo = self.target.centerx
-                yo = self.target.centery
-                velocity = self.velocity
-
-                a = vx * vx + vy * vy - velocity * velocity
-                b = 2 * (vx * (xo - self.centerx) + vy * (yo - self.centery))
-                c = (xo - self.centerx) ** 2 + (yo - self.centery) ** 2
-
-                t = (-b - math.sqrt(b ** 2 - 4 * a * c)) / (2 * a)
-                x = xo + vx * t
-                y = yo + vy * t
-
-                dx = x - self.centerx
-                dy = y - self.centery
-
-                cos = math.cos(self.angle * math.pi / 180)
-                sin = math.sin(self.angle * math.pi / 180)
-
-                Q = np.array([[cos, -sin], [sin, cos]])
-                V = np.array([[dx], [dy]])
-                V_prime = Q.dot(V)
-                da = -math.atan2(V_prime[0][0], V_prime[1][0])
-
-            elif self.missile_type.drunk:
-                da = 400 * np.cross((math.sin(self.angle * math.pi / 180), math.cos(self.angle * math.pi / 180), 0),
-                              (self.target.centerx - self.centerx, self.target.centery - self.centery, 0))[2] / min([((self.target.centerx - self.centerx) ** 2 + (self.target.centery - self.centery) ** 2 + 1), (self.range / 2) ** 2]) + math.sin(self.timer / 10) + 2 * rnd.random() - 1
-            else:
-                da = np.cross((math.sin(self.angle * math.pi / 180), math.cos(self.angle * math.pi / 180), 0),
-                                      (self.target.centerx - self.centerx, self.target.centery - self.centery, 0))[2]
-            if da > 0:
-                self.angle -= self.av
-            else:
-                self.angle += self.av
-
-        self.vx = self.velocity * math.sin(self.angle * math.pi / 180)
-        self.vy = self.velocity * math.cos(self.angle * math.pi / 180)
-
-        self.fx += self.vx
-        self.fy += self.vy
-
-        self.x = round(self.fx)
-        self.y = round(self.fy)
-
-        if self.collidelist(self.targets) != -1 and self.timer < self.arm:  # missile hits target
-            dmgList = self.collidelistall(self.targets)
-            self.missile_type.explosion(self, gs, dmgList)
             self.health = 0
-            # ExplosionDamage(self.exp_damage, self.centerx, self.centery, self.er, gs.targets[self.faction], gs)
-            # gs.missiles[self.faction].remove(self)
+            return events
+
+        commands: dict = self.type.guidance(self)
+
+        if abs(commands['rotate']) >= 1:
+            self.angle += self.av * commands['rotate']
+
+        if commands['thrust']:
+            self.timer -= 1
+            self.vx += self.acc * math.sin(self.radians)
+            self.vy += self.acc * math.cos(self.radians)
+            for i in range(self.type.par_num):
+                red = 255
+                green = rnd.randint(0, 255)
+                # if rnd.random() > 0.5:
+                events = [Particle(self.centerx, self.centery, -rnd.random() - 2,
+                                   self.angle + rnd.randint(-self.type.par_rnd,
+                                                            self.type.par_rnd), 3, (red, green, 0),
+                                   glow=(red // 2, green // 2, 0), shrink=0.85),
+                          Particle(self.centerx, self.centery, -rnd.random(),
+                                   self.angle + rnd.randint(-self.type.par_rnd + 5,
+                                                            self.type.par_rnd + 5), 4,
+                                   (80, 80, 80), shrink=0.97)]  # adj
+
+        if self.speed > self.velocity:
+            self.speed = self.velocity
+
+        self.x += self.vx
+        self.y += self.vy
+
+        if self.timer < self.arm and (dmg_list := self.collidelistall(targets)):  # missile hits target
+            events += self.type.explosion(self, targets, dmg_list)
+            self.health = 0
 
         elif self.timer <= 1:  # missile runs out of thrust
-            # explosion = MissileExplosion(self.centerx, self.centery, gs, self.er)
-            # explosion_group.add(explosion)
-            self.missile_type.explosion(self, gs, [])
-            # ExplosionDamage(self.exp_damage, self.centerx, self.centery, self.er, gs.targets[self.faction], gs)
-            # gs.missiles[self.faction].remove(self)
-        self.timer -= 1
+            events += self.type.explosion(self, targets, [])
+            self.health = 0
+        return events
 
 
-class Mine(pygame.Rect):
-    def __init__(self, x, y, angle, height, width, mine_type, target, faction):
+class Mine(Projectile):
+    def __init__(self, x: float, y: float, ship: Shooter, angle: float, mine_type: MineType):
         if mine_type.sound is not None:
             mine_type.sound.play()
         super().__init__(x, y, mine_type.width, mine_type.height)
-        self.center = (x, y)
-        self.damage = mine_type.damage
-        self.er = mine_type.exp_radius
-        self.exp_damage = mine_type.exp_damage
-        self.pen = mine_type.pen
+        # self.center = (x, y)
+        self.type = mine_type
+        self.angle = angle
         self.timer = mine_type.time
-        self.arm = mine_type.time - mine_type.arm
-        self.health = mine_type.health
+        self.health = self.max_health
         self.heat = 0
-        self.exptype = None
-        self.is_visible = True
-        self.grav = True
-        self.fx = x
-        self.fy = y
         self.vx = 0
         self.vy = 0
-        self.angle = 0
         self.image = mine_type.image
-        self.mine_type = mine_type
-        self.faction = faction
+        self.faction = ship.faction
+        self.ship = ship
 
-    def draw(self, gs):
-        self.mine_type.draw(self, gs)
+    @property
+    def arm(self):
+        return self.type.time - self.type.arm
 
-    def scoot(self, gs):
+    def draw(self, surf: pygame.Surface, x_center: int, y_center: int):
+        self.type.draw(self, surf, x_center, y_center)
 
-        self.mine_type.function(self, gs)
+    def scoot(self, entity_list: list[Entity]) -> list[Event]:
+        events = []
+
+        events += self.type.function(self, entity_list)
 
         if self.timer <= 1:  # missile runs out of thrust
-            # gs.missiles[self.faction].remove(self)
-            if self.mine_type.explosion is not None:
-                self.mine_type.explosion(self, gs)
+            events += self.type.explosion(self, entity_list)
 
         self.timer -= 1
 
-
-def FindNearest(ship, target_list):
-    if len(target_list) > 0:
-        # d = []
-        ind = 0
-        min_r2 = math.inf
-        rng2 = ship.range * ship.range
-        for i in range(len(target_list)):
-            target = target_list[i]
-            dx = target.centerx - ship.centerx
-            dy = target.centery - ship.centery
-
-            r2 = dx * dx + dy * dy
-            a = target.is_visible and r2 < rng2  # is uncloaked and within radar range
-            b = r2 < 2250000  # is within visual range
-            c = r2 < min_r2
-
-
-            if c and (a or b):  # and target.health > 0:  # only add ships to the target list if they're visible
-                min_r2 = r2
-                ind = i
-            # else:
-            #     d.append(math.inf)
-        if min_r2 < math.inf:
-            return target_list[ind]
-        else:
-            return None
-    else:
-        return None
+        return events

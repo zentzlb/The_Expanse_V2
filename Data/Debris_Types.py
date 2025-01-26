@@ -1,5 +1,7 @@
 import os
 import pygame
+from Data.Types import DebrisType
+
 
 Pipe = {'av': 2,
         'time': 6000,
@@ -17,3 +19,6 @@ Pilot = {'av': 2,
          'name': "Pilot"}
 
 Debris = [Pipe, Plate, Pilot]
+DEBRISTYPES = {debris['name']: DebrisType(**debris) for debris in Debris}
+
+

@@ -1,5 +1,7 @@
 import pygame
 import os
+from Data.Types import FactionType
+
 
 TerminusCorp = {'color': (0, 50, 150),  # adj
                 'name': "Terminus Corporation",
@@ -20,5 +22,14 @@ RebelAlliance = {'color': (255, 0, 0),  # adj
                  'channel': {}}
 
 FactionList = [TerminusCorp, SpacePirates, RebelAlliance]
+FACTIONDICT = {faction['name']: FactionType(**faction) for faction in FactionList}
 
+if __name__ == '__main__':
+    def make(**kwargs):
+        string = ''
+        for key in kwargs:
+            string += f"self.{key}: {type(kwargs[key]).__name__} = kwargs['{key}']\n"
 
+        print(string)
+
+    make(**RebelAlliance)
