@@ -5,13 +5,14 @@ import random as rnd
 import os
 from Explosions import ShipExplosion
 
-from Weapon_Class import Missile, Mine
+from Weapon_Class import Missile
 # from Misc import assign_ore, RequestUndock, GlobalState, LocalState
 from Data.Types import Entity, Event, Particle, Shooter
 from typing import Callable
-from constants import DRAG
-from Data.Types import (ShipType, BulletType, MissileType, MineType, UtilityType, TurretType, CargoClass,
-                        TypeType, Vessel, FactionType, StationType)
+from Data.constants import DRAG
+from Data.Types import (ShipType, BulletType, MissileType, MineType, UtilityType, TurretType,
+                        CargoClass,TypeType, Vessel, FactionType, StationType, BulletSlot,
+                        MissileSlot, MineSlot, UtilitySlot)
 
 
 class Ship(Shooter):
@@ -26,19 +27,16 @@ class Ship(Shooter):
         super().__init__(x, y, ship_type.height, ship_type.width)
         self.faction = faction
         self.type: ShipType = ship_type
-        self.bullet_types: list[BulletType] = []
-        self.missile_types: list[MissileType] = []
-        self.mine_types: list[MineType] = []
-        self.util_types: list[UtilityType] = []
+        self.bullet_slots = {i: BulletSlot(None) for i in range(len(self.type.bullet_pos))}
+        self.missile_slots = {i: MissileSlot(None) for i in range(len(self.type.missile_pos))}
+        self.mine_slots = {i: MineSlot(None) for i in range(self.type.mine)}
+        self.util_slots = {i: UtilitySlot(None) for i in range(self.type.utility)}
 
         self.heat: float = 0
 
         self.vx = 0
         self.vy = 0
         self.counter = 0
-        self.bulletC = 0
-        self.missileC = 0
-        self.utilC = 0
 
         self.bullet_sel = 0
         self.missile_sel = 0
@@ -68,8 +66,8 @@ class Ship(Shooter):
     def __str__(self):
         return (f"{self.faction_name}"
                 f"|{self.type.name}"
-                f"|{'|'.join([bullet.name for bullet in self.bullet_types])}"
-                f"|{'|'.join([missile.name for missile in self.missile_types])}")
+                f"|{'|'.join([bullet.name for bullet in self.bullet_slots.values()])}"
+                f"|{'|'.join([missile.name for missile in self.missile_slots.values()])}")
 
     def __repr__(self):
         return self.__str__()
@@ -110,6 +108,38 @@ class Ship(Shooter):
     def missile_pos(self) -> np.ndarray:
         return self.type.missile_pos[self.missile_sel]
 
+    @property
+    def bullet_types(self) -> list[BulletType]:
+        return [bullet.type for bullet in self.bullet_slots.values() if bullet]
+
+    @property
+    def missile_types(self) -> list[MissileType]:
+        return [missile.type for missile in self.missile_slots.values() if missile]
+
+    @property
+    def mine_types(self) -> list[MineType]:
+        return [mine.type for mine in self.mine_slots.values() if mine]
+
+    @property
+    def util_types(self) -> list[UtilityType]:
+        return [util.type for util in self.util_slots.values() if util]
+
+    def count_down(self):
+        for bullet in self.bullet_slots.values():
+            if bullet.counter > 0:
+                bullet.counter -= 1
+            elif bullet.counter < 0:
+                bullet.counter += 1
+        for missile in self.missile_slots.values():
+            if missile.counter > 0:
+                missile.counter -= 1
+        for mine in self.mine_slots.values():
+            if mine.counter > 0:
+                mine.counter -= 1
+        for util in self.util_slots.values():
+            if util.counter > 0:
+                util.counter -= 1
+
     def concealed(self, entity_list: list[Entity]):
         if rnd.random() > 0.99:
             if self.collidelistall([asteroid for asteroid in entity_list if isinstance(asteroid, Asteroid)]):
@@ -139,15 +169,17 @@ class Ship(Shooter):
         L2 = self.faction.ship_images[self.type.name]['L2']
         self.image.blit(L1, (0, 0))
 
-        for pos, bullet in zip(self.type.bullet_pos, self.bullet_types):
-            x = self.width // 2 + pos[0] - bullet.l_image.get_width() // 2
-            y = self.height // 2 + pos[1] - bullet.l_image.get_height() // 2
-            self.image.blit(bullet.l_image, (x, y))
+        for pos, bullet in zip(self.type.bullet_pos, self.bullet_slots.values()):
+            if bullet:
+                x = self.width // 2 + pos[0] - bullet.l_image.get_width() // 2
+                y = self.height // 2 + pos[1] - bullet.l_image.get_height() // 2
+                self.image.blit(bullet.l_image, (x, y))
 
-        for pos, missile in zip(self.type.missile_pos, self.missile_types):
-            x = self.width // 2 + pos[0] - missile.image.get_width() // 2
-            y = self.height // 2 + pos[1] - missile.image.get_height() // 2
-            self.image.blit(missile.image, (x, y))
+        for pos, missile in zip(self.type.missile_pos, self.missile_slots.values()):
+            if missile:
+                x = self.width // 2 + pos[0] - missile.image.get_width() // 2
+                y = self.height // 2 + pos[1] - missile.image.get_height() // 2
+                self.image.blit(missile.image, (x, y))
 
         self.image.blit(L2, (0, 0))
         self.image.convert_alpha()
@@ -224,9 +256,8 @@ class Ship(Shooter):
             self.vx -= self.lat * math.cos(self.radians)
             self.heat += 0.001
 
-        if commands[6] == 1 and self.utilC == 0 and len(self.util_types) > 0:
-            self.utility.function(self, entity_list, self.faction)
-            self.utilC += self.utility.delay
+        if commands[6] == 1 and self.utility:
+            self.utility.use(self, entity_list)
 
         """UPDATE VELOCITY AND POSITION"""
         if self.speed > velocity:
@@ -236,33 +267,29 @@ class Ship(Shooter):
         self.y += self.vy
 
         """FIRE BULLETS and MISSILES"""
-        if commands[3] == 1 and len(self.bullet_types) > 0 and self.bulletC == 0:
+        if commands[3] == 1 and self.bullet:
             i, bullet_name = self.bullet_sel, self.bullet.name
-            for j in range(len(self.bullet_types)):
+            for j in range(len(self.bullet_slots)):
                 self.bullet_sel = j
                 if self.energy >= self.bullet.energy and self.bullet.name == bullet_name:  # DOWN
-                    self.energy -= self.bullet.energy
-                    events += self.bullet.init(self, entity_list)
+                    events += self.bullet.use(self, entity_list)
             self.bulletC = self.bullet.delay
+            self.bullet_sel = i
 
-        if commands[4] == 1 and self.missileC == 0 and len(self.missile_types) > 0 and self.target is not None:
-
+        if commands[4] == 1 and self.missile and self.target is not None:
             i, missile_name = self.missile_sel, self.missile.name
-            for j in range(len(self.missile_types)):
+            for j in range(len(self.missile_slots)):
                 self.missile_sel = j
                 if self.energy >= self.missile.energy and self.missile.name == missile_name:  # DOWN
-                    self.energy -= self.missile.energy
-                    events += self.missile.init(self, entity_list)
+                    events += self.missile.use(self, entity_list)
             self.missileC = self.missile.delay
+            self.missile_sel = i
 
-        if commands[5] == 1 and len(self.mine_types) > 0 and self.energy >= self.mine.energy and self.missileC == 0:
-            self.energy -= self.mine.energy
-            self.missileC = self.mine.delay
-            events += self.mine.init(self, entity_list)
+        if commands[5] == 1 and len(self.mine_slots) > 0:
+            events += self.mine.use(self, entity_list)
 
-        if commands[6] == 1 and self.utilC == 0 and len(self.util_types) > 0:
-            self.utility.function(self, entity_list, self.faction_name)
-            self.utilC += self.utility.delay
+        if commands[6] == 1 and len(self.util_slots) > 0:
+            self.utility.use(self, entity_list)
 
         """DOCK"""
         if commands[8] == 1:
@@ -288,10 +315,6 @@ class Ship(Shooter):
 
         """UPDATE ENERGY, HEALTH, AND VISIBILITY"""
 
-        # if self.utilC == 0 and self.cloaked:
-        #     self.cloaked = False
-        #     self.image.set_alpha(255)
-
         self.concealed(entity_list)
 
         if not self.cloaked:
@@ -310,12 +333,7 @@ class Ship(Shooter):
                 self.health += 0.025  # adj
                 if self.health > self.max_health:
                     self.health = self.max_health
-        if self.bulletC > 0:
-            self.bulletC -= 1
-        if self.missileC > 0:
-            self.missileC -= 1
-        if self.utilC > 0:
-            self.utilC -= 1
+        self.count_down()
 
         """UPDATE TURRET"""
         if len(self.turrets) > 0:
@@ -473,7 +491,7 @@ class Asteroid(Entity):
         self.angle = angle
         self.health = math.inf
         if type_ <= 100:
-            self.ore = assign_ore('Std')
+            self.ore = 0
         self.ore_types = list(self.ore)
 
     def harvest_all(self, ore_name: str):  # method to harvest all one type of ore from an asteroid

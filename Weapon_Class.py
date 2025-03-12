@@ -1,16 +1,14 @@
 import pygame
 import math
-import numpy as np
 import random as rnd
 from utils import FindNearest
-from constants import DRAG, ARM
+from Data.constants import DRAG, ARM
 from Data.Types import (Entity, BulletType, MissileType, Event,
-                        MineType, Shooter, Projectile, Guided, FactionType, Particle, Vessel)
-from typing import TYPE_CHECKING, Self
+                        MineType, Shooter, Projectile, Guided, Particle, Vessel)
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from Ship_Class import Ship
-    from Misc import GlobalState, LocalState
+    pass
 
 
 class Bullet(Projectile):

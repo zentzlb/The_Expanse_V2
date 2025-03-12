@@ -32,7 +32,6 @@ pygame.mixer.init()
 gs = GlobalState((100000, 100000), [])  # global state object: used to keep track of global variables
 
 
-
 def main():
     """ASSIGN PLAYER CONTROL AND NPC CONTROL FUNCTIONS"""
     player_control = PlayerControl2
@@ -46,11 +45,12 @@ def main():
     pygame.mixer.init()
     pygame.mixer.set_num_channels(3)
     ls = LocalState(0, 0, HEIGHT, WIDTH)
-    gs.entities.append(enemy := Ship(player_control, 1000 + rnd.randint(0, 200), 1000 + rnd.randint(rnd.randint(0, 200), 200), 180,
+    gs.entities.append(enemy := Ship(player_control, 1000 + rnd.randint(0, 200), 1000 +
+                                     rnd.randint(rnd.randint(0, 200), 200), 180,
                                      ls.ShipTypes["Pelomir"], ls.factions['Space Pirates']))
-    enemy.bullet_types.append(ls.BulletTypes['Cannon'])
-    enemy.bullet_types.append(ls.BulletTypes['Cannon'])
-    # enemy.bullet_types.append(ls.BulletTypes['Cannon'])
+    enemy.bullet_slots[0].type = ls.BulletTypes['Beam Laser']
+    enemy.bullet_slots[1].type = ls.BulletTypes['Beam Laser']
+    # enemy.bullet_slots[2].type = ls.BulletTypes['Pulse Laser']
 
     # enemy.bullet_types.append(ls.BulletTypes['Plasma'])
     # enemy.missile_types.append(ls.MissileTypes['Sneaker'])
@@ -59,11 +59,16 @@ def main():
     enemy.refresh()
     ls.player = enemy
     for _ in range(1):
-        gs.entities.append(player := Ship(Null, rnd.randint(0, 200), 0-rnd.randint(0, 200), rnd.randint(0, 200),
-                                          ls.ShipTypes["Pelomir"], ls.factions['Terminus Corporation']))
-        # gs.entities.append(enemy := Ship(npc_control, 1500+rnd.randint(0, 200), 1500+rnd.randint(0, 200), rnd.randint(0, 200),
-        #                                  ls.ShipTypes["Pelomir"], ls.factions['Space Pirates']))
-        player.bullet_types.append(ls.BulletTypes['Plasma'])
+        gs.entities.append(player := Ship(npc_control, rnd.randint(0, 200), 0-rnd.randint(0, 200),
+                                          rnd.randint(0, 200),
+                                          ls.ShipTypes["Corpus 9"], ls.factions['Terminus '
+                                                                            'Corporation']))
+        # gs.entities.append(enemy := Ship(npc_control, 1500+rnd.randint(0, 200),
+        # 1500+rnd.randint(0, 200), rnd.randint(0, 200), ls.ShipTypes["Pelomir"], ls.factions[
+        # 'Space Pirates']))
+        player.bullet_slots[0].type = ls.BulletTypes['Plasma']
+        player.bullet_slots[1].type = ls.BulletTypes['Plasma']
+        player.missile_slots[0].type = ls.MissileTypes['Seeker']
         # player.bullet_types.append(ls.BulletTypes['Railgun'])
         # player.bullet_types.append(ls.BulletTypes['Railgun'])
 

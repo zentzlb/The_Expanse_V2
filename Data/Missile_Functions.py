@@ -1,7 +1,6 @@
 from Explosions import ExplosionDamage, PhotonExplosion, OrbExplosion
-from Data.Types import Particle, glow_circle, Shooter, Entity, Event, Projectile
+from Data.Types import Particle, glow_circle, Shooter, Entity, Event
 from Weapon_Class import Missile
-from constants import ARM
 import numpy as np
 import random as rnd
 import math

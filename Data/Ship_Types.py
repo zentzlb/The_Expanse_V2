@@ -10,7 +10,7 @@ Fighter = {'velocity': 3.2,  # adj
            'energy': 800,
            'health': 150,
            'heat_capacity': 120,
-           'heat_venting': 0.2,  # adj
+           'heat_venting': 0.15,  # adj
            'height': 40,
            'width': 40,
            'range': 20000,
@@ -318,7 +318,7 @@ Garvantex = {'velocity': 2.5,  # adj
              'energy': 6000,
              'health': 1000,
              'heat_capacity': 600,
-             'heat_venting': 0.2,  # adj
+             'heat_venting': 0.15,  # adj
              'height': 90,
              'width': 90,
              'range': 35000,

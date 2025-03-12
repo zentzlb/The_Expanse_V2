@@ -39,7 +39,7 @@ class GlobalState(GlobalStateInt):
 
     def update(self):
         self.events += [event for entity in self.entities for event in entity.scoot(self.entities)]
-        self.events = [event for event in self.events if event.scoot()]
+        self.events = [e for event in self.events for e in event.scoot(self.entities)]
         self.entities = [entity for entity in self.entities if entity.health > 0]
 
     def generate_id(self, ids: set[str], celestial: Entity):

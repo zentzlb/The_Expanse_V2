@@ -1,5 +1,7 @@
 from Data.Types import BulletType, Vessel, Projectile, Guided
+from Data.constants import PULSE_DAMAGE
 from Data.Bullet_Functions import *
+from functools import partial
 import os
 import math
 import pygame
@@ -24,6 +26,7 @@ AutoCannon = {'velocity': 10,  # adj
               'energy': 7,
               'range': 5000,
               'delay': 11,  # adj
+              'spin_up': 0,
               'target_types': (Vessel, Guided),
               'height': 10,
               'width': 10,
@@ -43,6 +46,7 @@ AutoCannon2 = {'velocity': 9.5,  # adj
                'energy': 12,
                'range': 4000,
                'delay': 15,  # adj
+               'spin_up': 0,
                'target_types': (Vessel, Guided),
                'height': 10,
                'width': 10,
@@ -62,6 +66,7 @@ AutoCannon3 = {'velocity': 9.5,  # adj
                'energy': 12,
                'range': 4000,
                'delay': 17,  # adj
+               'spin_up': 0,
                'target_types': (Vessel, Guided),
                'height': 10,
                'width': 10,
@@ -80,7 +85,8 @@ Plasma = {'velocity': 5.5,  # adj
           'exp_radius': 0,
           'energy': 110,
           'range': 1000,
-          'delay': 250,  # adj
+          'delay': 270,  # adj
+          'spin_up': 0,
           'target_types': (Vessel,),
           'height': 15,
           'width': 15,
@@ -93,7 +99,6 @@ Plasma = {'velocity': 5.5,  # adj
           'init': init_bullet,
           'draw': draw_bullet}
 
-
 Cannon = {'velocity': 8,  # adj
           'damage': 1,
           'exp_damage': 45,
@@ -101,6 +106,7 @@ Cannon = {'velocity': 8,  # adj
           'energy': 120,
           'range': 3000,
           'delay': 400,  # adj
+          'spin_up': 0,
           'target_types': (Vessel,),
           'height': 12,
           'width': 12,
@@ -113,7 +119,6 @@ Cannon = {'velocity': 8,  # adj
           'init': init_cannon,
           'draw': draw_bullet}
 
-
 Railgun = {'velocity': 25,  # adj
            'damage': 11,
            'exp_damage': 0,
@@ -121,6 +126,7 @@ Railgun = {'velocity': 25,  # adj
            'energy': 120,
            'range': 10000,
            'delay': 480,  # adj
+           'spin_up': 0,
            'target_types': (Vessel,),
            'height': 30,
            'width': 30,
@@ -140,6 +146,7 @@ FlameThrower = {'velocity': 5.5,  # adj
                 'energy': 0.75,  # adj
                 'range': 600,
                 'delay': 1,
+                'spin_up': 0,
                 'target_types': (Vessel,),
                 'height': 6,
                 'width': 6,
@@ -156,9 +163,10 @@ BeamLaser = {'velocity': math.inf,
              'damage': 0,
              'exp_damage': 0,
              'exp_radius': 0,
-             'energy': 0.5,  # adj
+             'energy': 0.2,  # adj
              'range': 900,
              'delay': 1,
+             'spin_up': 0,
              'target_types': (Vessel,),
              'height': 0,
              'width': 0,
@@ -171,7 +179,27 @@ BeamLaser = {'velocity': math.inf,
              'init': init_beam,
              'draw': lambda *args: None}
 
-BulletNames = [AutoCannon, AutoCannon2, AutoCannon3, Plasma, Cannon, Railgun, FlameThrower, BeamLaser]
+PulseLaser = {'velocity': math.inf,
+              'damage': PULSE_DAMAGE,
+              'exp_damage': 0,
+              'exp_radius': 0,
+              'energy': 110,  # adj
+              'range': 900,
+              'delay': 10,
+              'spin_up': 150,
+              'target_types': (Vessel,),
+              'height': 0,
+              'width': 0,
+              'cost': {},
+              'name': "Pulse Laser",
+              'image': pygame.Surface((1, 1)),
+              'l_image': pygame.image.load(os.path.join(PATH, 'PulseLaser_Launcher.png')),
+              'sound': None,
+              'function': partial(pulse_laser, PULSE_DAMAGE),
+              'init': init_pulse,
+              'draw': lambda *args: None}
+
+BulletNames = [AutoCannon, AutoCannon2, AutoCannon3, Plasma, Cannon, Railgun, FlameThrower, BeamLaser, PulseLaser]
 BULLETTYPES = {bullet['name']: BulletType(**bullet) for bullet in BulletNames}
 
 if __name__ == '__main__':

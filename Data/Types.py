@@ -4,6 +4,7 @@ import numpy as np
 import math
 from abc import ABC, abstractmethod
 import random as rnd
+from collections import defaultdict
 from pygame.locals import BLEND_RGB_ADD
 
 COLOR3: typing.TypeAlias = tuple[int, int, int]
@@ -39,7 +40,8 @@ def glow_circle(display: pygame.Surface, x: float, y: float, radius: float, colo
     display.blit(surf, (x - radius, y - radius), special_flags=BLEND_RGB_ADD)
 
 
-def glow_ring(display: pygame.Surface, x: float, y: float, radius: float, color: COLOR4, width: int):
+def glow_ring(display: pygame.Surface, x: float, y: float, radius: float, color: COLOR4,
+              width: int):
     """
     creates glow ring on surface object
     :param display: surface
@@ -66,7 +68,7 @@ class Event(ABC):
         return self.__str__()
 
     @abstractmethod
-    def scoot(self) -> bool:
+    def scoot(self, entity_list: list["Entity"]) -> list[typing.Self]:
         """
         updates event
         """
@@ -86,9 +88,11 @@ class PlasmaExplosion(Event):
         self.y = y
         self.timer = 50
 
-    def scoot(self):
+    def scoot(self, entity_list: list["Entity"]) -> list[Event]:
         self.timer -= 1
-        return self.timer > 0
+        if self.timer > 0:
+            return [self]
+        return []
 
     def draw(self, surf: pygame.surface, x_off: float, y_off: float):
         # save images ahead of time
@@ -97,29 +101,41 @@ class PlasmaExplosion(Event):
 
 
 class Beam(Event):
-    def __init__(self, x: float, y: float, x2: float, y2: float, width: int, color: COLOR3):
+
+    __slots__ = 'x', 'y', 'x2', 'y2', 'width', 'color', 'shrink', 'timer'
+
+    def __init__(self, x: float, y: float, x2: float, y2: float, width: int, color: COLOR3,
+                 shrink: float = 1):
         self.x = x
         self.y = y
         self.x2 = x2
         self.y2 = y2
-        self.width = width
+        self.width: float = width
         self.color = color
+        self.shrink = shrink
         self.timer = 2
 
-    def scoot(self) -> bool:
+    def scoot(self, entity_list: list["Entity"]) -> list[Event]:
         self.timer -= 1
-        return self.timer > 0
+        if self.timer > 0:
+            return [self]
+        return []
+        # self.width -= self.shrink
+        # return self.width > 0
 
     def draw(self, surf: pygame.surface, x_off: float, y_off: float) -> None:
         x, x2 = self.x - x_off, self.x2 - x_off
         y, y2 = self.y - y_off, self.y2 - y_off
 
-        pygame.draw.line(surf, self.color, (x, y), (x2, y2), width=self.width)
+        pygame.draw.line(surf, self.color, (x, y), (x2, y2),
+                         width=round(self.width))
         glow_circle(surf, x2, y2, rnd.randint(5, 10), (150, 50, 0, 50))
         glow_circle(surf, x, y, rnd.randint(3, 5), (150, 50, 0, 50))
 
 
 class Particle(Event):
+    __slots__ = 'fx', 'fy', 'v', 'angle', 'radius', 'color', 'shrink', 'vx', 'vy', 'glow', 'show'
+
     def __init__(self,
                  x: float,
                  y: float,
@@ -150,18 +166,21 @@ class Particle(Event):
     def y(self):
         return round(self.fy)
 
-    def scoot(self):
+    def scoot(self, entity_list: list["Entity"]) -> list[Event]:
         self.fx += self.vx
         self.fy += self.vy
         if rnd.random() > self.shrink:
             self.radius -= 1
 
-        return self.radius > 0
+        if self.radius > 0:
+            return [self]
+        return []
 
     def draw(self, surf: pygame.surface, x_off: float, y_off: float):
-        pygame.draw.circle(surf, self.color, (self.x - x_off, self.y - y_off), self.radius)
-        if self.glow != (0, 0, 0):
-            trans_circle(surf, self.x - x_off, self.y - y_off, 2 * self.radius, self.glow)
+        if self.show:
+            pygame.draw.circle(surf, self.color, (self.x - x_off, self.y - y_off), self.radius)
+            if self.glow != (0, 0, 0):
+                glow_circle(surf, self.x - x_off, self.y - y_off, 2 * self.radius, self.glow)
 
 
 class Debris(Event):
@@ -179,12 +198,14 @@ class Debris(Event):
         self.counter = time
         # print(self.av)
 
-    def scoot(self):
+    def scoot(self, entity_list: list["Entity"]) -> list[Event]:
         self.x += self.vx
         self.y += self.vy
         self.angle += self.av
         self.counter -= 1
-        return self.counter > 0
+        if self.counter > 0:
+            return [self]
+        return []
 
     def draw(self, surf: pygame.surface, x_off: float, y_off: float):
         debris = pygame.transform.rotate(self.type.image, self.angle)
@@ -258,7 +279,18 @@ class FactionType(TypeType):
         self.channel: dict = kwargs['channel']
 
 
-class UtilityType(ItemType):
+class SlotType(ItemType):
+    energy: float
+    delay: int
+    spin_up: int
+    function: typing.Callable
+    init: typing.Callable
+
+    def __bool__(self):
+        return True
+
+
+class UtilityType(SlotType):
     def __init__(self, **kwargs):
         """
         Utility Type
@@ -266,15 +298,18 @@ class UtilityType(ItemType):
         """
         self.function: typing.Callable = kwargs['function']
         self.logic: typing.Callable = kwargs['logic']
-        self.energy: str = kwargs['energy']
+        self.energy: float = kwargs['energy']
         self.delay: int = kwargs['delay']
         self.description: str = kwargs['description']
         self.cost: dict = kwargs['cost']
         self.name: str = kwargs['name']
         self.draw: str = kwargs['draw']
+    @property
+    def spin_up(self):
+        return 0
 
 
-class BulletType(ItemType):
+class BulletType(SlotType):
     def __init__(self, **kwargs):
         """
         Mine Type
@@ -288,6 +323,7 @@ class BulletType(ItemType):
         self.energy: int = kwargs['energy']
         self.range: int = kwargs['range']
         self.delay: int = kwargs['delay']
+        self.spin_up: int = kwargs['spin_up']
         self.target_types: tuple[type] = kwargs['target_types']
         self.height: int = kwargs['height']
         self.width: int = kwargs['width']
@@ -296,12 +332,13 @@ class BulletType(ItemType):
         self.image: pygame.Surface = kwargs['image']
         self.l_image: pygame.Surface = kwargs['l_image']
         self.sound: pygame.mixer.Sound = kwargs['sound']
-        self.function: typing.Callable[[Entity, list[Entity], list[int]], list[Event]] = kwargs['function']
+        self.function: typing.Callable[
+            [Entity, list[Entity], list[int]], list[Event]] = kwargs['function']
         self.init: typing.Callable = kwargs['init']
         self.draw: typing.Callable = kwargs['draw']
 
 
-class MissileType(ItemType):
+class MissileType(SlotType):
     def __init__(self, **kwargs):
         """
         Mine Type
@@ -330,8 +367,12 @@ class MissileType(ItemType):
         self.explosion: typing.Callable = kwargs['explosion']
         self.draw: typing.Callable = kwargs['draw']
 
+    @property
+    def spin_up(self):
+        return 0
 
-class MineType(ItemType):
+
+class MineType(SlotType):
     def __init__(self, **kwargs):
         """
         Mine Type
@@ -361,6 +402,9 @@ class MineType(ItemType):
         self.function: typing.Callable = kwargs['function']
         self.explosion: typing.Callable = kwargs['explosion']
         self.draw: typing.Callable = kwargs['draw']
+    @property
+    def spin_up(self):
+        return 0
 
 
 class TurretType(VesselType):
@@ -512,6 +556,11 @@ class Entity(pygame.FRect):
     @property
     def radians(self):
         return self.angle * math.pi / 180
+
+    @radians.setter
+    def radians(self, value: float):
+        self.angle = value * 180 / math.pi
+
 
     @property
     def Q(self) -> np.ndarray:
@@ -772,38 +821,81 @@ class Vessel(Entity):
     def draw(self, *args, **kwargs) -> None:
         self.type.draw(self, *args, **kwargs)
 
+class NullSlot:
+    def __init__(self):
+        pass
+    def __getattr__(self, item):
+        return None
+    def __bool__(self):
+        return False
+
+
+class Slot:
+    def __init__(self, type_: SlotType | None):
+        self.type: SlotType | NullSlot = type_ if type_ else NullSlot()
+        self.counter: int = 0
+        self.ammo: int | float = math.inf
+
+    def __getattr__(self, item):
+        return object.__getattribute__(self if item in self.__dict__ else self.type, item)
+
+    def __bool__(self):
+        return bool(self.type)
+
+    def use(self, shooter: Vessel, entity_list: list[Entity]) -> list[Event]:
+        if self.counter + self.type.spin_up <= 0 and self.energy <= shooter.energy:
+            shooter.energy -= self.energy
+            self.counter = self.delay
+            return self.init(shooter, entity_list)
+        elif 0 >= self.counter > -self.type.spin_up:
+            self.counter -= 2
+        return []
+
+
+class BulletSlot(Slot):
+    type: BulletType
+
+
+class MissileSlot(Slot):
+    type: MissileType
+
+
+class MineSlot(Slot):
+    type: MineType
+
+
+class UtilitySlot(Slot):
+    type: UtilityType
+
 
 class Shooter(Vessel):
     counter: int
-    bulletC: int
-    missileC: int
-    utilC: int
 
     bullet_sel: int
     missile_sel: int
     mine_sel: int
     util_sel: int
 
-    bullet_types: list[BulletType]
-    missile_types: list[MissileType]
-    mine_types: list[MineType]
-    util_types: list[UtilityType]
+    bullet_slots: dict[int, BulletSlot]
+    missile_slots: dict[int, MissileSlot]
+    mine_slots: dict[int, MineSlot]
+    util_slots: dict[int, UtilitySlot]
 
     @property
-    def bullet(self) -> BulletType:
-        return self.bullet_types[self.bullet_sel]
+    def bullet(self) -> BulletSlot:
+        return self.bullet_slots[self.bullet_sel]
 
     @property
-    def missile(self) -> MissileType:
-        return self.missile_types[self.missile_sel]
+    def missile(self) -> MissileSlot:
+        return self.missile_slots[self.missile_sel]
 
     @property
-    def mine(self) -> MineType:
-        return self.mine_types[self.mine_sel]
+    def mine(self) -> MineSlot:
+        return self.mine_slots[self.mine_sel]
 
     @property
-    def utility(self) -> UtilityType:
-        return self.util_types[self.util_sel]
+    def utility(self) -> UtilitySlot:
+        return self.util_slots[self.util_sel]
 
     @property
     def bullet_pos(self) -> np.ndarray:
