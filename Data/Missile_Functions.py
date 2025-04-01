@@ -83,6 +83,14 @@ def smart_guidance(self: Missile):
         commands['rotate'] = -1
     elif da < 0:
         commands['rotate'] = 1
+
+    center1, center2, radius = self.blind_spots
+    distance1 = math.sqrt((center1[0]-xo)**2+(center1[1]-yo)**2)
+    distance2 = math.sqrt((center2[0] - xo) ** 2 + (center2[1] - yo) ** 2)
+
+    if (distance1 <= radius or distance2 <= radius) and self.timer < self.arm:
+        commands["thrust"] = False
+
     return commands
 
 
