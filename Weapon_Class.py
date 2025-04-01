@@ -63,8 +63,23 @@ class Missile(Guided):
         self.faction = ship.faction
         self.ship = ship
 
+    @property
+    def blind_spots(self):
+        r = self.speed / (self.av * math.pi / 180)
+        dx = r * math.sin(self.radians - math.pi / 2)
+        dy = r * math.cos(self.radians - math.pi / 2)
+
+        return (-dx, -dy), (dx, dy), r
+
     def draw(self, surf: pygame.Surface, x_center: int, y_center: int):
         self.type.draw(self, surf, x_center, y_center)
+        center1, center2, r = self.blind_spots
+        x1 = center1[0] + x_center
+        y1 = center1[1] + y_center
+        x2 = center2[0] + x_center
+        y2 = center2[1] + y_center
+        pygame.draw.circle(surf, (20, 30, 200), (x1, y1), r, width=3)
+        pygame.draw.circle(surf, (20, 30, 200), (x2, y2), r, width=3)
 
     def scoot(self, entity_list: list[Entity]) -> list[Event]:
 

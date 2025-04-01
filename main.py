@@ -47,19 +47,20 @@ def main():
     ls = LocalState(0, 0, HEIGHT, WIDTH)
     gs.entities.append(enemy := Ship(player_control, 1000 + rnd.randint(0, 200), 1000 +
                                      rnd.randint(rnd.randint(0, 200), 200), 180,
-                                     ls.ShipTypes["Pelomir"], ls.factions['Space Pirates']))
+                                     ls.ShipTypes["Corpus 9"], ls.factions['Space Pirates']))
     enemy.bullet_slots[0].type = ls.BulletTypes['Beam Laser']
     enemy.bullet_slots[1].type = ls.BulletTypes['Beam Laser']
+    enemy.missile_slots[0].type = ls.MissileTypes['Seeker']
     # enemy.bullet_slots[2].type = ls.BulletTypes['Pulse Laser']
 
-    # enemy.bullet_types.append(ls.BulletTypes['Plasma'])
-    # enemy.missile_types.append(ls.MissileTypes['Sneaker'])
-    # enemy.missile_types.append(ls.MissileTypes['Sneaker'])
+    # enemy.bullet_types.app
+    #     # enemy.missile_types.append(ls.MissileTypes['Sneaker'])
+    #     # enemy.missile_types.append(ls.MissileTypes['Sneaker'])end(ls.BulletTypes['Plasma'])
     # enemy.mine_types.append(ls.MineTypes['Black Hole'])
     enemy.refresh()
     ls.player = enemy
     for _ in range(1):
-        gs.entities.append(player := Ship(npc_control, rnd.randint(0, 200), 0-rnd.randint(0, 200),
+        gs.entities.append(player := Ship(Null, rnd.randint(0, 200), 0-rnd.randint(0, 200),
                                           rnd.randint(0, 200),
                                           ls.ShipTypes["Corpus 9"], ls.factions['Terminus '
                                                                             'Corporation']))
