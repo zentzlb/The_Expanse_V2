@@ -11,6 +11,17 @@ COLOR3: typing.TypeAlias = tuple[int, int, int]
 COLOR4: typing.TypeAlias = tuple[int, int, int, int]
 
 
+def get_attr(*args: str, obj: object, func: typing.Callable) -> float:
+    """
+    calculates quantity from object attributes and function
+    :param args: attribute names
+    :param obj: object with attributes
+    :param func: function to calculate desired quantity
+    :return: desired quantity
+    """
+    return func(*[obj.__getattribute__(arg) for arg in args])
+
+
 def trans_circle(display: pygame.Surface, x: float, y: float, radius: float, color: COLOR4):
     """
     creates transparent circle on surface object
@@ -134,7 +145,7 @@ class Beam(Event):
 
 
 class Particle(Event):
-    __slots__ = 'fx', 'fy', 'v', 'angle', 'radius', 'color', 'shrink', 'vx', 'vy', 'glow', 'show'
+    __slots__ = 'x', 'y', 'v', 'angle', 'radius', 'color', 'shrink', 'vx', 'vy', 'glow', 'show'
 
     def __init__(self,
                  x: float,
@@ -148,8 +159,8 @@ class Particle(Event):
                  vy: float = 0,
                  glow=(0, 0, 0),
                  show=True):
-        self.fx = x
-        self.fy = y
+        self.x = x
+        self.y = y
         self.vx = v * math.sin(angle * math.pi / 180) + vx
         self.vy = v * math.cos(angle * math.pi / 180) + vy
         self.color = color
@@ -158,17 +169,10 @@ class Particle(Event):
         self.glow = glow
         self.show = show
 
-    @property
-    def x(self):
-        return round(self.fx)
-
-    @property
-    def y(self):
-        return round(self.fy)
 
     def scoot(self, entity_list: list["Entity"]) -> list[Event]:
-        self.fx += self.vx
-        self.fy += self.vy
+        self.x += self.vx
+        self.y += self.vy
         if rnd.random() > self.shrink:
             self.radius -= 1
 
@@ -181,6 +185,19 @@ class Particle(Event):
             pygame.draw.circle(surf, self.color, (self.x - x_off, self.y - y_off), self.radius)
             if self.glow != (0, 0, 0):
                 glow_circle(surf, self.x - x_off, self.y - y_off, 2 * self.radius, self.glow)
+
+
+class Chaff(Particle):
+
+    def __init__(self, x: float, y: float, v: float,
+                 angle: float, radius: int, color, ship: "Entity", entity_list: list["Entity"]):
+        super().__init__(x, y, v, angle, radius, color)
+        for entity in entity_list:
+            if type(Entity) is Shooter and rnd.random() > 0.6:
+                pass
+
+            
+
 
 
 class Debris(Event):
@@ -354,6 +371,7 @@ class MissileType(SlotType):
         self.range: int = kwargs['range']
         self.health: int = kwargs['health']
         self.delay: int = kwargs['delay']
+        self.ammo: int = kwargs['ammo']
         self.height: int = kwargs['height']
         self.width: int = kwargs['width']
         self.par_num: int = kwargs['par_num']
@@ -821,6 +839,7 @@ class Vessel(Entity):
     def draw(self, *args, **kwargs) -> None:
         self.type.draw(self, *args, **kwargs)
 
+
 class NullSlot:
     def __init__(self):
         pass
@@ -834,7 +853,10 @@ class Slot:
     def __init__(self, type_: SlotType | None):
         self.type: SlotType | NullSlot = type_ if type_ else NullSlot()
         self.counter: int = 0
-        self.ammo: int | float = math.inf
+        if hasattr(type_, 'ammo'):
+            self.ammo = type_.ammo
+        else:
+            self.ammo: int | float = math.inf
 
     def __getattr__(self, item):
         return object.__getattribute__(self if item in self.__dict__ else self.type, item)
@@ -842,8 +864,23 @@ class Slot:
     def __bool__(self):
         return bool(self.type)
 
+    def __setattr__(self, key, value):
+        if key == 'type':
+            if hasattr(value, 'ammo'):
+                self.ammo = value.ammo
+            else:
+                self.ammo: int | float = math.inf
+        object.__setattr__(self, key, value)
+
+    @property
+    def ready(self) -> bool:
+        return self.counter + self.type.spin_up <= 0 < self.ammo
+
     def use(self, shooter: Vessel, entity_list: list[Entity]) -> list[Event]:
-        if self.counter + self.type.spin_up <= 0 and self.energy <= shooter.energy:
+        if type(self.type) is NullSlot:
+            return []
+        if self.ready and self.energy <= shooter.energy:
+            self.ammo -= 1
             shooter.energy -= self.energy
             self.counter = self.delay
             return self.init(shooter, entity_list)

@@ -1,3 +1,4 @@
+import math
 import typing
 
 from Weapon_Class import Bullet
@@ -14,6 +15,10 @@ from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
     from Ship_Class import Ship, Base, Asteroid
+
+
+def distance(e1: Entity, e2: Entity) -> float:
+    return math.sqrt((e1.centerx - e2.centerx) ** 2 + (e1.centery - e2.centery) ** 2)
 
 
 class Pulse(Event):
@@ -94,16 +99,12 @@ def init_cannon(ship: Shooter, entity_list: list[Entity]) -> list[Event]:
 
 
 def init_spray(ship: Shooter, entity_list: list[Entity]) -> list[Event]:
-    if ship.is_ship:
-        pos = ship.center + ship.Qt.dot(ship.type.bullet_pos[ship.bullet_sel]) - np.array(
-            [ship.bullet_types[ship.bullet_sel].width // 2,
-             ship.bullet_types[ship.bullet_sel].height // 2])
-    else:
-        pos = ship.center - np.array([ship.bullet_types[ship.bullet_sel].width // 2,
-                                      ship.bullet_types[ship.bullet_sel].height // 2])
-    bullet = Bullet(pos[0], pos[1], ship, ship.angle + rnd.randint(-15, 15),
-                    ship.bullet_types[ship.bullet_sel], faction)
+    (x, y) = ship.center + ship.Qt.dot(ship.bullet_pos) - np.array(
+        [ship.bullet.width // 2, ship.bullet.height // 2])
+    bullet = Bullet(x, y, ship, ship.angle + rnd.randint(-15, 15),
+                    ship.bullet.type)
     entity_list.append(bullet)
+    return []
 
 
 def init_beam(ship: Shooter, entity_list: list[Entity]) -> list[Event]:
@@ -203,9 +204,14 @@ def flame(self: "Bullet", entity_list: list[Entity], dmg_list: list[int]) -> lis
 
 def plasma(self: "Bullet", entity_list: list[Entity], dmg_list: list[int]) -> list[Event]:
     events = []
-    for i in dmg_list:
-        events += entity_list[i] - self.damage
-        entity_list[i].heat += self.damage
+    # for i in dmg_list:
+    #     events += entity_list[i] - self.damage
+    #     entity_list[i].heat += self.damage
+    # self.timer = 0
+    for entity in entity_list:
+        if isinstance(entity, Shooter) and distance(self, entity) < 25 + entity.height / 2:
+            events += entity - self.damage
+            entity.heat += self.damage
     self.timer = 0
     return events + [PlasmaExplosion(self.centerx, self.centery)]
 
@@ -215,7 +221,7 @@ def heat_laser(self: Shooter, target: Entity) -> list[Event]:
         heat = 1
         color = (0, 0, 255, 150)
     else:
-        heat = 0.5
+        heat = 0.4
         color = (255, 0, 0, 150)
     target.heat += heat
     return [Particle(self.centerx, self.centery, 3,

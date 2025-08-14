@@ -1,8 +1,12 @@
+if __name__ == '__main__':
+    import os
+    os.chdir(os.getcwd() + '\\..')
+
 import numpy as np
-from Data.Types import ShipType
+from Data.Types import ShipType, get_attr
 from Data.Ship_Functions import draw_ship
 
-Fighter = {'velocity': 3.2,  # adj
+Fighter = {'velocity': 3.7,  # adj
            'acc': 0.1,  # adj
            'lat': 0.15,
            'rev': 0.05,
@@ -10,7 +14,7 @@ Fighter = {'velocity': 3.2,  # adj
            'energy': 800,
            'health': 150,
            'heat_capacity': 120,
-           'heat_venting': 0.15,  # adj
+           'heat_venting': 0.1,  # adj
            'height': 40,
            'width': 40,
            'range': 20000,
@@ -32,11 +36,11 @@ Fighter = {'velocity': 3.2,  # adj
 
 Dragonfly = {'velocity': 2.7,  # adj
              'acc': 0.1,  # adj
-             'lat': 0.9,
-             'rev': 0.8,
+             'lat': 0.5,
+             'rev': 0.2,
              'av': 1,  # adj
              'energy': 1100,
-             'health': 200,
+             'health': 190,
              'heat_capacity': 150,
              'heat_venting': 0.2,  # adj
              'height': 50,
@@ -74,7 +78,7 @@ Nasool = {'velocity': 4.4,  # adj
           'thrust_pos': [np.array([-55, 42]), np.array([55, 42]), np.array([0, -52])],
           'turret_pos': [],
           'description': 'This ship is fast',
-          'bullet_pos': [np.array([0, -7])],
+          'bullet_pos': [np.array([0, -1])],
           'missile_pos': [],
           'emblem_pos': [],
           'primary': 1,
@@ -171,14 +175,14 @@ Ghost = {'velocity': 3,  # adj
          'name': "Velinture"}
 
 Pelomir = {'velocity': 4.4,  # adj
-           'acc': 0.2,  # adj
+           'acc': 0.15,  # adj
            'lat': 0.15,
-           'rev': 0.05,
+           'rev': 0.01,
            'av': 1.25,  # adj
            'energy': 500,
            'health': 100,
-           'heat_capacity': 90,
-           'heat_venting': 0.02,  # adj
+           'heat_capacity': 70,
+           'heat_venting': 0.09,  # adj
            'height': 30,
            'width': 30,
            'range': 15000,
@@ -310,7 +314,7 @@ Ontulus = {'velocity': 3.3,  # adj
            'draw': draw_ship,
            'name': "Ontulus"}
 
-Garvantex = {'velocity': 2.5,  # adj
+Garvantex = {'velocity': 3.0,  # adj
              'acc': 0.025,  # adj
              'lat': 0.15,
              'rev': 0.05,
@@ -454,3 +458,23 @@ ShipNames = [Fighter, Uboat, HeavyFighter, Ghost, Pelomir, Harfute, Audigote, Pa
              Nasool, Prigozar, Henik, Thades, Dragonfly]
 
 SHIPTYPES: dict[str, ShipType] = {ship['name']: ShipType(**ship) for ship in ShipNames}
+
+
+meta = {
+    'health': {'args': ('health',), 'func': lambda *args: args[0]},
+    'speed': {'args': ('velocity',), 'func': lambda *args: args[0]},
+    'turning radius': {'args': ('av',), 'func': lambda *args: args[0]},
+    'maneuverability': {'args': ('acc', 'lat'), 'func': lambda *args: args[0] * args[1]},
+    'energy capacity': {'args': ('energy',), 'func': lambda *args: args[0]},
+    'heat capacity': {'args': ('heat_capacity', ), 'func': lambda *args: args[0]},
+    'venting': {'args': ('heat_venting', ), 'func': lambda *args: args[0]},
+            }
+
+SHIPMETA= {key: value | {'max': max([get_attr(*value['args'], obj=ship, func=value['func'])
+                                for ship in SHIPTYPES.values()])}
+             for key, value in meta.items()}
+
+
+if __name__ == '__main__':
+    print(SHIPMETA)
+

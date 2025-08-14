@@ -10,6 +10,7 @@ from Menus import StationMenu
 from Ship_Class import Ship, Asteroid, Base
 from Weapon_Class import Bullet, Missile
 from Data.Types import glow_circle
+from Data.constants import *
 from Control_Functions import Point
 from Text_Commands import unpack_str, complete_str
 
@@ -23,14 +24,6 @@ def draw_window(gs: GlobalState, ls: LocalState, fps: int, HEIGHT: int, WIDTH: i
     hbh = 30  # health bar height
     bt = 3
     rng = 0
-
-    COLOR = (40, 10, 35)  # define window color
-    BLACK = (0, 50, 0)  # BLACK
-    RED = (255, 0, 0)  # RED
-    YELLOW = (255, 255, 0)  # YELLOW
-    GREEN = (0, 255, 0)  # green
-    BLUE = (75, 75, 255)  # blue
-    SILVER = (200, 200, 255)  # silver
 
     # ls.WIN.blit(gs.SPACE, (0, 0))  # draw background
 
@@ -73,13 +66,6 @@ def draw_window(gs: GlobalState, ls: LocalState, fps: int, HEIGHT: int, WIDTH: i
 
 
 def draw_hud(gs: GlobalState, ls: LocalState, keys_pressed, fps: float):
-    COLOR = (40, 10, 35)  # define window color
-    BLACK = (0, 50, 0)  # BLACK
-    RED = (255, 0, 0)  # RED
-    YELLOW = (255, 255, 0)  # YELLOW
-    GREEN = (0, 255, 0)  # green
-    BLUE = (75, 75, 255)  # blue
-    SILVER = (200, 200, 255)  # silver
 
     rr = 100  # radar radius
     hbh = 30  # health bar height
@@ -286,20 +272,28 @@ def draw_hud(gs: GlobalState, ls: LocalState, keys_pressed, fps: float):
         th = ls.fonts[2].get_height()
         c = 0
 
-        for i in range(len(ls.player.bullet_types)):
+        for i, slot in ls.player.bullet_slots.items():
             if i == ls.player.bullet_sel:
-                COLOR = YELLOW
+                if slot.ready:
+                    COLOR = GREEN
+                else:
+                    COLOR = YELLOW
             else:
                 COLOR = SILVER
-            text = ls.fonts[2].render(f"{c + 1}. {ls.player.bullet_types[i].name}", True, COLOR)
+            string = f"{c + 1}. {slot.name} ({slot.ammo if slot.ammo < math.inf else '\u221E'})"
+            text = ls.fonts[2].render(string, True, COLOR)
             HUD.blit(text, (7, rect2.y + 4 + c * th))
             c += 1
-        for i in range(len(ls.player.missile_types)):
+        for i, slot in ls.player.missile_slots.items():
             if i == ls.player.missile_sel:
-                COLOR = YELLOW
+                if slot.ready:
+                    COLOR = GREEN
+                else:
+                    COLOR = YELLOW
             else:
                 COLOR = SILVER
-            text = ls.fonts[2].render(f"{c + 1}. {ls.player.missile_types[i].name}", True, COLOR)
+            string = f"{c + 1}. {slot.name} ({slot.ammo if slot.ammo < math.inf else '\u221E'})"
+            text = ls.fonts[2].render(string, True, COLOR)
             HUD.blit(text, (7, rect2.y + 4 + c * th))
             c += 1
         for i in range(len(ls.player.mine_types)):
@@ -310,14 +304,14 @@ def draw_hud(gs: GlobalState, ls: LocalState, keys_pressed, fps: float):
             text = ls.fonts[2].render(f"{c + 1}. {ls.player.mine_types[i].name}", True, COLOR)
             HUD.blit(text, (7, rect2.y + 4 + c * th))
             c += 1
-        for i in range(len(ls.player.util_types)):
-            if i == ls.player.util_sel:
-                COLOR = YELLOW
-            else:
-                COLOR = SILVER
-            text = ls.fonts[2].render(f"{c + 1}. {ls.player.util_types[i].name}", True, COLOR)
-            HUD.blit(text, (7, rect2.y + 4 + c * th))
-            c += 1
+        # for i, slot in ls.player.util_slots.items():
+        #     if i == ls.player.util_sel:
+        #         COLOR = YELLOW
+        #     else:
+        #         COLOR = SILVER
+        #     text = ls.fonts[2].render(f"{c + 1}. {ls.player.util_types[i].name}", True, COLOR)
+        #     HUD.blit(text, (7, rect2.y + 4 + c * th))
+        #     c += 1
 
     pygame.draw.rect(HUD, SILVER, rect2, bt)
 

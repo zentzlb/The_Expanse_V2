@@ -57,8 +57,10 @@ def drunk_guidance(self: Missile):
     self.vy = self.velocity * math.cos(self.angle * math.pi / 180)
 
 
-def smart_guidance(self: Missile):
+def smart_guidance(self: Missile) -> dict[str, int]:
     commands = {'thrust': True, 'rotate': 0}
+    if self.target is None:
+        return commands
     vx = self.target.vx
     vy = self.target.vy
     xo = self.target.centerx
@@ -85,16 +87,17 @@ def smart_guidance(self: Missile):
         commands['rotate'] = 1
 
     center1, center2, radius = self.blind_spots
-    distance1 = math.sqrt((center1[0]-xo)**2+(center1[1]-yo)**2)
+    distance1 = math.sqrt((center1[0] - xo) ** 2+(center1[1] - yo) ** 2)
     distance2 = math.sqrt((center2[0] - xo) ** 2 + (center2[1] - yo) ** 2)
 
-    if (distance1 <= radius or distance2 <= radius) and self.timer < self.arm:
+    if ((distance1 <= radius or distance2 <= radius) and self.timer < self.arm and
+            dx ** 2 + dy ** 2 > 20_000):
         commands["thrust"] = False
 
     return commands
 
 
-def sneaker_guidance(self: Missile):
+def sneaker_guidance(self: Missile) -> dict[str, int]:
     commands = {'thrust': False, 'rotate': 0}
 
     if self.timer == self.range / self.velocity and self.speed > self.velocity / 2:  #

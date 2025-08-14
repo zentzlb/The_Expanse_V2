@@ -13,10 +13,10 @@ from Ship_Class import Ship, Base, Asteroid
 from Control_Functions import NPControl, NPControl2, TurretControl, PlayerControl2, Null
 from Explosions import ShipExplosion
 
-
+# changes
 pygame.font.init()
 
-WIDTH, HEIGHT = 1500, 800  # width and height of window
+WIDTH, HEIGHT = 1500, 850  # width and height of window
 
 # WIN = pygame.display.set_mode((WIDTH, HEIGHT))  # create window
 # HUD = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)  # create HUD surface
@@ -45,31 +45,40 @@ def main():
     pygame.mixer.init()
     pygame.mixer.set_num_channels(3)
     ls = LocalState(0, 0, HEIGHT, WIDTH)
-    gs.entities.append(enemy := Ship(player_control, 1000 + rnd.randint(0, 200), 1000 +
-                                     rnd.randint(rnd.randint(0, 200), 200), 180,
-                                     ls.ShipTypes["Corpus 9"], ls.factions['Space Pirates']))
-    enemy.bullet_slots[0].type = ls.BulletTypes['Beam Laser']
-    enemy.bullet_slots[1].type = ls.BulletTypes['Beam Laser']
-    enemy.missile_slots[0].type = ls.MissileTypes['Seeker']
-    # enemy.bullet_slots[2].type = ls.BulletTypes['Pulse Laser']
+    ls.menu_name = 'faction selection'
+    # gs.entities.append(enemy := Ship(NPControl, 1000 + rnd.randint(0, 200), 1000 +
+    #                                  rnd.randint(rnd.randint(0, 200), 200), 170,
+    #                                  ls.ShipTypes["Corpus 9"], ls.factions['Space Pirates']))
+    # enemy.bullet_slots[0].type = ls.BulletTypes['AP AutoCannon']
+    # enemy.bullet_slots[1].type = ls.BulletTypes['Flame Thrower']
+    # enemy.missile_slots[0].type = ls.MissileTypes['Seeker']
+    # enemy.util_slots[0].type = ls.UtilTypes['Reactor']
 
-    # enemy.bullet_types.app
-    #     # enemy.missile_types.append(ls.MissileTypes['Sneaker'])
-    #     # enemy.missile_types.append(ls.MissileTypes['Sneaker'])end(ls.BulletTypes['Plasma'])
-    # enemy.mine_types.append(ls.MineTypes['Black Hole'])
-    enemy.refresh()
-    ls.player = enemy
-    for _ in range(1):
-        gs.entities.append(player := Ship(Null, rnd.randint(0, 200), 0-rnd.randint(0, 200),
+    # gs.entities.append(enemy := Ship(player_control, 1000 + rnd.randint(0, 200), 1000 +
+    #                                  rnd.randint(rnd.randint(0, 200), 200), 170,
+    #                                  ls.ShipTypes["Dragonfly"], ls.factions['Space Pirates']))
+    # enemy.bullet_slots[0].type = ls.BulletTypes['Beam Laser']
+    # enemy.missile_slots[0].type = ls.MissileTypes['Seeker']
+    # enemy.missile_slots[1].type = ls.MissileTypes['Seeker']
+
+    # enemy.refresh()
+    # ls.player = enemy
+    for _ in range(3):
+        gs.entities.append(player := Ship(NPControl, 5000+rnd.randint(0, 200), 0-rnd.randint(0,
+                                                                                             200),
                                           rnd.randint(0, 200),
-                                          ls.ShipTypes["Corpus 9"], ls.factions['Terminus '
+                                          ls.ShipTypes["Pafonteer"], ls.factions['Terminus '
                                                                             'Corporation']))
-        # gs.entities.append(enemy := Ship(npc_control, 1500+rnd.randint(0, 200),
-        # 1500+rnd.randint(0, 200), rnd.randint(0, 200), ls.ShipTypes["Pelomir"], ls.factions[
-        # 'Space Pirates']))
+
+
         player.bullet_slots[0].type = ls.BulletTypes['Plasma']
-        player.bullet_slots[1].type = ls.BulletTypes['Plasma']
-        player.missile_slots[0].type = ls.MissileTypes['Seeker']
+        # player.bullet_slots[1].type = ls.BulletTypes['Plasma']
+
+        # player.missile_slots[0].type = ls.MissileTypes['Seeker']
+        # player.missile_slots[1].type = ls.MissileTypes['Seeker']
+        # player.bullet_slots[0].type = ls.BulletTypes['Plasma']
+        # player.bullet_slots[1].type = ls.BulletTypes['Plasma']
+        # player.missile_slots[0].type = ls.MissileTypes['Seeker']
         # player.bullet_types.append(ls.BulletTypes['Railgun'])
         # player.bullet_types.append(ls.BulletTypes['Railgun'])
 
@@ -86,22 +95,43 @@ def main():
 
     run = True
     clock = pygame.time.Clock()  # game clock
+    counter = 0
 
     while run:  # main loop
         clock.tick(ls.FPS)
-        for event in pygame.event.get(eventtype=pygame.QUIT):  # look for events
-            # if event.type == pygame.QUIT:  # check to see if user quit game
-            run = False
-            print('game over!')
-            return
-        gs.update()
-        fps = round(clock.get_fps())
-        gs.explosion_group.update()  # scoot all explosions
+        for event in pygame.event.get():  # look for events
+            if event.type == pygame.QUIT:  # check to see if user quit game
+                run = False
+                print('game over!')
+                return
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mx, my = pygame.mouse.get_pos()
+                for button in ls.buttons:
+                    if button.collidepoint(mx, my):
+                        button()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    ls.menu_name = 'faction selection'
+
+        if not ls.menu_name:
+            if ls.player is not None and ls.player not in gs.entities:
+                if ls.player.health > 0:
+                    gs.entities.append(ls.player)
+
+            gs.update()
+            gs.explosion_group.update()  # scoot all explosions
+            ls.update()
+            fps = round(clock.get_fps())
+            draw_window(gs, ls, fps, HEIGHT, WIDTH)
+        else:
+            ls.update()
+            ls.draw()
+
+
 
 
         """Render Window"""
-        ls.update()
-        draw_window(gs, ls, fps, HEIGHT, WIDTH)
+
 
     pygame.quit()  # quit game
     return gs

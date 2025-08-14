@@ -4,9 +4,12 @@ import numpy as np
 import random as rnd
 import time
 from utils import FindNearest, FindMineable
-from Misc import GlobalState
 from Ship_Class import Ship, Base, Asteroid, Turret
 from Data.Types import Entity
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from Misc import GlobalState
 
 
 class Point:
@@ -217,6 +220,118 @@ def NPControl2(ship: Ship, entity_list: list[Entity], **kwargs) -> list[int]:
 
 
 """TURRET CONTROLS"""
+
+def Turretontrol2(ship: Ship, entity_list: list[Entity], **kwargs) -> dict[int]:
+    commands = {'fire': True, 'rotate': 0}
+
+
+    if ship.target is None or ship.target.health <= 0 or ship.counter == 60:
+        ship.target = FindNearest(ship, [entity for entity in entity_list if
+                                         isinstance(entity, Ship) and entity.faction_name != ship.faction_name])
+        ship.counter = 0
+    else:
+        ship.counter += 1
+
+    if type(ship.target) is Base:
+        x = ship.target.centerx
+        y = ship.target.centery
+
+        dx = x - ship.centerx
+        dy = y - ship.centery
+
+        V = np.array([[dx], [dy]])
+        V_prime = ship.Q.dot(V)
+        angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
+
+        if angle2 > ship.av * math.pi / 360:  # LEFT
+            commands[0] = 1
+        elif angle2 < -ship.av * math.pi / 360:  # RIGHT
+            commands[0] = -1
+
+        """GO FORWARD"""
+        commands[1] = 1
+
+        """NO LATERAL ACCELERATION"""
+        commands[2] = round(math.sin(ship.counter))
+        """SHOOT"""
+        # commands.append(0)
+        # commands.append(0)
+
+        """NO MINES"""
+        # commands.append(0)
+
+        """BOOST"""
+        if ship.health < ship.type.health and ship.energy > 10:
+            commands[6] = 1
+
+        if type(ship.target) is Base:
+            commands[7] = 1
+
+        if type(ship.target) is Asteroid:
+            commands[8] = 1
+
+    elif type(ship.target) is Ship:
+
+        bs, dx, dy, r1, angle2, in_range = find_bullet(ship)
+        ms, r2 = find_missile(ship)
+        # us, use = use_util(ship, gs, commands, faction)
+
+        commands[10] = bs + 1
+        commands[11] = ms + 1
+        # commands[13] = us + 1
+
+        if angle2 > ship.av * math.pi / 360:  # LEFT
+            commands[0] = 1
+        elif angle2 < -ship.av * math.pi / 360:  # RIGHT
+            commands[0] = -1
+
+        """GO FORWARD"""
+        if (abs(angle2 * 180 / math.pi) < 80 and ship.bullet_types[bs].range < 5 * r1) or ship.bullet_types[bs].delay > 100:
+            commands[1] = 1
+        else:
+            commands[1] = -1
+
+        """NO LATERAL ACCELERATION"""
+        commands[2] = 0  # round(math.sin(time.time()))
+
+        if (in_range and abs(angle2) < 0.7
+                and abs(r1 * math.sin(angle2)) < ship.target.height / 2
+                and (ship.energy >= 50 or ship.target.heat > 0.8 * ship.target.type.heat_capacity)
+                and ship.bullet_types[bs].range > r1):  # SHOOT BULLET
+            commands[3] = 1
+
+        if len(ship.missile_types) > 0 and ship.energy >= ship.missile_types[ms].energy and ship.missile_types[
+            ms].range > r2:
+            commands[4] = 1
+
+        """UTIL"""
+        # commands[6] = use
+
+        """BOOST"""
+        if ship.health < 20 and (
+                (ship.energy > ship.bullet_types[bs].energy and ship.boost) or ship.energy > ship.bullet_types[
+            bs].energy + 30):
+            commands[7] = 1
+
+    elif type(ship.target) is Point:
+        # print('working')
+
+        dx = ship.target.x - ship.centerx
+        dy = ship.target.y - ship.centery
+
+        V = np.array([[dx], [dy]])
+        V_prime = ship.Q.dot(V)
+        angle2 = math.atan2(V_prime[0][0], V_prime[1][0])
+
+        if angle2 > ship.av * math.pi / 360:  # LEFT
+            commands[0] = 1
+        elif angle2 < -ship.av * math.pi / 360:  # RIGHT
+            commands[0] = -1
+
+        """GO FORWARD"""
+        commands[1] = 1
+
+    return commands
 
 
 def TurretControl(turret: Ship, entity_list: list[Entity], **kwargs) -> list[int]:
@@ -502,7 +617,7 @@ def find_missile(ship: Ship):
     return ind, r
 
 
-def use_util(ship: Ship, gs: GlobalState, commands: list[int], faction: str):
+def use_util(ship: Ship, gs: "GlobalState", commands: list[int], faction: str):
     for us in range(len(ship.util_types)):
         use = ship.util_types[us].logic(ship, gs, commands, faction)
         if use == 1:

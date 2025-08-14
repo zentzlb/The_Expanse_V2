@@ -5,7 +5,7 @@ from Data.Types import UtilityType
 
 AutoLoader = {'function': auto_loader,
               'logic': use_auto_loader,
-              'energy': '1',
+              'energy': 1,
               'delay': 0,
               'description': 'This ship is fast',
               'cost': {},
@@ -32,7 +32,7 @@ Cloak = {'function': cloak,
 
 Reactor = {'function': overload_reactor,
            'logic': use_overload_reactor,
-           'energy': '0',
+           'energy': 0,
            'delay': 1,
            'description': 'This ship is fast',
            'cost': {},

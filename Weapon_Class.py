@@ -65,21 +65,21 @@ class Missile(Guided):
 
     @property
     def blind_spots(self):
-        r = self.speed / (self.av * math.pi / 180)
+        r = self.velocity / (self.av * math.pi / 180)
         dx = r * math.sin(self.radians - math.pi / 2)
         dy = r * math.cos(self.radians - math.pi / 2)
 
-        return (-dx, -dy), (dx, dy), r
+        return (-dx + self.centerx, -dy + self.centery), (dx + self.centerx, dy + self.centery), r
 
     def draw(self, surf: pygame.Surface, x_center: int, y_center: int):
         self.type.draw(self, surf, x_center, y_center)
-        center1, center2, r = self.blind_spots
-        x1 = center1[0] + x_center
-        y1 = center1[1] + y_center
-        x2 = center2[0] + x_center
-        y2 = center2[1] + y_center
-        pygame.draw.circle(surf, (20, 30, 200), (x1, y1), r, width=3)
-        pygame.draw.circle(surf, (20, 30, 200), (x2, y2), r, width=3)
+        # center1, center2, r = self.blind_spots
+        # x1 = center1[0] + x_center - self.centerx
+        # y1 = center1[1] + y_center - self.centery
+        # x2 = center2[0] + x_center - self.centerx
+        # y2 = center2[1] + y_center - self.centery
+        # pygame.draw.circle(surf, (20, 30, 200), (x1, y1), r, width=3)
+        # pygame.draw.circle(surf, (20, 30, 200), (x2, y2), r, width=3)
 
     def scoot(self, entity_list: list[Entity]) -> list[Event]:
 
@@ -94,11 +94,11 @@ class Missile(Guided):
         if self.target is None or self.target.health <= 0:
             self.target = FindNearest(self, targets)
 
-        if self.target is None:
-            events += self.type.explosion(self, targets, [])
-            self.timer = 0
-            self.health = 0
-            return events
+        # if self.target is None:
+        #     events += self.type.explosion(self, targets, [])
+        #     self.timer = 0
+        #     self.health = 0
+        #     return events
 
         commands: dict = self.type.guidance(self)
 
@@ -132,7 +132,7 @@ class Missile(Guided):
             events += self.type.explosion(self, targets, dmg_list)
             self.health = 0
 
-        elif self.timer <= 1:  # missile runs out of thrust
+        elif self.timer <= 1 or self.heat > self.health * 2:  # missile runs out of thrust
             events += self.type.explosion(self, targets, [])
             self.health = 0
         return events

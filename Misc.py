@@ -1,25 +1,29 @@
 """https://github.com/russs123/Explosion/blob/main/explosion.py"""
-import pygame
-import math
 import os
-import numpy as np
 import random as rnd
-from Data.Ship_Types import SHIPTYPES
+from functools import partial
+from typing import TYPE_CHECKING, Any
+
+import numpy as np
+import pygame
+
+from Control_Functions import PlayerControl2, NPControl
+from Data.Bullet_Types import BULLETTYPES, BULLETMETA
+from Data.Debris_Types import DEBRISTYPES
+from Data.Factions import FACTIONDICT, FactionType
+from Data.Mine_Types import MINETYPES
+from Data.Missile_Types import MISSILETYPES, MISSILEMETA
+from Data.Ship_Types import SHIPTYPES, SHIPMETA
 from Data.Station_Types import STATIONTYPES
 from Data.Turret_Types import TURRETTYPES
-from Data.Bullet_Types import BULLETTYPES
-from Data.Missile_Types import MISSILETYPES
-from Data.Mine_Types import MINETYPES
+from Data.Types import Entity, State, GlobalStateInt, BackgroundParticle, get_attr
 from Data.Utility_Types import UTILITYTYPES
-from Data.Debris_Types import DEBRISTYPES
-from Data.Factions import FACTIONDICT
-from Data.Types import Entity, State, GlobalStateInt, LocalStateInt, BackgroundParticle, Shooter
-from typing import TYPE_CHECKING, Any
-from Explosions import ShipExplosion
+from Data.constants import *
+from Menus2 import Button
+from Ship_Class import Ship
 
 if TYPE_CHECKING:
-    from Ship_Class import Ship, Base, Asteroid
-    from Weapon_Class import Bullet, Missile, Mine
+    pass
 
 
 class GlobalState(GlobalStateInt):
@@ -51,11 +55,7 @@ class GlobalState(GlobalStateInt):
 
 
 class LocalState(State):
-    COLOR = (40, 10, 35)  # define window color
-    BLACK = (0, 50, 0)  # BLACK
-    RED = (255, 0, 0)  # RED
-    YELLOW = (255, 255, 0)  # YELLOW
-
+    menu_names = ['faction selection', 'ship selection', 'weapon selection']
     FPS = 120  # define frame rate
 
     def __init__(self, x: int, y: int, height: int, width: int, player=None, menu=None):
@@ -64,14 +64,20 @@ class LocalState(State):
         self.y = y
         self.height = height
         self.width = width
+        self.menu = menu
+        self.selected = None
         # self.particle_list = []  # behind ships
         # self.particle_list2 = []  # in front of ships
         self.lines = []  # lines in front of ship
-        self.menu = menu
+        self.buttons: list[Button] = []
         self.mining_sound = pygame.mixer.Sound(os.path.join('Assets', 'mining.mp3'))
         self.mining = pygame.mixer.Channel(2)
-        self.WIN = pygame.display.set_mode((width, height), pygame.SCALED | pygame.FULLSCREEN)  # create window
+        self.WIN = pygame.display.set_mode((width, height),
+                                           pygame.SCALED | pygame.FULLSCREEN)  # create window
         self.images = {}
+        # self.menu_names = {'faction selection', 'ship selection', 'weapon selection'}
+        self.menu_name = 'faction selection'
+
         self.misc_info = {'command prompt': False, 'command text': '', 'command history': []}
         self.fonts = [pygame.font.SysFont('Agency FB', 25),
                       pygame.font.SysFont('Agency FB', 20),
@@ -109,8 +115,9 @@ class LocalState(State):
 
         # self.DUST = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'space_dust_new.png')),
         #                               (6000, 6000)).convert_alpha()  # foreground image
-        self.FIELD = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'middle_ground.png')),
-                                            (6000, 6000)).convert_alpha()  # middle ground image
+        self.FIELD = pygame.transform.scale(
+            pygame.image.load(os.path.join('Assets', 'middle_ground.png')),
+            (6000, 6000)).convert_alpha()  # middle ground image
         self.make_faction_ships()
         self.load_images('Assets')
         for i in range(300):
@@ -121,7 +128,12 @@ class LocalState(State):
             self.field.append(
                 BackgroundParticle(rnd.randint(0, 24000),
                                    rnd.randint(0, 24000),
-                                   self.images['Asteroids'][rnd.randint(0, len(self.images['Asteroids']) - 1)]))
+                                   self.images['Asteroids'][
+                                       rnd.randint(0, len(self.images['Asteroids']) - 1)]))
+
+    @property
+    def full_size(self):
+        return self.height / 2
 
     @property
     def cx(self) -> int:
@@ -146,6 +158,266 @@ class LocalState(State):
     @property
     def ship_names(self):
         return list(self.ShipTypes.keys())
+
+    @property
+    def faction(self):
+        if self.player:
+            return self.player.faction
+        return None
+
+    def set_ship(self, faction: FactionType, ship_name: str, **kwargs):
+        self.player = Ship(PlayerControl2, self.x, self.y, 0, self.ShipTypes[ship_name],
+                           faction)
+        self.player.refresh()
+
+    def set_attr(self, slot_type: str, i: int, type_, **kwargs):
+        self.player.__getattribute__(slot_type)[i].type = type_
+        self.player.refresh()
+
+    def select(self, value: Any, **kwargs):
+        if self.selected == value:
+            self.selected = None
+        else:
+            self.selected = value
+
+    def next(self, *args, **kwargs):
+        self.selected = None
+        if self.menu_name in self.menu_names:
+            i = self.menu_names.index(self.menu_name)
+            if i < len(self.menu_names) - 1:
+                self.menu_name = self.menu_names[i + 1]
+
+    def last(self, *args, **kwargs):
+        self.selected = None
+        if self.menu_name in self.menu_names:
+            i = self.menu_names.index(self.menu_name)
+            if i > 0:
+                self.menu_name = self.menu_names[i - 1]
+
+    def exit_menu(self, *args, **kwargs):
+        self.menu_name = ''
+
+    def menu_buttons(self):
+        spacing = 20
+        mx, my = pygame.mouse.get_pos()
+        nav_buttons = [Button(rect := (spacing, self.height - 60, 50, 200),
+                              color=YELLOW if pygame.Rect(rect).collidepoint(mx, my)
+                              else SILVER,
+                              func=self.last),
+                       Button(rect := (self.width - spacing - 200, self.height - 60, 50, 200),
+                              color=YELLOW if pygame.Rect(rect).collidepoint(mx, my)
+                              else (SILVER, BLUE)[self.menu_name == 'weapon selection'],
+                              func=self.exit_menu if self.menu_name == 'weapon selection' else
+                       self.next)
+                       ]
+        match self.menu_name:
+            case 'faction selection':
+                size = 200
+                x = np.linspace(0, self.width, len(self.factions) + 2)[1:-1]
+                return [Button(rect := (float(x[i]) - size / 2,
+                                        (self.height - size) / 2,
+                                        size + spacing,
+                                        size + spacing),
+                               pygame.transform.scale(faction.image, (size, size)),
+                               func=partial(self.set_ship, faction, 'Corpus 9'),
+                               color=YELLOW if pygame.Rect(rect).collidepoint(mx, my)
+                               else (SILVER, GREEN)[self.faction is not None and faction.name ==
+                        self.faction.name])
+                        for i, faction in enumerate(self.factions.values())] + nav_buttons
+            case 'ship selection':
+                size = 160
+                x = np.linspace(0, self.width, self.width // size)[1:-1]
+                mx, my = pygame.mouse.get_pos()
+                return [Button(rect := (float(x[i % len(x)]) - size / 2,
+                                        spacing + (size + 2 * spacing) * (i // len(x)),
+                                        size + spacing,
+                                        size + spacing),
+                               self.factions[self.faction.name].ship_images[ship]['L1'],
+                               func=partial(self.set_ship, self.faction, ship),
+                               rect_width=5,
+                               color=YELLOW if pygame.Rect(rect).collidepoint(mx, my)
+                               else (COLOR, GREEN)[ship == self.player.type.name])
+                        for i, ship in enumerate(self.faction.ship_images)] + nav_buttons
+            case 'weapon selection':
+                buttons = []
+                scale = self.full_size / self.player.image.get_width()
+                size = 15 * scale
+                for i, pos in enumerate(self.player.type.bullet_pos):
+                    x = float(self.width / 2 + scale * pos[0] - size / 2)
+                    y = float(self.height / 2 + scale * pos[1] - size / 2)
+                    buttons.append(Button(rect := (x, y, size, size),
+                                          rect_width=round(scale),
+                                          func=partial(self.select, ('bullet_slots', i)),
+                                          color=YELLOW if pygame.Rect(rect).collidepoint(mx, my)
+                                          else (BLUE, GREEN)[self.selected == ('bullet_slots', i)]
+                                          ))
+
+                for i, pos in enumerate(self.player.type.missile_pos):
+                    x = float(self.width / 2 + scale * pos[0] - size / 2)
+                    y = float(self.height / 2 + scale * pos[1] - size / 2)
+                    buttons.append(Button(rect := (x, y, size, size),
+                                          rect_width=round(scale),
+                                          func=partial(self.select, ('missile_slots', i)),
+                                          color=YELLOW if pygame.Rect(rect).collidepoint(mx, my)
+                                          else (BLUE, GREEN)[self.selected == ('missile_slots', i)]
+                                          ))
+
+                if type(self.selected) is tuple:
+                    size = 40
+                    x = spacing
+                    y = np.linspace(spacing, self.height - size, len(self.BulletTypes) + 1)[:-1]
+                    if self.selected[0] == 'bullet_slots':
+                        buttons += [Button(rect := (x,
+                                                    float(y[i]),
+                                                    size + spacing,
+                                                    size + spacing),
+                                           pygame.transform.scale(bul.l_image, (size, size)),
+                                           func=partial(self.set_attr, 'bullet_slots', self.selected[1],
+                                                        bul),
+                                           rect_width=5,
+                                           color=YELLOW if pygame.Rect(rect).collidepoint(mx, my)
+                                           else (BLACK, GREEN)[
+                                               self.player.bullet_slots[self.selected[1]].type
+                                               == bul])
+                                    for i, bul in enumerate(self.BulletTypes.values())]
+                    elif self.selected[0] == 'missile_slots':
+                        buttons += [Button(rect := (x,
+                                                    float(y[i]),
+                                                    size + spacing,
+                                                    size + spacing),
+                                           pygame.transform.scale(mis.image, (size, size)),
+                                           func=partial(self.set_attr, 'missile_slots',
+                                                        self.selected[1],
+                                                        mis),
+                                           rect_width=5,
+                                           color=YELLOW if pygame.Rect(rect).collidepoint(mx, my)
+                                           else (BLACK, GREEN)[
+                                               self.player.missile_slots[self.selected[1]].type
+                                               == mis])
+                                    for i, mis in enumerate(self.MissileTypes.values())]
+                return buttons + nav_buttons
+
+        # 'faction selection', 'ship selection', 'weapon selection'
+
+    def draw(self):
+        """
+        draws buttons on surf
+        :param surf: game window
+        """
+
+        match self.menu_name:
+            case 'faction selection':
+                self.WIN.fill((10, 10, 20))
+            case 'ship selection':
+                self.WIN.fill((10, 10, 20))
+                height = self.fonts[2].get_height()
+                y = [self.height / 2 + i * (height * 1.1) + 20 for i in range(len(SHIPMETA))]
+                text_len = 100
+                bar_len = 300
+                x = self.width / 2 + 100
+
+                text_surface = self.fonts[1].render(self.player.name,
+                                                    antialias=True,
+                                                    color=BLUE,
+                                                    wraplength=text_len)
+                self.WIN.blit(text_surface, (x, y[0] - self.fonts[1].get_height()))
+
+                for i, (key, value) in enumerate(SHIPMETA.items()):
+                    ratio = (get_attr(*value['args'], obj=self.player.type,
+                                      func=value['func']) / value['max'])
+
+                    color = ratio * np.array(GREEN) + (1 - ratio) * np.array(RED)
+
+                    text_surface = self.fonts[2].render(key,
+                                                        antialias=True,
+                                                        color=SILVER,
+                                                        wraplength=text_len)
+                    self.WIN.blit(text_surface, (x, y[i]))
+                    pygame.draw.rect(self.WIN,
+                                     COLOR,
+                                     (x + text_len, y[i], bar_len, height))
+                    pygame.draw.rect(self.WIN,
+                                     color,
+                                     (x + text_len, y[i], bar_len * ratio, height))
+
+            case 'weapon selection':
+                self.WIN.fill(COLOR)
+                image = pygame.transform.scale(self.player.image,
+                                               (self.full_size, self.full_size))
+                self.WIN.blit(image, (self.width / 2 - self.full_size / 2,
+                                      self.height / 2 - self.full_size / 2))
+                if (type(self.selected) is tuple and
+                        self.selected[0] == 'bullet_slots' and
+                        (slot := self.player.bullet_slots[self.selected[1]])):
+                    height = self.fonts[2].get_height()
+                    y = [round(self.height / 2 + i * (height * 1.1) + 20)
+                         for i in range(len(BULLETMETA))]
+                    text_len = 100
+                    bar_len = 300
+                    x = self.width - bar_len - text_len - 20
+
+                    text_surface = self.fonts[1].render(slot.type.name,
+                                                        antialias=True,
+                                                        color=BLUE,
+                                                        wraplength=text_len)
+                    self.WIN.blit(text_surface, (x, y[0] - self.fonts[1].get_height()))
+
+                    for i, (key, value) in enumerate(BULLETMETA.items()):
+                        ratio = (get_attr(*value['args'],
+                                          obj=slot.type,
+                                          func=value['func']) / value['max'])
+
+                        color = ratio * np.array(GREEN) + (1 - ratio) * np.array(RED)
+
+                        text_surface = self.fonts[2].render(key,
+                                                            antialias=True,
+                                                            color=SILVER,
+                                                            wraplength=text_len)
+                        self.WIN.blit(text_surface, (x, y[i]))
+                        pygame.draw.rect(self.WIN,
+                                         BLACK,
+                                         (x + text_len, y[i], bar_len, height))
+                        pygame.draw.rect(self.WIN,
+                                         color,
+                                         (x + text_len, y[i], bar_len * ratio, height))
+                elif (type(self.selected) is tuple and
+                        self.selected[0] == 'missile_slots' and
+                        (slot := self.player.missile_slots[self.selected[1]])):
+                    height = self.fonts[2].get_height()
+                    y = [round(self.height / 2 + i * (height * 1.1) + 20) for i in
+                         range(len(MISSILEMETA))]
+                    text_len = 100
+                    bar_len = 300
+                    x = self.width - bar_len - text_len - 20
+
+                    text_surface = self.fonts[1].render(slot.type.name,
+                                                        antialias=True,
+                                                        color=BLUE,
+                                                        wraplength=text_len)
+                    self.WIN.blit(text_surface, (x, y[0] - self.fonts[1].get_height()))
+
+                    for i, (key, value) in enumerate(MISSILEMETA.items()):
+                        ratio = (get_attr(*value['args'],
+                                          obj=slot.type,
+                                          func=value['func']) / value['max'])
+
+                        color = ratio * np.array(GREEN) + (1 - ratio) * np.array(RED)
+
+                        text_surface = self.fonts[2].render(key,
+                                                            antialias=True,
+                                                            color=SILVER,
+                                                            wraplength=text_len)
+                        self.WIN.blit(text_surface, (x, y[i]))
+                        pygame.draw.rect(self.WIN,
+                                         BLACK,
+                                         (x + text_len, y[i], bar_len, height))
+                        pygame.draw.rect(self.WIN,
+                                         color,
+                                         (x + text_len, y[i], bar_len * ratio, height))
+
+        for button in self.buttons:
+            button.draw(self.WIN)
+        pygame.display.update()
 
     def play_mining(self, volume=1):
         if not self.mining.get_busy():
@@ -173,9 +445,16 @@ class LocalState(State):
             # return image_list
 
     def update(self):
-        self.cx = self.player.centerx
-        self.cy = self.player.centery
-        self.player_commands()
+        if self.player:
+            self.cx = self.player.centerx
+            self.cy = self.player.centery
+            self.player_commands()
+        if self.menu_name:
+            self.buttons = self.menu_buttons()
+        else:
+            self.buttons = []
+
+        return self.menu_name == ''
 
     def make_faction_ships(self):
         """
@@ -242,7 +521,8 @@ def assign_mine_cost(mine):
     return cost
 
 
-def assign_util_cost(util):  # in case we want util costs to be formulaic later when utils are better fleshed out
+def assign_util_cost(
+        util):  # in case we want util costs to be formulaic later when utils are better fleshed out
     cost = {"Iron": 50,
             "Nickel": 50,
             "Platinum": 20,
@@ -297,9 +577,6 @@ class TurretTypes:
 
 
 """FIND NEAREST ENTITY IN LIST"""
-
-
-
 
 
 def assign_ore(name):

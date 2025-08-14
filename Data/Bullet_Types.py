@@ -1,4 +1,9 @@
-from Data.Types import BulletType, Vessel, Projectile, Guided
+if __name__ == '__main__':
+    import os
+    os.chdir(os.getcwd() + '\\..')
+
+
+from Data.Types import BulletType, Vessel, Projectile, Guided, get_attr
 from Data.constants import PULSE_DAMAGE
 from Data.Bullet_Functions import *
 from functools import partial
@@ -8,9 +13,8 @@ import pygame
 
 pygame.mixer.init()
 
-# if __name__ == '__main__':
-# PATH = r'..\Assets'
-# else:
+
+
 PATH = r'Assets'
 
 """FLAME THROWER IMAGE"""
@@ -23,7 +27,7 @@ AutoCannon = {'velocity': 10,  # adj
               'damage': 2,
               'exp_damage': 0,
               'exp_radius': 0,
-              'energy': 7,
+              'energy': 4,
               'range': 5000,
               'delay': 11,  # adj
               'spin_up': 0,
@@ -43,7 +47,7 @@ AutoCannon2 = {'velocity': 9.5,  # adj
                'damage': 3,
                'exp_damage': 0,
                'exp_radius': 0,
-               'energy': 12,
+               'energy': 6,
                'range': 4000,
                'delay': 15,  # adj
                'spin_up': 0,
@@ -63,7 +67,7 @@ AutoCannon3 = {'velocity': 9.5,  # adj
                'damage': 2,
                'exp_damage': 0,
                'exp_radius': 0,
-               'energy': 12,
+               'energy': 6,
                'range': 4000,
                'delay': 17,  # adj
                'spin_up': 0,
@@ -85,7 +89,7 @@ Plasma = {'velocity': 5.5,  # adj
           'exp_radius': 0,
           'energy': 110,
           'range': 1000,
-          'delay': 270,  # adj
+          'delay': 280,  # adj
           'spin_up': 0,
           'target_types': (Vessel,),
           'height': 15,
@@ -125,8 +129,8 @@ Railgun = {'velocity': 25,  # adj
            'exp_radius': 0,
            'energy': 120,
            'range': 10000,
-           'delay': 480,  # adj
-           'spin_up': 0,
+           'delay': 400,  # adj
+           'spin_up': 60,
            'target_types': (Vessel,),
            'height': 30,
            'width': 30,
@@ -143,7 +147,7 @@ FlameThrower = {'velocity': 5.5,  # adj
                 'damage': 0,
                 'exp_damage': 0,
                 'exp_radius': 0,
-                'energy': 0.75,  # adj
+                'energy': 0.5,  # adj
                 'range': 600,
                 'delay': 1,
                 'spin_up': 0,
@@ -183,9 +187,9 @@ PulseLaser = {'velocity': math.inf,
               'damage': PULSE_DAMAGE,
               'exp_damage': 0,
               'exp_radius': 0,
-              'energy': 110,  # adj
+              'energy': 140,  # adj
               'range': 900,
-              'delay': 10,
+              'delay': 100,
               'spin_up': 150,
               'target_types': (Vessel,),
               'height': 0,
@@ -202,5 +206,23 @@ PulseLaser = {'velocity': math.inf,
 BulletNames = [AutoCannon, AutoCannon2, AutoCannon3, Plasma, Cannon, Railgun, FlameThrower, BeamLaser, PulseLaser]
 BULLETTYPES = {bullet['name']: BulletType(**bullet) for bullet in BulletNames}
 
+
+
+meta = {
+    'DPS': {'args': ('damage',
+                     'exp_damage',
+                     'delay',
+                     'spin_up'), 'func': lambda *args: (args[0] + args[1]) / (args[2] + args[3])},
+    'range': {'args': ('range',), 'func': lambda *args: args[0]},
+    'efficiency': {'args': ('damage', 'exp_damage', 'energy'),
+                   'func': lambda *args: (args[0] + args[1]) / args[2]}
+            }
+
+BULLETMETA= {key: value | {'max': max([get_attr(*value['args'],
+                                                obj=bullet, func=value['func'])
+                                for bullet in BULLETTYPES.values()])}
+             for key, value in meta.items()}
+
 if __name__ == '__main__':
-    print(locals())
+    # print(locals())
+    print(BULLETMETA)

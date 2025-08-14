@@ -52,7 +52,7 @@ class Ship(Shooter):
         self.target = None
         self.control_module = control_module
 
-        self.turrets = []
+        self.turrets: list[Turret] = []
         self.cargo = CargoClass()
         self.forward = False
         self.boost = False
@@ -238,7 +238,8 @@ class Ship(Shooter):
             G = rnd.randint(0, 255)
 
             events += [Particle(*(self.center + self.Qt.dot(thrust)), -rnd.randint(10, 12),
-                                self.angle + rnd.randint(-15, 15), size, (R, G, 0), shrink=0.5,
+                                self.angle + rnd.randint(-15, 15), size,
+                                (R, G, 0), shrink=0.5,
                                 vx=self.vx,
                                 vy=self.vy,
                                 glow=(R // 2, G // 2, 0)) for thrust in self.type.thrust_pos]
@@ -276,7 +277,7 @@ class Ship(Shooter):
             self.bulletC = self.bullet.delay
             self.bullet_sel = i
 
-        if commands[4] == 1 and self.missile and self.target is not None:
+        if commands[4] == 1 and self.missile:
             i, missile_name = self.missile_sel, self.missile.name
             for j in range(len(self.missile_slots)):
                 self.missile_sel = j
@@ -317,22 +318,24 @@ class Ship(Shooter):
 
         self.concealed(entity_list)
 
-        if not self.cloaked:
-            heat_loss = 0.01 + self.type.heat_venting * (self.heat / self.heat_cap) ** 2  # adj
-            if self.heat > heat_loss:
-                self.heat -= heat_loss
-                if self.heat > self.type.heat_capacity:
-                    events += self - (self.heat - self.type.heat_capacity) / 1000
-                    # self.heat = self.type.heat_capacity
-            else:
-                self.heat = 0
+        # if not self.cloaked:
+        heat_ratio = (self.heat / self.heat_cap)
+        heat_loss = 0.01 + self.type.heat_venting * heat_ratio ** 2
+        if self.heat > heat_loss:
+            self.heat -= heat_loss
+            if heat_ratio > 1:
+                events += self - heat_ratio / 20  # (self.heat - self.type.heat_capacity) / 1000
+                # self.heat = self.type.heat_capacity
+        else:
+            self.heat = 0
 
-            if self.energy < self.max_energy and not self.cloaked:
-                self.energy += 0.25  # adj
-            if self.health < self.max_health and self.heat == 0:
-                self.health += 0.025  # adj
-                if self.health > self.max_health:
-                    self.health = self.max_health
+        if self.energy < self.max_energy and not self.cloaked:
+            self.energy += 0.25  # adj
+        if self.health < self.max_health and heat_ratio < 1:
+
+            self.health += 0.025 * (1 - heat_ratio) ** 2  # adj
+            if self.health > self.max_health:
+                self.health = self.max_health
         self.count_down()
 
         """UPDATE TURRET"""
@@ -348,7 +351,7 @@ class Ship(Shooter):
 
 
 class Turret(Shooter):
-    def __init__(self, x: float, y: float, pos: np.ndarray[np.float64], angle: float,
+    def __init__(self, x: float, y: float, pos: np.ndarray, angle: float,
                  turret_type: TurretType, ship: Vessel):
         # type_ = ls.TurretTypes[turret_type]
         super().__init__(x, y, turret_type.height, turret_type.width)
