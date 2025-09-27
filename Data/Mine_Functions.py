@@ -3,14 +3,14 @@ import random as rnd
 from Explosions import ExplosionDamage
 import pygame
 from typing import TYPE_CHECKING
-from Data.Types import Particle, Entity, Vessel, Event, Shooter
+from Data.Types import Particle, Entity, Vessel, Effect, Shooter
 from Weapon_Class import Mine
 
 if TYPE_CHECKING:
     from Misc import GlobalState, LocalState
 
 
-def init_mine(ship: Shooter, entity_list: list[Entity]) -> list[Event]:
+def init_mine(ship: Shooter, entity_list: list[Entity]) -> list[Effect]:
     (x, y) = ship.center
     missile = Mine(x, y, ship, ship.angle, ship.mine)
     entity_list.append(missile)

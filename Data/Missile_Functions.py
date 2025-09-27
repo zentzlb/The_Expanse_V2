@@ -1,5 +1,5 @@
 from Explosions import ExplosionDamage, PhotonExplosion, OrbExplosion
-from Data.Types import Particle, glow_circle, Shooter, Entity, Event
+from Data.Types import Particle, glow_circle, Shooter, Entity, Effect
 from Weapon_Class import Missile
 import numpy as np
 import random as rnd
@@ -7,14 +7,14 @@ import math
 import pygame
 
 
-def init_missile(ship: Shooter, entity_list: list[Entity]) -> list[Event]:
+def init_missile(ship: Shooter, entity_list: list[Entity]) -> list[Effect]:
     (x, y) = ship.center + ship.Qt.dot(ship.missile_pos) - np.array([ship.missile.width // 2, ship.missile.height // 2])
     missile = Missile(x, y, ship, ship.angle, ship.missile, ship.target, vx=ship.vx, vy=ship.vy)
     entity_list.append(missile)
     return []
 
 
-def init_swarm(ship: Shooter, entity_list: list[Entity]) -> list[Event]:
+def init_swarm(ship: Shooter, entity_list: list[Entity]) -> list[Effect]:
     (x, y) = ship.center + ship.Qt.dot(ship.missile_pos) - np.array([ship.missile.width / 2, ship.missile.height / 2])
     for _ in range(4):
         v = 4 * rnd.random() + ship.missile.velocity - 4
@@ -131,7 +131,7 @@ def sneaker_guidance(self: Missile) -> dict[str, int]:
     return commands
 
 
-def explosion(self: Missile, entity_list: list[Entity], dmg_list: list[int]) -> list[Event]:
+def explosion(self: Missile, entity_list: list[Entity], dmg_list: list[int]) -> list[Effect]:
     events = []
     for i in dmg_list:
         events += entity_list[i] - self.damage

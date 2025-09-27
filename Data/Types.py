@@ -68,7 +68,7 @@ def glow_ring(display: pygame.Surface, x: float, y: float, radius: float, color:
     display.blit(surf, (x - radius, y - radius), special_flags=BLEND_RGB_ADD)
 
 
-class Event(ABC):
+class Effect(ABC):
     x: float
     y: float
 
@@ -78,8 +78,12 @@ class Event(ABC):
     def __repr__(self):
         return self.__str__()
 
+    @property
+    def sound(self):
+        return ''
+
     @abstractmethod
-    def scoot(self, entity_list: list["Entity"]) -> list[typing.Self]:
+    def scoot(self, entity_list: list["Effect"]) -> list[typing.Self]:
         """
         updates event
         """
@@ -90,143 +94,7 @@ class Event(ABC):
         """
         render event
         """
-        raise NotImplementedError
-
-
-class PlasmaExplosion(Event):
-    def __init__(self, x: float, y: float):
-        self.x = x
-        self.y = y
-        self.timer = 50
-
-    def scoot(self, entity_list: list["Entity"]) -> list[Event]:
-        self.timer -= 1
-        if self.timer > 0:
-            return [self]
-        return []
-
-    def draw(self, surf: pygame.surface, x_off: float, y_off: float):
-        # save images ahead of time
-        for r in range(self.timer):
-            glow_circle(surf, self.x - x_off, self.y - y_off, r, (4, 0, 5))
-
-
-class Beam(Event):
-
-    __slots__ = 'x', 'y', 'x2', 'y2', 'width', 'color', 'shrink', 'timer'
-
-    def __init__(self, x: float, y: float, x2: float, y2: float, width: int, color: COLOR3,
-                 shrink: float = 1):
-        self.x = x
-        self.y = y
-        self.x2 = x2
-        self.y2 = y2
-        self.width: float = width
-        self.color = color
-        self.shrink = shrink
-        self.timer = 2
-
-    def scoot(self, entity_list: list["Entity"]) -> list[Event]:
-        self.timer -= 1
-        if self.timer > 0:
-            return [self]
-        return []
-        # self.width -= self.shrink
-        # return self.width > 0
-
-    def draw(self, surf: pygame.surface, x_off: float, y_off: float) -> None:
-        x, x2 = self.x - x_off, self.x2 - x_off
-        y, y2 = self.y - y_off, self.y2 - y_off
-
-        pygame.draw.line(surf, self.color, (x, y), (x2, y2),
-                         width=round(self.width))
-        glow_circle(surf, x2, y2, rnd.randint(5, 10), (150, 50, 0, 50))
-        glow_circle(surf, x, y, rnd.randint(3, 5), (150, 50, 0, 50))
-
-
-class Particle(Event):
-    __slots__ = 'x', 'y', 'v', 'angle', 'radius', 'color', 'shrink', 'vx', 'vy', 'glow', 'show'
-
-    def __init__(self,
-                 x: float,
-                 y: float,
-                 v: float,
-                 angle: float,
-                 radius: int,
-                 color,
-                 shrink: float = 0,
-                 vx: float = 0,
-                 vy: float = 0,
-                 glow=(0, 0, 0),
-                 show=True):
-        self.x = x
-        self.y = y
-        self.vx = v * math.sin(angle * math.pi / 180) + vx
-        self.vy = v * math.cos(angle * math.pi / 180) + vy
-        self.color = color
-        self.radius = radius
-        self.shrink = shrink
-        self.glow = glow
-        self.show = show
-
-
-    def scoot(self, entity_list: list["Entity"]) -> list[Event]:
-        self.x += self.vx
-        self.y += self.vy
-        if rnd.random() > self.shrink:
-            self.radius -= 1
-
-        if self.radius > 0:
-            return [self]
-        return []
-
-    def draw(self, surf: pygame.surface, x_off: float, y_off: float):
-        if self.show:
-            pygame.draw.circle(surf, self.color, (self.x - x_off, self.y - y_off), self.radius)
-            if self.glow != (0, 0, 0):
-                glow_circle(surf, self.x - x_off, self.y - y_off, 2 * self.radius, self.glow)
-
-
-class Chaff(Particle):
-
-    def __init__(self, x: float, y: float, v: float,
-                 angle: float, radius: int, color, ship: "Entity", entity_list: list["Entity"]):
-        super().__init__(x, y, v, angle, radius, color)
-        for entity in entity_list:
-            if type(Entity) is Shooter and rnd.random() > 0.6:
-                pass
-
-            
-
-
-
-class Debris(Event):
-    def __init__(self, x, y, v, angle, debris_type, time, av, vx=0, vy=0, show=True):
-        self.x = x
-        self.y = y
-        self.vx = v * math.sin(angle * math.pi / 180) + vx
-        self.vy = v * math.cos(angle * math.pi / 180) + vy
-        self.type = debris_type
-        self.height = debris_type.image.get_height()
-        self.width = debris_type.image.get_width()
-        self.angle = rnd.randint(-180, 180)
-        self.av = av
-        self.show = show
-        self.counter = time
-        # print(self.av)
-
-    def scoot(self, entity_list: list["Entity"]) -> list[Event]:
-        self.x += self.vx
-        self.y += self.vy
-        self.angle += self.av
-        self.counter -= 1
-        if self.counter > 0:
-            return [self]
-        return []
-
-    def draw(self, surf: pygame.surface, x_off: float, y_off: float):
-        debris = pygame.transform.rotate(self.type.image, self.angle)
-        surf.blit(debris, (self.x - x_off, self.y - y_off))
+        pass
 
 
 class BackgroundParticle:
@@ -350,7 +218,7 @@ class BulletType(SlotType):
         self.l_image: pygame.Surface = kwargs['l_image']
         self.sound: pygame.mixer.Sound = kwargs['sound']
         self.function: typing.Callable[
-            [Entity, list[Entity], list[int]], list[Event]] = kwargs['function']
+            [Entity, list[Entity], list[int]], list[Effect]] = kwargs['function']
         self.init: typing.Callable = kwargs['init']
         self.draw: typing.Callable = kwargs['draw']
 
@@ -526,7 +394,7 @@ class Entity(pygame.FRect):
     id: str
     type: EntityType
 
-    def __sub__(self, other: float) -> list[Event]:
+    def __sub__(self, other: float) -> list[Effect]:
         self.health -= other
         return []
 
@@ -546,7 +414,7 @@ class Entity(pygame.FRect):
         return self.type.velocity
 
     @abstractmethod
-    def scoot(self, entity_list: list[typing.Self]) -> list[Event]:
+    def scoot(self, entity_list: list[typing.Self]) -> list[Effect]:
         """Updates Entity's position and status by frame."""
         raise NotImplementedError
 
@@ -666,7 +534,7 @@ class GlobalStateInt(State):
     radio: dict
     size: tuple[int, int]
     entities: list[Entity]
-    events: list[Event]
+    events: list[Effect]
     lines: list
     explosion_group = pygame.sprite.Group
 
@@ -749,7 +617,7 @@ class Projectile(Entity):
     faction: FactionType
     image: pygame.Surface
 
-    def scoot(self, entity_list: list[Entity]) -> tuple[Event]:
+    def scoot(self, entity_list: list[Entity]) -> tuple[Effect]:
         """
         updates vessel by frame
         :param entity_list: list of other game entities
@@ -828,7 +696,7 @@ class Vessel(Entity):
         """
         pass
 
-    def scoot(self, entity_list: list[Entity]) -> tuple[Event]:
+    def scoot(self, entity_list: list[Entity]) -> tuple[Effect]:
         """
         updates vessel by frame
         :param entity_list: list of other game entities
@@ -876,7 +744,7 @@ class Slot:
     def ready(self) -> bool:
         return self.counter + self.type.spin_up <= 0 < self.ammo
 
-    def use(self, shooter: Vessel, entity_list: list[Entity]) -> list[Event]:
+    def use(self, shooter: Vessel, entity_list: list[Entity]) -> list[Effect]:
         if type(self.type) is NullSlot:
             return []
         if self.ready and self.energy <= shooter.energy:

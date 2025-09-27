@@ -20,6 +20,16 @@ MOUSE_POS = (0, 0)
 # Create gravity variable and projectile force variable
 GRAVITY = 0.01
 
+class Mixer:
+    def __init__(self, *paths):
+        self.sounds = [pygame.mixer.Sound(path) for path in paths]
+
+    def play(self, i: int, volume: int = 1):
+        if i < len(self.sounds):
+            self.sounds[i].set_volume(volume)
+            self.sounds[i].play(loops=0, fade_ms=50)
+
+
 
 class Drop:
     def __init__(self, x: float, y: float):
@@ -73,6 +83,10 @@ class Chain:
             pygame.draw.line(surf, (90, 90, 90), link.xy1, link.xy2, width=3)
 
 SIZE = 10
+MIXER = Mixer(*[r"C:\Users\logan\PycharmProjects\Space_Arcade\Assets\AutoCannon_launch.mp3",
+               r"C:\Users\logan\PycharmProjects\Space_Arcade\Assets\missile_launch.mp3",
+               r"C:\Users\logan\PycharmProjects\Space_Arcade\Assets\PA_launch.mp3",
+               r"C:\Users\logan\PycharmProjects\Space_Arcade\Assets\railgun_launch.mp3"])
 CHAIN = Chain([Link(SIZE, (200, 200+i*SIZE), (200, 200+(i+1)*SIZE)) for i in range(20)])
 DROPS: list[Drop] = []
 
@@ -83,9 +97,18 @@ while True:
         if event.type == pygame.MOUSEMOTION:
             MOUSE_POS = event.pos
 
+        if event.type == pygame.KEYDOWN:
+            str_ = event.unicode
+            print(str_)
+            try:
+                i = int(str_)
+                MIXER.play(i)
+            except ValueError:
+                print('not working')
         if event.type == pygame.QUIT:
             pygame.display.quit()
             sys.exit()
+
     CHAIN.update(MOUSE_POS)
     if rnd.random() > 0.99:
         end_link = CHAIN.links[-1]

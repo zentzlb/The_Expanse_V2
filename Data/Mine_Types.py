@@ -4,7 +4,6 @@ from typing import Callable
 from .Mine_Functions import *
 from Data.Types import MineType
 
-pygame.mixer.init()
 pygame.display.init()
 
 ProximityMine = {'damage': 0,

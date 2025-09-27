@@ -6,8 +6,6 @@ from .Missile_Functions import *
 from Data.Types import MissileType, get_attr
 from Data.Missile_Functions import dumb_guidance, drunk_guidance, smart_guidance, init_missile
 
-pygame.mixer.init()
-
 Seeker = {'velocity': 6,  # adj
           'acc': 0.5,
           'av': 0.7,  # adj

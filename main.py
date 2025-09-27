@@ -25,7 +25,6 @@ pygame.display.set_caption("The Expanse")  # set window title
 
 
 pygame.init()
-pygame.mixer.init()
 
 # explosion_group = pygame.sprite.Group()  # initialize explosion group
 
@@ -42,8 +41,6 @@ def main():
 
     """Play Music"""
     pygame.init()
-    pygame.mixer.init()
-    pygame.mixer.set_num_channels(3)
     ls = LocalState(0, 0, HEIGHT, WIDTH)
     ls.menu_name = 'faction selection'
     # gs.entities.append(enemy := Ship(NPControl, 1000 + rnd.randint(0, 200), 1000 +

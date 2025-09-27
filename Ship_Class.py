@@ -7,7 +7,8 @@ from Explosions import ShipExplosion
 
 from Weapon_Class import Missile
 # from Misc import assign_ore, RequestUndock, GlobalState, LocalState
-from Data.Types import Entity, Event, Particle, Shooter
+from Data.Types import Entity, Effect, Shooter
+from Data.Effects import Particle
 from typing import Callable
 from Data.constants import DRAG
 from Data.Types import (ShipType, BulletType, MissileType, MineType, UtilityType, TurretType,
@@ -184,7 +185,7 @@ class Ship(Shooter):
         self.image.blit(L2, (0, 0))
         self.image.convert_alpha()
 
-    def scoot(self, entity_list: list[Entity]) -> list[Event]:
+    def scoot(self, entity_list: list[Entity]) -> list[Effect]:
 
         commands = self.control_module(self, entity_list)
         self.forward = False
@@ -345,7 +346,7 @@ class Ship(Shooter):
                 xy = self.Qt.dot(turret.pos)
                 turret.centerx = self.centerx + xy[0]
                 turret.centery = self.centery + xy[1]
-                turret.scoot(entity_list, self.faction_name)
+                turret.scoot(entity_list)
 
         return events
 

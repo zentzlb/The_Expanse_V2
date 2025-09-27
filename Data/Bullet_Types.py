@@ -11,8 +11,6 @@ import os
 import math
 import pygame
 
-pygame.mixer.init()
-
 
 
 PATH = r'Assets'
