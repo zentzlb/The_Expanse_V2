@@ -169,7 +169,7 @@ def emp_explosion(self, gs, dmgList):
     ExplosionDamage(self.exp_damage, self.centerx, self.centery, self.exp_radius, self.targets, gs)
 
 
-def HeatOrb(self, gs, dmgList):
+def heat_orb(self, gs, dmgList):
     for i in dmgList:
         self.targets[i].health -= self.damage
         self.targets[i].heat += 4 * self.damage

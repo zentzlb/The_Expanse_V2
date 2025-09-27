@@ -149,7 +149,7 @@ IonOrb = {'velocity': 4.5,  # adj
           'image': pygame.image.load(os.path.join('Assets', 'Ion_Orb.png')),
           'sound': pygame.mixer.Sound('Assets/missile_launch.mp3'),
           'init': init_missile,
-          'explosion': HeatOrb,
+          'explosion': heat_orb,
           'draw': draw_orb}
 
 PhotonTorpedo = {'velocity': 4,  # adj
