@@ -100,6 +100,9 @@ def smart_guidance(self: Missile) -> dict[str, int]:
 def sneaker_guidance(self: Missile) -> dict[str, int]:
     commands = {'thrust': False, 'rotate': 0}
 
+    if self.target is None:
+        return commands
+
     if self.timer == self.range / self.velocity and self.speed > self.velocity / 2:  #
         return commands
     commands['thrust'] = True
