@@ -7,7 +7,7 @@ from Data.Types import Particle, Entity, Vessel, Event, Shooter
 from Weapon_Class import Mine
 
 if TYPE_CHECKING:
-    from Misc import GlobalState, LocalState
+    from Misc import GameState, LocalState
 
 
 def init_mine(ship: Shooter, entity_list: list[Entity]) -> list[Event]:
@@ -23,7 +23,7 @@ def draw_mine(mine: Mine, surf: pygame.Surface, x_center: float, y_center: float
     surf.blit(pygame.transform.rotate(mine.image, mine.angle), (x, y))
 
 
-def explosion(self: Mine, gs: "GlobalState"):
+def explosion(self: Mine, gs: "GameState"):
     for i in range(100):
         c = rnd.randint(100, 200)
         gs.particle_list2.append(Particle(self.centerx, self.centery, -rnd.randint(1, self.er // 20),
@@ -33,7 +33,7 @@ def explosion(self: Mine, gs: "GlobalState"):
     ExplosionDamage(self.exp_damage, self.centerx, self.centery, self.er, gs.targets[self.faction], gs)
 
 
-def proximity(self: Mine, gs: "GlobalState"):
+def proximity(self: Mine, gs: "GameState"):
     if self.timer < self.arm:
         dr2 = self.type.det_radius * self.type.det_radius
         for target in gs.targets[self.faction]:

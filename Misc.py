@@ -16,7 +16,7 @@ from Data.Missile_Types import MISSILETYPES, MISSILEMETA
 from Data.Ship_Types import SHIPTYPES, SHIPMETA
 from Data.Station_Types import STATIONTYPES
 from Data.Turret_Types import TURRETTYPES
-from Data.Types import Entity, State, GlobalStateInt, BackgroundParticle, get_attr
+from Data.Types import Entity, State, GameStateInt, BackgroundParticle, get_attr
 from Data.Utility_Types import UTILITYTYPES
 from Data.constants import *
 from Menus2 import Button
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     pass
 
 
-class GlobalState(GlobalStateInt):
+class GameState(GameStateInt):
 
     def __init__(self, size: tuple[int, int], entities: list[Entity]):
         self.radio = {}

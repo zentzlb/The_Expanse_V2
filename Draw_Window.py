@@ -4,7 +4,7 @@ import os
 import numpy as np
 import math
 import time
-from Misc import GlobalState, LocalState
+from Misc import GameState, LocalState
 from utils import TargetingComputer
 from Menus import StationMenu
 from Ship_Class import Ship, Asteroid, Base
@@ -15,7 +15,7 @@ from Control_Functions import Point
 from Text_Commands import unpack_str, complete_str
 
 
-def draw_window(gs: GlobalState, ls: LocalState, fps: int, HEIGHT: int, WIDTH: int):
+def draw_window(gs: GameState, ls: LocalState, fps: int, HEIGHT: int, WIDTH: int):
     keys_pressed = pygame.key.get_pressed()
 
     # ls.WIN2.fill((0, 0, 0, 0))
@@ -65,7 +65,7 @@ def draw_window(gs: GlobalState, ls: LocalState, fps: int, HEIGHT: int, WIDTH: i
     pygame.display.update()  # scoot window
 
 
-def draw_hud(gs: GlobalState, ls: LocalState, keys_pressed, fps: float):
+def draw_hud(gs: GameState, ls: LocalState, keys_pressed, fps: float):
 
     rr = 100  # radar radius
     hbh = 30  # health bar height

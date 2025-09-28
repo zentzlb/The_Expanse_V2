@@ -4,10 +4,10 @@ import numpy as np
 import math
 import random as rnd
 import time
-from copy import deepcopy, copy
+# from copy import deepcopy, copy
 
 from Draw_Window import draw_window
-from Misc import GlobalState, LocalState
+from Misc import GameState, LocalState
 # from Weapon_Class import Bullet
 from Ship_Class import Ship, Base, Asteroid
 from Control_Functions import NPControl, NPControl2, TurretControl, PlayerControl2, Null
@@ -29,7 +29,7 @@ pygame.mixer.init()
 
 # explosion_group = pygame.sprite.Group()  # initialize explosion group
 
-gs = GlobalState((100000, 100000), [])  # global state object: used to keep track of global variables
+gs = GameState((100000, 100000), [])  # global state object: used to keep track of global variables
 
 
 def main():

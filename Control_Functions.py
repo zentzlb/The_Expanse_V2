@@ -9,7 +9,7 @@ from Data.Types import Entity
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from Misc import GlobalState
+    from Misc import GameState
 
 
 class Point:
@@ -617,7 +617,7 @@ def find_missile(ship: Ship):
     return ind, r
 
 
-def use_util(ship: Ship, gs: "GlobalState", commands: list[int], faction: str):
+def use_util(ship: Ship, gs: "GameState", commands: list[int], faction: str):
     for us in range(len(ship.util_types)):
         use = ship.util_types[us].logic(ship, gs, commands, faction)
         if use == 1:

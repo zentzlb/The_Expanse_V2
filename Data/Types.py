@@ -518,6 +518,9 @@ class State(ABC):
 
 
 class Entity(pygame.FRect):
+    """
+    class for describing game objects
+    """
     health: float
     heat: float
     vx: float
@@ -529,6 +532,13 @@ class Entity(pygame.FRect):
     def __sub__(self, other: float) -> list[Event]:
         self.health -= other
         return []
+
+    @property
+    def pos(self):
+        """
+        position vector of Entity
+        """
+        return np.array(self.center)
 
     @property
     def name(self) -> str:
@@ -560,8 +570,7 @@ class Entity(pygame.FRect):
     @property
     def speed(self):
         """
-        speed of projectile
-        :return:
+        speed of entity
         """
         return math.sqrt(self.vx * self.vx + self.vy * self.vy)
 
@@ -662,7 +671,7 @@ class Entity(pygame.FRect):
         return ''
 
 
-class GlobalStateInt(State):
+class GameStateInt(State):
     radio: dict
     size: tuple[int, int]
     entities: list[Entity]
