@@ -2,6 +2,41 @@ import math
 from Data.Types import Entity, Vessel, Shooter, Projectile, Beam
 import numpy as np
 import numpy.typing as npt
+from typing import Annotated
+
+POS = Annotated[npt.NDArray[np.float64], (2,)]
+
+
+def nearest(pos: POS, points: list[POS]) -> int:
+    """
+    calculates nearest point to position
+    :param pos: reference position
+    :param points: points to compare
+    :return: index of closest point
+    """
+    points_array = np.array(points)
+    distance = np.linalg.norm(points_array - pos)
+    return distance.argmin()
+
+
+def nearest2(pos: POS, points: list[POS]) -> int:
+    """
+    calculates nearest point to position
+    :param pos: reference position
+    :param points: points to compare
+    :return: index of closest point
+    """
+    x = pos[0]
+    y = pos[1]
+    distance = []
+    for i, entity in enumerate(points):
+        dx = entity[0] - x
+        dy = entity[1] - y
+        distance.append(dx * dx + dy * dy)
+    return distance.index(min(distance))
+
+
+
 
 
 def beam_collision(x: float, y: float, range_: float, angle: float, entity_list: list[Entity]) \
@@ -139,3 +174,26 @@ def TargetingComputer(ship: Shooter) -> tuple[float, float, float]:
         in_rng = False
 
     return angle2, in_rng, r
+
+
+
+if __name__ == '__main__':
+    import timeit
+    import random as rnd
+
+    n = 5
+    size = 1_000_000
+
+    rnd.seed(2)
+
+    A = np.array([rnd.randint(-12, 12), rnd.randint(-12, 12)])
+
+    B = np.random.randint(-12, 12, size=(size, 2))
+    print(B)
+
+    time = timeit.timeit(lambda: nearest(A, B), number=n)
+    print(f"Average time: {time / n:.6f} seconds per call")
+
+    time = timeit.timeit(lambda: nearest2(A, B), number=n)
+    print(f"Average time: {time / n:.6f} seconds per call")
+
